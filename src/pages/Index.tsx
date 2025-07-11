@@ -30,6 +30,7 @@ const Index = () => {
     handleLogin,
     handleLogout,
     handleRegister,
+    handlePasswordReset,
   } = useAuth();
 
   const renderDashboard = () => {
@@ -70,6 +71,7 @@ const Index = () => {
         onLogin={handleLogin}
         onRegister={handleRegister}
         onToggleRegister={() => setShowRegister(!showRegister)}
+        onPasswordReset={handlePasswordReset}
       />
     );
   }

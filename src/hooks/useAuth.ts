@@ -54,6 +54,12 @@ export const useAuth = () => {
     setShowRegister(false);
   };
 
+  const handlePasswordReset = (email: string) => {
+    // Здесь будет логика восстановления пароля
+    console.log("Восстановление пароля для:", email);
+    // В реальном приложении здесь бы был запрос к API
+  };
+
   return {
     isLoggedIn,
     userRole,
@@ -66,5 +72,6 @@ export const useAuth = () => {
     handleLogin,
     handleLogout,
     handleRegister,
+    handlePasswordReset,
   };
 };
