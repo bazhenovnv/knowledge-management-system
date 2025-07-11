@@ -150,6 +150,8 @@ export const AdminDashboard = ({
                           Отдел маркетплейсы
                         </SelectItem>
                         <SelectItem value="it">Отдел IT</SelectItem>
+                        <SelectItem value="1c">1С</SelectItem>
+                        <SelectItem value="cm">Отдел ЦМ</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

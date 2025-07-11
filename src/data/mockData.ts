@@ -125,6 +125,24 @@ export const employees = [
     tests: 12,
     avgScore: 79,
   },
+  {
+    name: "Семенов К.Д.",
+    department: "1С",
+    position: "Программист 1С",
+    score: 4.1,
+    status: "green",
+    tests: 18,
+    avgScore: 88,
+  },
+  {
+    name: "Титова Ю.А.",
+    department: "Отдел ЦМ",
+    position: "Специалист по ЦМ",
+    score: 3.9,
+    status: "green",
+    tests: 14,
+    avgScore: 81,
+  },
 ];
 
 export const knowledgeBase = [
