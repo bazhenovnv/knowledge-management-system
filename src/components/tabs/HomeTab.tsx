@@ -9,7 +9,7 @@ interface HomeTabProps {
 export const HomeTab = ({ setActiveTab }: HomeTabProps) => {
   return (
     <div className="space-y-6">
-      <div className="text-center py-12">
+      <div className="text-center py-12 bg-green-100">
         <h2 className="font-bold text-gray-900 mb-4 text-3xl">
           Добро пожаловать в систему развития сотрудников
         </h2>
