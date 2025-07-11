@@ -10,11 +10,13 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
+import { NotificationPanel } from "@/components/notifications/NotificationPanel";
+import { NotificationBadge } from "@/components/notifications/NotificationBadge";
+import { useNotifications } from "@/hooks/useNotifications";
 
 interface NavigationProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  notifications: number;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
 }
@@ -22,10 +24,33 @@ interface NavigationProps {
 export const Navigation = ({
   activeTab,
   setActiveTab,
-  notifications,
   sidebarOpen,
   setSidebarOpen,
 }: NavigationProps) => {
+  const {
+    notifications,
+    unreadCount,
+    isOpen,
+    setIsOpen,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAll,
+  } = useNotifications();
+
+  const handleActionClick = (notification: any) => {
+    // Закрываем панель уведомлений
+    setIsOpen(false);
+
+    // Переходим на соответствующую вкладку
+    if (notification.actionUrl?.includes("dashboard")) {
+      setActiveTab("dashboard");
+    } else if (notification.actionUrl?.includes("knowledge")) {
+      setActiveTab("knowledge");
+    } else if (notification.actionUrl?.includes("analytics")) {
+      setActiveTab("analytics");
+    }
+  };
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -33,10 +58,20 @@ export const Navigation = ({
           <h1 className="text-2xl font-bold text-gray-900">
             Развитие сотрудников
           </h1>
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            {notifications} новых уведомлений
-          </Badge>
+          <NotificationBadge count={unreadCount} />
         </div>
+        <div className="flex items-center space-x-2">
+          <NotificationPanel
+            notifications={notifications}
+            unreadCount={unreadCount}
+            isOpen={isOpen}
+            onOpenChange={setIsOpen}
+            onMarkAsRead={markAsRead}
+            onMarkAllAsRead={markAllAsRead}
+            onDelete={deleteNotification}
+            onClearAll={clearAll}
+            onActionClick={handleActionClick}
+          />
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="md:hidden">

@@ -15,7 +15,6 @@ import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
-  const [notifications, setNotifications] = useState(3);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const {
@@ -81,7 +80,6 @@ const Index = () => {
           <Navigation
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            notifications={notifications}
             sidebarOpen={sidebarOpen}
             setSidebarOpen={setSidebarOpen}
           />
