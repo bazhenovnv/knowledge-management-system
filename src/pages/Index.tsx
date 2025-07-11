@@ -15,7 +15,6 @@ import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
-  const [aiQuery, setAiQuery] = useState("");
   const [notifications, setNotifications] = useState(3);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -99,8 +98,6 @@ const Index = () => {
             <KnowledgeTab
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
-              aiQuery={aiQuery}
-              setAiQuery={setAiQuery}
             />
           </TabsContent>
 

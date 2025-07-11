@@ -22,19 +22,16 @@ import {
 import Icon from "@/components/ui/icon";
 import { knowledgeBase } from "@/data/mockData";
 import { getDifficultyColor } from "@/utils/statusUtils";
+import { AIChat } from "@/components/ai/AIChat";
 
 interface KnowledgeTabProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  aiQuery: string;
-  setAiQuery: (query: string) => void;
 }
 
 export const KnowledgeTab = ({
   searchQuery,
   setSearchQuery,
-  aiQuery,
-  setAiQuery,
 }: KnowledgeTabProps) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -214,37 +211,7 @@ export const KnowledgeTab = ({
         ))}
       </div>
 
-      <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Icon name="Bot" size={24} className="mr-2 text-purple-600" />
-            AI Помощник
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex space-x-4">
-              <Input
-                placeholder="Задайте вопрос AI помощнику..."
-                value={aiQuery}
-                onChange={(e) => setAiQuery(e.target.value)}
-                className="flex-1"
-              />
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                <Icon name="Send" size={16} className="mr-2" />
-                Спросить
-              </Button>
-            </div>
-            {aiQuery && (
-              <div className="bg-white p-4 rounded-lg border">
-                <p className="text-sm text-gray-600">
-                  Ответ AI помощника будет здесь...
-                </p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      <AIChat />
     </div>
   );
 };
