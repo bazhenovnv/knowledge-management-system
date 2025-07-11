@@ -12,6 +12,7 @@ import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { employees } from "@/data/mockData";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
+import TestManagement from "@/components/tests/TestManagement";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -100,6 +101,12 @@ const Index = () => {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
+          </TabsContent>
+
+          <TabsContent value="tests" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <TestManagement userRole={userRole} />
+            </div>
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">

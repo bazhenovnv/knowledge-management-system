@@ -118,6 +118,20 @@ export const Navigation = ({
                     База знаний
                   </Button>
                   <Button
+                    variant={activeTab === "tests" ? "default" : "ghost"}
+                    className="w-full justify-start test-button-animate test-button-glow test-button-hover relative"
+                    onClick={() => {
+                      setActiveTab("tests");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <Icon name="FileText" size={16} className="mr-2" />
+                    Тесты
+                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
+                      NEW
+                    </span>
+                  </Button>
+                  <Button
                     variant={activeTab === "analytics" ? "default" : "ghost"}
                     className="w-full justify-start"
                     onClick={() => {
@@ -135,7 +149,7 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className="grid w-full grid-cols-4 mb-8 bg-white/50 backdrop-blur-sm">
+      <TabsList className="grid w-full grid-cols-5 mb-8 bg-white/50 backdrop-blur-sm">
         <TabsTrigger
           value="home"
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
@@ -161,6 +175,16 @@ export const Navigation = ({
           <Icon name="BookOpen" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">
             База знаний
+          </span>
+        </TabsTrigger>
+        <TabsTrigger
+          value="tests"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative"
+        >
+          <Icon name="FileText" size={16} className="mr-2" />
+          <span className="hidden sm:inline text-lg text-[#000000]">Тесты</span>
+          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
+            NEW
           </span>
         </TabsTrigger>
         <TabsTrigger
