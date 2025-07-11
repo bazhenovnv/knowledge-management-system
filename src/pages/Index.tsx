@@ -198,6 +198,46 @@ const Index = () => {
     localStorage.removeItem("authToken");
     setIsLoggedIn(false);
     setUserRole("employee");
+    setActiveTab("home");
+  };
+
+  const handleStartTest = (testName: string) => {
+    alert(
+      `Запуск теста: ${testName}\nЭто демо-версия. Функционал будет доступен в полной версии.`,
+    );
+  };
+
+  const handleReadArticle = (articleName: string) => {
+    alert(
+      `Открытие статьи: ${articleName}\nЭто демо-версия. Функционал будет доступен в полной версии.`,
+    );
+  };
+
+  const handleAssignTest = (employeeName: string) => {
+    alert(
+      `Назначение теста сотруднику: ${employeeName}\nЭто демо-версия. Функционал будет доступен в полной версии.`,
+    );
+  };
+
+  const handleExportData = (format: string) => {
+    alert(
+      `Экспорт данных в формате: ${format}\nЭто демо-версия. Функционал будет доступен в полной версии.`,
+    );
+  };
+
+  const handleAIQuery = () => {
+    if (!aiQuery.trim()) {
+      alert("Введите запрос для ИИ помощника");
+      return;
+    }
+    alert(
+      `ИИ Помощник обрабатывает запрос: "${aiQuery}"\nЭто демо-версия. Функционал будет доступен в полной версии.`,
+    );
+    setAiQuery("");
+  };
+
+  const handleNavigateToSection = (section: string) => {
+    setActiveTab(section);
   };
 
   // Если пользователь не авторизован, показываем форму входа
@@ -630,7 +670,10 @@ const Index = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
+                    <Button
+                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                      onClick={() => handleNavigateToSection("knowledge")}
+                    >
                       Начать изучение
                     </Button>
                   </CardContent>
@@ -651,7 +694,10 @@ const Index = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
+                    <Button
+                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                      onClick={() => handleStartTest("Общий тест знаний")}
+                    >
                       Пройти тест
                     </Button>
                   </CardContent>
@@ -672,7 +718,10 @@ const Index = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700">
+                    <Button
+                      className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700"
+                      onClick={() => handleNavigateToSection("analytics")}
+                    >
                       Посмотреть статистику
                     </Button>
                   </CardContent>
@@ -684,7 +733,19 @@ const Index = () => {
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
             {userRole === "employee" && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Личный кабинет сотрудника</h2>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleLogout}
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                  >
+                    <Icon name="LogOut" size={16} className="mr-2" />
+                    Выход
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
                     <CardHeader>
@@ -762,6 +823,7 @@ const Index = () => {
                           <Button
                             size="sm"
                             className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                            onClick={() => handleStartTest('Корпоративная этика')}
                           >
                             Начать тест
                           </Button>
@@ -778,6 +840,7 @@ const Index = () => {
                           <Button
                             size="sm"
                             className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+                            onClick={() => handleStartTest('Техника безопасности')}
                           >
                             Начать тест
                           </Button>
@@ -858,6 +921,17 @@ const Index = () => {
 
             {userRole === "admin" && (
               <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Панель администратора</h2>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleLogout}
+                    className="text-red-600 border-red-600 hover:bg-red-50"
+                  >
+                    <Icon name="LogOut" size={16} className="mr-2" />
+                    Выход
+                  </Button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
                     <CardContent className="p-6">
@@ -1046,7 +1120,11 @@ const Index = () => {
                             >
                               {getStatusText(employee.status)}
                             </Badge>
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleAssignTest(employee.name)}
+                            >
                               Назначить тест
                             </Button>
                           </div>
@@ -1099,7 +1177,10 @@ const Index = () => {
                         onChange={(e) => setAiQuery(e.target.value)}
                         className="min-h-[100px]"
                       />
-                      <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                      <Button 
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                        onClick={handleAIQuery}
+                      >
                         Отправить запрос
                       </Button>
                     </div>
@@ -1122,13 +1203,18 @@ const Index = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center justify-between">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleReadArticle(item.title)}
+                      >
                         <Icon name="Eye" size={16} className="mr-2" />
                         Читать
                       </Button>
                       <Button
                         size="sm"
                         className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 animate-pulse"
+                        onClick={() => handleStartTest(`Тест по теме: ${item.title}`)}
                       >
                         <Icon name="FileText" size={16} className="mr-2" />
                         Тест
@@ -1221,14 +1307,14 @@ const Index = () => {
                 <div className="flex items-center space-x-4">
                   <Button
                     className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 animate-pulse"
-                    onClick={() => console.log("Экспорт в CSV")}
+                    onClick={() => handleExportData('CSV')}
                   >
                     <Icon name="Download" size={16} className="mr-2" />
                     Экспорт CSV
                   </Button>
                   <Button
                     className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 animate-pulse"
-                    onClick={() => console.log("Экспорт в Excel")}
+                    onClick={() => handleExportData('Excel')}
                   >
                     <Icon name="FileSpreadsheet" size={16} className="mr-2" />
                     Экспорт Excel
