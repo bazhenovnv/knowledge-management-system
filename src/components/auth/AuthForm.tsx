@@ -44,10 +44,10 @@ export const AuthForm = ({
       <div className="w-full max-w-md space-y-6">
         {/* Заголовки системы */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-3xl text-[#000000]">
             Корпоративное обучение
           </h1>
-          <p className="text-lg text-gray-600 font-medium">
+          <p className="text-gray-600 font-medium text-sm">
             Система управления знаниями сотрудников
           </p>
         </div>
