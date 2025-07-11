@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Navigation } from "@/components/layout/Navigation";
@@ -19,7 +17,6 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [aiQuery, setAiQuery] = useState("");
   const [notifications, setNotifications] = useState(3);
-  const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const {
@@ -79,23 +76,8 @@ const Index = () => {
   }
 
   return (
-    <div
-      className={`min-h-screen ${darkMode ? "dark" : ""} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100`}
-    >
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-4">
-            <Label htmlFor="dark-mode" className="text-sm font-medium">
-              Темная тема
-            </Label>
-            <Switch
-              id="dark-mode"
-              checked={darkMode}
-              onCheckedChange={setDarkMode}
-            />
-          </div>
-        </div>
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <Navigation
             activeTab={activeTab}
