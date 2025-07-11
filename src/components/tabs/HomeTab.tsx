@@ -10,7 +10,7 @@ export const HomeTab = ({ setActiveTab }: HomeTabProps) => {
   return (
     <div className="space-y-6">
       <div className="text-center py-12">
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">
+        <h2 className="font-bold text-gray-900 mb-4 text-3xl">
           Добро пожаловать в систему развития сотрудников
         </h2>
         <p className="text-xl text-gray-600 mb-8">
