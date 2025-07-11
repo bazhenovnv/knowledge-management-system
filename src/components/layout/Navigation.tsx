@@ -141,28 +141,36 @@ export const Navigation = ({
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
         >
           <Icon name="Home" size={16} className="mr-2" />
-          <span className="hidden sm:inline">Главная</span>
+          <span className="hidden sm:inline text-lg text-[#000000]">
+            Главная
+          </span>
         </TabsTrigger>
         <TabsTrigger
           value="dashboard"
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
-          <span className="hidden sm:inline">Панель</span>
+          <span className="hidden sm:inline text-lg text-[#000000]">
+            Панель
+          </span>
         </TabsTrigger>
         <TabsTrigger
           value="knowledge"
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
-          <span className="hidden sm:inline">База знаний</span>
+          <span className="hidden sm:inline text-lg text-[#000000]">
+            База знаний
+          </span>
         </TabsTrigger>
         <TabsTrigger
           value="analytics"
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
-          <span className="hidden sm:inline">Аналитика</span>
+          <span className="hidden sm:inline text-lg text-[#000000]">
+            Аналитика
+          </span>
         </TabsTrigger>
       </TabsList>
     </>
