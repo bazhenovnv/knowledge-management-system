@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Icon from "@/components/ui/icon";
+import TestManagement from "@/components/tests/TestManagement";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -222,6 +223,13 @@ export const AdminDashboard = ({
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Тесты */}
+      <Card>
+        <CardContent className="p-6">
+          <TestManagement userRole="admin" />
         </CardContent>
       </Card>
     </div>

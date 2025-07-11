@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
+import TestManagement from "@/components/tests/TestManagement";
 
 interface TeacherDashboardProps {
   onLogout: () => void;
@@ -88,6 +89,13 @@ export const TeacherDashboard = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Тесты */}
+      <Card>
+        <CardContent className="p-6">
+          <TestManagement userRole="teacher" />
+        </CardContent>
+      </Card>
     </div>
   );
 };

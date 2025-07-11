@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
+import TestManagement from "@/components/tests/TestManagement";
 
 interface EmployeeDashboardProps {
   onLogout: () => void;
@@ -75,6 +76,13 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Тесты */}
+      <Card>
+        <CardContent className="p-6">
+          <TestManagement userRole="student" />
+        </CardContent>
+      </Card>
     </div>
   );
 };
