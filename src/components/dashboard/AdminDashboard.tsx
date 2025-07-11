@@ -126,10 +126,30 @@ export const AdminDashboard = ({
                         <SelectValue placeholder="Выберите отдел" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="it">ИТ</SelectItem>
-                        <SelectItem value="hr">HR</SelectItem>
-                        <SelectItem value="finance">Финансы</SelectItem>
-                        <SelectItem value="marketing">Маркетинг</SelectItem>
+                        <SelectItem value="cto">ЦТО</SelectItem>
+                        <SelectItem value="service">Сервис</SelectItem>
+                        <SelectItem value="large-clients">
+                          Крупные клиенты
+                        </SelectItem>
+                        <SelectItem value="partnership">Партнерка</SelectItem>
+                        <SelectItem value="requests">Отдел заявок</SelectItem>
+                        <SelectItem value="support">
+                          Отдел сопровождения
+                        </SelectItem>
+                        <SelectItem value="horeca">HoReCa</SelectItem>
+                        <SelectItem value="tinkoff">Отдел Тинькофф</SelectItem>
+                        <SelectItem value="fn">Отдел ФН</SelectItem>
+                        <SelectItem value="logistics">Логистика</SelectItem>
+                        <SelectItem value="tech-support">
+                          Тех. поддержка
+                        </SelectItem>
+                        <SelectItem value="marketing">
+                          Отдел маркетинга
+                        </SelectItem>
+                        <SelectItem value="marketplaces">
+                          Отдел маркетплейсы
+                        </SelectItem>
+                        <SelectItem value="it">Отдел IT</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
