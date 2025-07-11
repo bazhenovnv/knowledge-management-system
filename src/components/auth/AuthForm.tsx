@@ -173,8 +173,7 @@ export const AuthForm = ({
                 onClick={() => onLogin(loginForm.email, loginForm.password)}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
-                <Icon name="LogIn" size={16} className="mr-2" />
-                Войти
+                Войти в систему
               </Button>
               <div className="text-center text-sm text-gray-600">
                 <p>Тестовые аккаунты:</p>
