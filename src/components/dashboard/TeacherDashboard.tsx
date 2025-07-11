@@ -56,7 +56,7 @@ export const TeacherDashboard = ({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Мои студенты</CardTitle>
+            <CardTitle>Список тестируемых</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
