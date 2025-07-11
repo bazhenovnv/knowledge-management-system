@@ -72,66 +72,67 @@ export const Navigation = ({
             onClearAll={clearAll}
             onActionClick={handleActionClick}
           />
-        <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="md:hidden">
-              <Icon name="Menu" size={20} />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-80">
-            <SheetHeader>
-              <SheetTitle>Навигация</SheetTitle>
-            </SheetHeader>
-            <ScrollArea className="h-full py-4">
-              <div className="space-y-2">
-                <Button
-                  variant={activeTab === "home" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setActiveTab("home");
-                    setSidebarOpen(false);
-                  }}
-                >
-                  <Icon name="Home" size={16} className="mr-2" />
-                  Главная
-                </Button>
-                <Button
-                  variant={activeTab === "dashboard" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setActiveTab("dashboard");
-                    setSidebarOpen(false);
-                  }}
-                >
-                  <Icon name="LayoutDashboard" size={16} className="mr-2" />
-                  Панель управления
-                </Button>
-                <Button
-                  variant={activeTab === "knowledge" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setActiveTab("knowledge");
-                    setSidebarOpen(false);
-                  }}
-                >
-                  <Icon name="BookOpen" size={16} className="mr-2" />
-                  База знаний
-                </Button>
-                <Button
-                  variant={activeTab === "analytics" ? "default" : "ghost"}
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setActiveTab("analytics");
-                    setSidebarOpen(false);
-                  }}
-                >
-                  <Icon name="BarChart3" size={16} className="mr-2" />
-                  Аналитика
-                </Button>
-              </div>
-            </ScrollArea>
-          </SheetContent>
-        </Sheet>
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="md:hidden">
+                <Icon name="Menu" size={20} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80">
+              <SheetHeader>
+                <SheetTitle>Навигация</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-full py-4">
+                <div className="space-y-2">
+                  <Button
+                    variant={activeTab === "home" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setActiveTab("home");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <Icon name="Home" size={16} className="mr-2" />
+                    Главная
+                  </Button>
+                  <Button
+                    variant={activeTab === "dashboard" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setActiveTab("dashboard");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <Icon name="LayoutDashboard" size={16} className="mr-2" />
+                    Панель управления
+                  </Button>
+                  <Button
+                    variant={activeTab === "knowledge" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setActiveTab("knowledge");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <Icon name="BookOpen" size={16} className="mr-2" />
+                    База знаний
+                  </Button>
+                  <Button
+                    variant={activeTab === "analytics" ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setActiveTab("analytics");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <Icon name="BarChart3" size={16} className="mr-2" />
+                    Аналитика
+                  </Button>
+                </div>
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <TabsList className="grid w-full grid-cols-4 mb-8 bg-white/50 backdrop-blur-sm">
