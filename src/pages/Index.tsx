@@ -11,6 +11,7 @@ import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { employees } from "@/data/mockData";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
+import AliceAssistant from "@/components/ai/AliceAssistant";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -104,6 +105,9 @@ const Index = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* AI Помощник Алиса */}
+      <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
     </div>
   );
 };
