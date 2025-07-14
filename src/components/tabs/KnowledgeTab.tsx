@@ -23,6 +23,8 @@ import Icon from "@/components/ui/icon";
 import { knowledgeBase } from "@/data/mockData";
 import { getDifficultyColor } from "@/utils/statusUtils";
 import { AIChat } from "@/components/ai/AIChat";
+import { MaterialForm } from "@/components/materials/MaterialForm";
+import { MaterialPreview } from "@/components/materials/MaterialPreview";
 
 interface KnowledgeTabProps {
   searchQuery: string;
@@ -34,6 +36,8 @@ export const KnowledgeTab = ({
   setSearchQuery,
 }: KnowledgeTabProps) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [previewMaterial, setPreviewMaterial] = useState(null);
 
   const filteredKnowledge = knowledgeBase
     .filter(
@@ -68,87 +72,26 @@ export const KnowledgeTab = ({
               className="pl-10 w-64"
             />
           </div>
-          <Dialog>
+          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 <Icon name="Plus" size={16} className="mr-2" />
                 Добавить материал
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Добавить новый материал</DialogTitle>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="title" className="text-right">
-                    Название
-                  </Label>
-                  <Input
-                    id="title"
-                    placeholder="Название материала"
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="category" className="text-right">
-                    Категория
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Выберите категорию" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="difficulty" className="text-right">
-                    Сложность
-                  </Label>
-                  <Select>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Выберите сложность" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Начинающий">Начинающий</SelectItem>
-                      <SelectItem value="Средний">Средний</SelectItem>
-                      <SelectItem value="Продвинутый">Продвинутый</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="duration" className="text-right">
-                    Длительность
-                  </Label>
-                  <Input
-                    id="duration"
-                    placeholder="Например: 2 часа"
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-start gap-4">
-                  <Label htmlFor="description" className="text-right">
-                    Описание
-                  </Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Описание материала"
-                    className="col-span-3"
-                    rows={3}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Создать
-                </Button>
-              </div>
+              <MaterialForm 
+                categories={categories}
+                onSubmit={(material) => {
+                  console.log('New material:', material);
+                  setIsFormOpen(false);
+                }}
+                onCancel={() => setIsFormOpen(false)}
+                onPreview={(material) => setPreviewMaterial(material)}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -199,12 +142,22 @@ export const KnowledgeTab = ({
                     ({item.enrollments})
                   </span>
                 </div>
-                <Button
-                  size="sm"
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >
-                  Изучить
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    Изучить
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-green-500 text-green-600 hover:bg-green-50"
+                  >
+                    <Icon name="FileText" size={14} className="mr-1" />
+                    Тест
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -212,6 +165,15 @@ export const KnowledgeTab = ({
       </div>
 
       <AIChat />
+      
+      {/* Предпросмотр материала */}
+      {previewMaterial && (
+        <MaterialPreview
+          material={previewMaterial}
+          isOpen={!!previewMaterial}
+          onClose={() => setPreviewMaterial(null)}
+        />
+      )}
     </div>
   );
 };
