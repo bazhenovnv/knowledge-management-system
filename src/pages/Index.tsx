@@ -6,7 +6,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { EmployeeDashboard } from "@/components/dashboard/EmployeeDashboard";
 import { TeacherDashboard } from "@/components/dashboard/TeacherDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
-import { HomeTab } from "@/components/tabs/HomeTab";
+
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { employees } from "@/data/mockData";
@@ -15,7 +15,7 @@ import AliceAssistant from "@/components/ai/AliceAssistant";
 import TestManagement from "@/components/tests/TestManagement";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("home");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -88,10 +88,6 @@ const Index = () => {
             setSidebarOpen={setSidebarOpen}
             onLogout={handleLogout}
           />
-
-          <TabsContent value="home" className="space-y-6">
-            <HomeTab setActiveTab={setActiveTab} />
-          </TabsContent>
 
           <TabsContent value="dashboard" className="space-y-6">
             {renderDashboard()}

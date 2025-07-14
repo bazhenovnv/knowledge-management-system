@@ -100,17 +100,7 @@ export const Navigation = ({
               </SheetHeader>
               <ScrollArea className="h-full py-4">
                 <div className="space-y-2">
-                  <Button
-                    variant={activeTab === "home" ? "default" : "ghost"}
-                    className="w-full justify-start"
-                    onClick={() => {
-                      setActiveTab("home");
-                      setSidebarOpen(false);
-                    }}
-                  >
-                    <Icon name="Home" size={16} className="mr-2" />
-                    Главная
-                  </Button>
+
                   <Button
                     variant={activeTab === "dashboard" ? "default" : "ghost"}
                     className="w-full justify-start"
@@ -165,16 +155,8 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className="grid w-full grid-cols-5 mb-8 bg-white/50 backdrop-blur-sm">
-        <TabsTrigger
-          value="home"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
-        >
-          <Icon name="Home" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
-            Главная
-          </span>
-        </TabsTrigger>
+      <TabsList className="grid w-full grid-cols-4 mb-8 bg-white/50 backdrop-blur-sm">
+
         <TabsTrigger
           value="dashboard"
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
