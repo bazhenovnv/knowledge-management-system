@@ -9,6 +9,7 @@ export const employees = [
     tests: 15,
     avgScore: 85,
     email: "ivanov@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 85, timeSpent: 25 },
       { id: 2, score: 88, timeSpent: 30 },
@@ -25,6 +26,7 @@ export const employees = [
     tests: 12,
     avgScore: 78,
     email: "petrova@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 78, timeSpent: 35 },
       { id: 2, score: 80, timeSpent: 28 },
@@ -41,6 +43,7 @@ export const employees = [
     tests: 18,
     avgScore: 92,
     email: "sidorov@company.com",
+    role: "teacher",
     testResults: [
       { id: 1, score: 92, timeSpent: 20 },
       { id: 2, score: 95, timeSpent: 18 },
@@ -57,6 +60,7 @@ export const employees = [
     tests: 8,
     avgScore: 65,
     email: "kozlova@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 65, timeSpent: 45 },
       { id: 2, score: 68, timeSpent: 50 },
@@ -73,6 +77,7 @@ export const employees = [
     tests: 14,
     avgScore: 82,
     email: "morozov@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 82, timeSpent: 28 },
       { id: 2, score: 85, timeSpent: 32 },
@@ -89,6 +94,7 @@ export const employees = [
     tests: 16,
     avgScore: 87,
     email: "lebedev@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 87, timeSpent: 24 },
       { id: 2, score: 89, timeSpent: 26 },
@@ -105,6 +111,7 @@ export const employees = [
     tests: 13,
     avgScore: 84,
     email: "novikova@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 84, timeSpent: 27 },
       { id: 2, score: 86, timeSpent: 29 },
@@ -121,6 +128,7 @@ export const employees = [
     tests: 19,
     avgScore: 89,
     email: "kuznetsov@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 89, timeSpent: 23 },
       { id: 2, score: 91, timeSpent: 21 },
@@ -137,6 +145,7 @@ export const employees = [
     tests: 11,
     avgScore: 76,
     email: "volkova@company.com",
+    role: "employee",
     testResults: [
       { id: 1, score: 76, timeSpent: 38 },
       { id: 2, score: 78, timeSpent: 36 },
@@ -153,6 +162,7 @@ export const employees = [
     tests: 20,
     avgScore: 91,
     email: "zaitsev@company.com",
+    role: "admin",
     testResults: [
       { id: 1, score: 91, timeSpent: 19 },
       { id: 2, score: 93, timeSpent: 17 },

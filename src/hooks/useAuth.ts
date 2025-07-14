@@ -11,6 +11,7 @@ export interface RegisterForm {
   position: string;
   email: string;
   password: string;
+  role?: string;
 }
 
 export const useAuth = () => {
@@ -35,6 +36,7 @@ export const useAuth = () => {
     position: "",
     email: "",
     password: "",
+    role: "employee",
   });
   const [showRegister, setShowRegister] = useState(false);
 
@@ -68,9 +70,22 @@ export const useAuth = () => {
   };
 
   const handleRegister = (formData: RegisterForm) => {
+    // Всегда устанавливаем роль "employee" для новых регистраций
     setUserRole("employee");
     setIsLoggedIn(true);
     setShowRegister(false);
+    
+    // Сбрасываем форму и устанавливаем роль "employee"
+    setRegisterForm({
+      name: "",
+      department: "",
+      position: "",
+      email: "",
+      password: "",
+      role: "employee",
+    });
+    
+    console.log("Зарегистрирован новый сотрудник:", {...formData, role: "employee"});
   };
 
   const handlePasswordReset = (email: string) => {

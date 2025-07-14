@@ -6,6 +6,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
 import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,6 +56,25 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [deleteEmployeeId, setDeleteEmployeeId] = useState(null);
+  const [newEmployee, setNewEmployee] = useState({
+    name: "",
+    email: "",
+    department: "",
+    position: "",
+    role: "employee"
+  });
+  const [editingEmployee, setEditingEmployee] = useState({
+    id: null,
+    name: "",
+    email: "",
+    department: "",
+    position: "",
+    role: "employee"
+  });
 
   // Функция для подсчета общей оценки тестирования
   const getTestScore = (employee: any) => {
@@ -62,11 +99,12 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   // Функция выгрузки в CSV
   const exportToCSV = () => {
     const csvContent = [
-      ['Имя', 'Отдел', 'Должность', 'Статус', 'Общая оценка', 'Пройдено тестов', 'Среднее время', 'Email'].join(','),
+      ['Имя', 'Отдел', 'Должность', 'Роль', 'Статус', 'Общая оценка', 'Пройдено тестов', 'Среднее время', 'Email'].join(','),
       ...filteredEmployees.map(emp => [
         emp.name,
         emp.department,
         emp.position,
+        getRoleText(emp.role),
         getStatusText(emp.status),
         getTestScore(emp),
         getCompletedTests(emp),
@@ -85,11 +123,12 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   // Функция выгрузки в Excel
   const exportToExcel = () => {
     const data = [
-      ['Имя', 'Отдел', 'Должность', 'Статус', 'Общая оценка', 'Пройдено тестов', 'Среднее время', 'Email'],
+      ['Имя', 'Отдел', 'Должность', 'Роль', 'Статус', 'Общая оценка', 'Пройдено тестов', 'Среднее время', 'Email'],
       ...filteredEmployees.map(emp => [
         emp.name,
         emp.department,
         emp.position,
+        getRoleText(emp.role),
         getStatusText(emp.status),
         getTestScore(emp),
         getCompletedTests(emp),
@@ -107,6 +146,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       { wch: 25 }, // Имя
       { wch: 20 }, // Отдел
       { wch: 25 }, // Должность
+      { wch: 18 }, // Роль
       { wch: 15 }, // Статус
       { wch: 15 }, // Общая оценка
       { wch: 18 }, // Пройдено тестов
@@ -132,31 +172,181 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   // Получение уникальных отделов
   const departments = Array.from(new Set(employees.map(emp => emp.department)));
 
+  // Функция для получения текста роли
+  const getRoleText = (role: string) => {
+    switch (role) {
+      case "admin": return "Администратор";
+      case "teacher": return "Преподаватель";
+      case "employee": return "Сотрудник";
+      default: return "Сотрудник";
+    }
+  };
+
+  // Функция для получения цвета роли
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "admin": return "bg-red-100 text-red-800";
+      case "teacher": return "bg-blue-100 text-blue-800";
+      case "employee": return "bg-green-100 text-green-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Функция добавления сотрудника
+  const handleAddEmployee = () => {
+    console.log("Добавление сотрудника:", newEmployee);
+    setIsAddDialogOpen(false);
+    setNewEmployee({
+      name: "",
+      email: "",
+      department: "",
+      position: "",
+      role: "employee"
+    });
+  };
+
+  // Функция редактирования сотрудника
+  const handleEditEmployee = (employee: any) => {
+    setEditingEmployee({
+      id: employee.id,
+      name: employee.name,
+      email: employee.email,
+      department: employee.department,
+      position: employee.position,
+      role: employee.role
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Функция сохранения изменений
+  const handleSaveEdit = () => {
+    console.log("Сохранение изменений:", editingEmployee);
+    setIsEditDialogOpen(false);
+    setEditingEmployee({
+      id: null,
+      name: "",
+      email: "",
+      department: "",
+      position: "",
+      role: "employee"
+    });
+  };
+
+  // Функция удаления сотрудника
+  const handleDeleteEmployee = (id: number) => {
+    console.log("Удаление сотрудника:", id);
+    setDeleteEmployeeId(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Зарегистрированные сотрудники</h2>
-        {(userRole === "admin" || userRole === "teacher") && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
-                <Icon name="Download" size={16} className="mr-2" />
-                Выгрузить отчет
-                <Icon name="ChevronDown" size={16} className="ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={exportToExcel}>
-                <Icon name="FileSpreadsheet" size={16} className="mr-2" />
-                Скачать Excel
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToCSV}>
-                <Icon name="FileText" size={16} className="mr-2" />
-                Скачать CSV
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <div className="flex items-center space-x-2">
+          {userRole === "admin" && (
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Icon name="UserPlus" size={16} className="mr-2" />
+                  Добавить сотрудника
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Добавить нового сотрудника</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">Имя</Label>
+                    <Input
+                      id="name"
+                      value={newEmployee.name}
+                      onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                      placeholder="Введите имя"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={newEmployee.email}
+                      onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                      placeholder="Введите email"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="department" className="text-right">Отдел</Label>
+                    <Select value={newEmployee.department} onValueChange={(value) => setNewEmployee({...newEmployee, department: value})}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Выберите отдел" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {departments.map(dept => (
+                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="position" className="text-right">Должность</Label>
+                    <Input
+                      id="position"
+                      value={newEmployee.position}
+                      onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
+                      placeholder="Введите должность"
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="role" className="text-right">Роль</Label>
+                    <Select value={newEmployee.role} onValueChange={(value) => setNewEmployee({...newEmployee, role: value})}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Выберите роль" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="employee">Сотрудник</SelectItem>
+                        <SelectItem value="teacher">Преподаватель</SelectItem>
+                        <SelectItem value="admin">Администратор</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                    Отмена
+                  </Button>
+                  <Button onClick={handleAddEmployee}>
+                    Добавить
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+          {(userRole === "admin" || userRole === "teacher") && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+                  <Icon name="Download" size={16} className="mr-2" />
+                  Выгрузить отчет
+                  <Icon name="ChevronDown" size={16} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={exportToExcel}>
+                  <Icon name="FileSpreadsheet" size={16} className="mr-2" />
+                  Скачать Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToCSV}>
+                  <Icon name="FileText" size={16} className="mr-2" />
+                  Скачать CSV
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
 
       {/* Фильтры */}
@@ -264,11 +454,13 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
                 <TableHead>Сотрудник</TableHead>
                 <TableHead>Отдел</TableHead>
                 <TableHead>Должность</TableHead>
+                <TableHead>Роль</TableHead>
                 <TableHead>Статус</TableHead>
                 <TableHead>Общая оценка</TableHead>
                 <TableHead>Пройдено тестов</TableHead>
                 <TableHead>Среднее время</TableHead>
                 <TableHead>Прогресс</TableHead>
+                {userRole === "admin" && <TableHead>Действия</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -293,6 +485,11 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
                     <TableCell>{employee.department}</TableCell>
                     <TableCell>{employee.position}</TableCell>
                     <TableCell>
+                      <Badge className={getRoleColor(employee.role)}>
+                        {getRoleText(employee.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <Badge className={getStatusColor(employee.status)}>
                         {getStatusText(employee.status)}
                       </Badge>
@@ -308,6 +505,27 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
                     <TableCell>
                       <Progress value={testScore} className="w-20" />
                     </TableCell>
+                    {userRole === "admin" && (
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditEmployee(employee)}
+                          >
+                            <Icon name="Edit" size={14} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeleteEmployeeId(employee.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Icon name="Trash2" size={14} />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
@@ -315,6 +533,99 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Диалог редактирования сотрудника */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Редактировать сотрудника</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-name" className="text-right">Имя</Label>
+              <Input
+                id="edit-name"
+                value={editingEmployee.name}
+                onChange={(e) => setEditingEmployee({...editingEmployee, name: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-email" className="text-right">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editingEmployee.email}
+                onChange={(e) => setEditingEmployee({...editingEmployee, email: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-department" className="text-right">Отдел</Label>
+              <Select value={editingEmployee.department} onValueChange={(value) => setEditingEmployee({...editingEmployee, department: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map(dept => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-position" className="text-right">Должность</Label>
+              <Input
+                id="edit-position"
+                value={editingEmployee.position}
+                onChange={(e) => setEditingEmployee({...editingEmployee, position: e.target.value})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-role" className="text-right">Роль</Label>
+              <Select value={editingEmployee.role} onValueChange={(value) => setEditingEmployee({...editingEmployee, role: value})}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Сотрудник</SelectItem>
+                  <SelectItem value="teacher">Преподаватель</SelectItem>
+                  <SelectItem value="admin">Администратор</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleSaveEdit}>
+              Сохранить
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог подтверждения удаления */}
+      <AlertDialog open={!!deleteEmployeeId} onOpenChange={() => setDeleteEmployeeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить этого сотрудника? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteEmployeeId(null)}>
+              Отмена
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDeleteEmployee(deleteEmployeeId)}>
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
