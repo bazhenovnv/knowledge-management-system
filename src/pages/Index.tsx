@@ -86,6 +86,7 @@ const Index = () => {
             setActiveTab={setActiveTab}
             sidebarOpen={sidebarOpen}
             setSidebarOpen={setSidebarOpen}
+            onLogout={handleLogout}
           />
 
           <TabsContent value="home" className="space-y-6">

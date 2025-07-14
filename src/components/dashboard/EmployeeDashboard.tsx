@@ -16,7 +16,10 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
         <h2 className="text-2xl font-bold">Личный кабинет сотрудника</h2>
         <Button
           variant="outline"
-          onClick={onLogout}
+          onClick={(e) => {
+            e.preventDefault();
+            onLogout();
+          }}
           className="text-red-600 border-red-600 hover:bg-red-50"
         >
           <Icon name="LogOut" size={16} className="mr-2" />

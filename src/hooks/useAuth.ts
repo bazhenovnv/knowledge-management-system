@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export interface LoginForm {
   email: string;
@@ -14,10 +14,17 @@ export interface RegisterForm {
 }
 
 export const useAuth = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<"employee" | "teacher" | "admin">(
-    "employee",
-  );
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    // Проверяем localStorage при инициализации
+    const saved = localStorage.getItem("isLoggedIn");
+    return saved === "true";
+  });
+  
+  const [userRole, setUserRole] = useState<"employee" | "teacher" | "admin">(() => {
+    // Проверяем localStorage при инициализации
+    const saved = localStorage.getItem("userRole");
+    return (saved as "employee" | "teacher" | "admin") || "employee";
+  });
   const [loginForm, setLoginForm] = useState<LoginForm>({
     email: "",
     password: "",
@@ -31,14 +38,22 @@ export const useAuth = () => {
   });
   const [showRegister, setShowRegister] = useState(false);
 
+  // Эффект для синхронизации с localStorage
+  useEffect(() => {
+    localStorage.setItem("isLoggedIn", isLoggedIn.toString());
+    localStorage.setItem("userRole", userRole);
+  }, [isLoggedIn, userRole]);
+
   const handleLogin = (email: string, password: string) => {
+    let role: "employee" | "teacher" | "admin" = "employee";
+    
     if (email === "admin@example.com") {
-      setUserRole("admin");
+      role = "admin";
     } else if (email === "teacher@example.com") {
-      setUserRole("teacher");
-    } else {
-      setUserRole("employee");
+      role = "teacher";
     }
+    
+    setUserRole(role);
     setIsLoggedIn(true);
   };
 
@@ -46,6 +61,10 @@ export const useAuth = () => {
     setIsLoggedIn(false);
     setUserRole("employee");
     setLoginForm({ email: "", password: "" });
+    
+    // Очищаем localStorage
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userRole");
   };
 
   const handleRegister = (formData: RegisterForm) => {

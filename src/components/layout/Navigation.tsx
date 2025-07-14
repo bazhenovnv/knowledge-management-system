@@ -19,6 +19,7 @@ interface NavigationProps {
   setActiveTab: (tab: string) => void;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  onLogout?: () => void;
 }
 
 export const Navigation = ({
@@ -26,6 +27,7 @@ export const Navigation = ({
   setActiveTab,
   sidebarOpen,
   setSidebarOpen,
+  onLogout,
 }: NavigationProps) => {
   const {
     notifications,
@@ -72,6 +74,20 @@ export const Navigation = ({
             onClearAll={clearAll}
             onActionClick={handleActionClick}
           />
+          {onLogout && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                onLogout();
+              }}
+              className="text-red-600 border-red-600 hover:bg-red-50"
+            >
+              <Icon name="LogOut" size={16} className="mr-2" />
+              Выход
+            </Button>
+          )}
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="md:hidden">
