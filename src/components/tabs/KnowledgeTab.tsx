@@ -29,11 +29,13 @@ import { MaterialPreview } from "@/components/materials/MaterialPreview";
 interface KnowledgeTabProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  userRole?: string;
 }
 
 export const KnowledgeTab = ({
   searchQuery,
   setSearchQuery,
+  userRole,
 }: KnowledgeTabProps) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -72,28 +74,30 @@ export const KnowledgeTab = ({
               className="pl-10 w-64"
             />
           </div>
-          <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Icon name="Plus" size={16} className="mr-2" />
-                Добавить материал
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Добавить новый материал</DialogTitle>
-              </DialogHeader>
-              <MaterialForm 
-                categories={categories}
-                onSubmit={(material) => {
-                  console.log('New material:', material);
-                  setIsFormOpen(false);
-                }}
-                onCancel={() => setIsFormOpen(false)}
-                onPreview={(material) => setPreviewMaterial(material)}
-              />
-            </DialogContent>
-          </Dialog>
+          {userRole !== "employee" && (
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Icon name="Plus" size={16} className="mr-2" />
+                  Добавить материал
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Добавить новый материал</DialogTitle>
+                </DialogHeader>
+                <MaterialForm 
+                  categories={categories}
+                  onSubmit={(material) => {
+                    console.log('New material:', material);
+                    setIsFormOpen(false);
+                  }}
+                  onCancel={() => setIsFormOpen(false)}
+                  onPreview={(material) => setPreviewMaterial(material)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 

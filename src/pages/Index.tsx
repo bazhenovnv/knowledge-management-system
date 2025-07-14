@@ -97,6 +97,7 @@ const Index = () => {
             <KnowledgeTab
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
+              userRole={userRole}
             />
           </TabsContent>
 
