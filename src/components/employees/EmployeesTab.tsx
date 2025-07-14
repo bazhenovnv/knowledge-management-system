@@ -1,5 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import * as XLSX from 'xlsx';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -52,8 +59,8 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     return `${avgMinutes} мин`;
   };
 
-  // Функция выгрузки в файл
-  const exportToFile = () => {
+  // Функция выгрузки в CSV
+  const exportToCSV = () => {
     const csvContent = [
       ['Имя', 'Отдел', 'Должность', 'Статус', 'Общая оценка', 'Пройдено тестов', 'Среднее время', 'Email'].join(','),
       ...filteredEmployees.map(emp => [
@@ -75,6 +82,42 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     link.click();
   };
 
+  // Функция выгрузки в Excel
+  const exportToExcel = () => {
+    const data = [
+      ['Имя', 'Отдел', 'Должность', 'Статус', 'Общая оценка', 'Пройдено тестов', 'Среднее время', 'Email'],
+      ...filteredEmployees.map(emp => [
+        emp.name,
+        emp.department,
+        emp.position,
+        getStatusText(emp.status),
+        getTestScore(emp),
+        getCompletedTests(emp),
+        getAverageTime(emp),
+        emp.email
+      ])
+    ];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Сотрудники');
+    
+    // Установка ширины колонок
+    const wscols = [
+      { wch: 25 }, // Имя
+      { wch: 20 }, // Отдел
+      { wch: 25 }, // Должность
+      { wch: 15 }, // Статус
+      { wch: 15 }, // Общая оценка
+      { wch: 18 }, // Пройдено тестов
+      { wch: 18 }, // Среднее время
+      { wch: 30 }  // Email
+    ];
+    worksheet['!cols'] = wscols;
+    
+    XLSX.writeFile(workbook, `employees_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   // Фильтрация сотрудников
   const filteredEmployees = employees
     .filter(emp => 
@@ -94,13 +137,25 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Зарегистрированные сотрудники</h2>
         {(userRole === "admin" || userRole === "teacher") && (
-          <Button
-            onClick={exportToFile}
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-          >
-            <Icon name="Download" size={16} className="mr-2" />
-            Выгрузить отчет
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+                <Icon name="Download" size={16} className="mr-2" />
+                Выгрузить отчет
+                <Icon name="ChevronDown" size={16} className="ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={exportToExcel}>
+                <Icon name="FileSpreadsheet" size={16} className="mr-2" />
+                Скачать Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportToCSV}>
+                <Icon name="FileText" size={16} className="mr-2" />
+                Скачать CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 

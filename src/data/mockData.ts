@@ -1,148 +1,164 @@
 export const employees = [
   {
+    id: 1,
     name: "Иванов И.И.",
     department: "Отдел IT",
     position: "Разработчик",
     score: 4.2,
-    status: "green",
+    status: "active",
     tests: 15,
     avgScore: 85,
+    email: "ivanov@company.com",
+    testResults: [
+      { id: 1, score: 85, timeSpent: 25 },
+      { id: 2, score: 88, timeSpent: 30 },
+      { id: 3, score: 82, timeSpent: 22 }
+    ]
   },
   {
+    id: 2,
     name: "Петрова А.С.",
     department: "Отдел ФН",
     position: "Бухгалтер",
     score: 3.8,
-    status: "yellow",
+    status: "active",
     tests: 12,
     avgScore: 78,
+    email: "petrova@company.com",
+    testResults: [
+      { id: 1, score: 78, timeSpent: 35 },
+      { id: 2, score: 80, timeSpent: 28 },
+      { id: 3, score: 76, timeSpent: 40 }
+    ]
   },
   {
+    id: 3,
     name: "Сидоров В.М.",
     department: "ЦТО",
     position: "HR-специалист",
     score: 4.5,
-    status: "green",
+    status: "active",
     tests: 18,
     avgScore: 92,
+    email: "sidorov@company.com",
+    testResults: [
+      { id: 1, score: 92, timeSpent: 20 },
+      { id: 2, score: 95, timeSpent: 18 },
+      { id: 3, score: 89, timeSpent: 25 }
+    ]
   },
   {
+    id: 4,
     name: "Козлова Е.А.",
     department: "Отдел маркетинга",
     position: "Маркетолог",
     score: 3.2,
-    status: "red",
+    status: "inactive",
     tests: 8,
     avgScore: 65,
+    email: "kozlova@company.com",
+    testResults: [
+      { id: 1, score: 65, timeSpent: 45 },
+      { id: 2, score: 68, timeSpent: 50 },
+      { id: 3, score: 62, timeSpent: 42 }
+    ]
   },
   {
+    id: 5,
     name: "Морозов Д.С.",
     department: "Тех. поддержка",
     position: "Системный администратор",
     score: 4.0,
-    status: "green",
+    status: "active",
     tests: 14,
     avgScore: 82,
+    email: "morozov@company.com",
+    testResults: [
+      { id: 1, score: 82, timeSpent: 28 },
+      { id: 2, score: 85, timeSpent: 32 },
+      { id: 3, score: 79, timeSpent: 35 }
+    ]
   },
   {
+    id: 6,
     name: "Лебедев А.Н.",
     department: "Сервис",
     position: "Сервис-инженер",
     score: 4.1,
-    status: "green",
+    status: "active",
     tests: 16,
     avgScore: 87,
+    email: "lebedev@company.com",
+    testResults: [
+      { id: 1, score: 87, timeSpent: 24 },
+      { id: 2, score: 89, timeSpent: 26 },
+      { id: 3, score: 85, timeSpent: 30 }
+    ]
   },
   {
+    id: 7,
     name: "Новикова О.П.",
     department: "Крупные клиенты",
     position: "Менеджер",
     score: 3.9,
-    status: "green",
+    status: "active",
     tests: 13,
     avgScore: 84,
+    email: "novikova@company.com",
+    testResults: [
+      { id: 1, score: 84, timeSpent: 27 },
+      { id: 2, score: 86, timeSpent: 29 },
+      { id: 3, score: 82, timeSpent: 33 }
+    ]
   },
   {
+    id: 8,
     name: "Кузнецов М.И.",
     department: "Партнерка",
     position: "Партнерский менеджер",
     score: 4.3,
-    status: "green",
+    status: "active",
     tests: 19,
     avgScore: 89,
+    email: "kuznetsov@company.com",
+    testResults: [
+      { id: 1, score: 89, timeSpent: 23 },
+      { id: 2, score: 91, timeSpent: 21 },
+      { id: 3, score: 87, timeSpent: 26 }
+    ]
   },
   {
+    id: 9,
     name: "Волкова Л.В.",
     department: "Отдел заявок",
     position: "Оператор",
     score: 3.7,
-    status: "yellow",
+    status: "pending",
     tests: 11,
     avgScore: 76,
+    email: "volkova@company.com",
+    testResults: [
+      { id: 1, score: 76, timeSpent: 38 },
+      { id: 2, score: 78, timeSpent: 36 },
+      { id: 3, score: 74, timeSpent: 41 }
+    ]
   },
   {
+    id: 10,
     name: "Зайцев П.Р.",
     department: "HoReCa",
     position: "Менеджер по работе с HoReCa",
     score: 4.4,
-    status: "green",
+    status: "active",
     tests: 20,
     avgScore: 91,
-  },
-  {
-    name: "Орлова Н.С.",
-    department: "Отдел Тинькофф",
-    position: "Менеджер по работе с банком",
-    score: 4.0,
-    status: "green",
-    tests: 17,
-    avgScore: 83,
-  },
-  {
-    name: "Попов Г.А.",
-    department: "Логистика",
-    position: "Логист",
-    score: 3.6,
-    status: "yellow",
-    tests: 10,
-    avgScore: 74,
-  },
-  {
-    name: "Макарова Т.К.",
-    department: "Отдел маркетплейсы",
-    position: "Менеджер маркетплейсов",
-    score: 4.2,
-    status: "green",
-    tests: 15,
-    avgScore: 86,
-  },
-  {
-    name: "Логинов Р.В.",
-    department: "Отдел сопровождения",
-    position: "Консультант",
-    score: 3.8,
-    status: "yellow",
-    tests: 12,
-    avgScore: 79,
-  },
-  {
-    name: "Семенов К.Д.",
-    department: "1С",
-    position: "Программист 1С",
-    score: 4.1,
-    status: "green",
-    tests: 18,
-    avgScore: 88,
-  },
-  {
-    name: "Титова Ю.А.",
-    department: "Отдел ЦМ",
-    position: "Специалист по ЦМ",
-    score: 3.9,
-    status: "green",
-    tests: 14,
-    avgScore: 81,
-  },
+    email: "zaitsev@company.com",
+    testResults: [
+      { id: 1, score: 91, timeSpent: 19 },
+      { id: 2, score: 93, timeSpent: 17 },
+      { id: 3, score: 89, timeSpent: 22 }
+    ]
+  }
 ];
 
 export const testsData = [
