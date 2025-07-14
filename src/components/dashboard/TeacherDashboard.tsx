@@ -21,17 +21,6 @@ export const TeacherDashboard = ({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Личный кабинет преподавателя</h2>
-        <Button
-          variant="outline"
-          onClick={(e) => {
-            e.preventDefault();
-            onLogout();
-          }}
-          className="text-red-600 border-red-600 hover:bg-red-50"
-        >
-          <Icon name="LogOut" size={16} className="mr-2" />
-          Выход
-        </Button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
