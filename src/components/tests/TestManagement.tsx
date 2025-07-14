@@ -17,6 +17,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -28,6 +38,7 @@ import {
   Users,
   CheckCircle,
 } from "lucide-react";
+import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
 
 interface Question {
@@ -129,6 +140,10 @@ const TestManagement: React.FC<TestManagementProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [filter, setFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingTest, setEditingTest] = useState<Test | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [deletingTestId, setDeletingTestId] = useState<string | null>(null);
+  const [takingTest, setTakingTest] = useState<Test | null>(null);
   
   // Состояние для формы создания теста
   const [newTest, setNewTest] = useState({
@@ -153,6 +168,70 @@ const TestManagement: React.FC<TestManagementProps> = ({
   
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
   const [editingQuestionIndex, setEditingQuestionIndex] = useState<number | null>(null);
+
+  // Функция редактирования теста
+  const handleEditTest = (test: Test) => {
+    setEditingTest(test);
+    setIsEditDialogOpen(true);
+    toast.info(`Редактирование теста: ${test.title}`);
+  };
+
+  // Функция удаления теста
+  const handleDeleteTest = (testId: string) => {
+    const testToDelete = tests.find(t => t.id === testId);
+    if (testToDelete) {
+      setTests(tests.filter(t => t.id !== testId));
+      setDeletingTestId(null);
+      toast.success(`Тест "${testToDelete.title}" удален`);
+    }
+  };
+
+  // Функция прохождения теста
+  const handleTakeTest = (test: Test) => {
+    setTakingTest(test);
+    if (userRole === "student") {
+      toast.info(`Начинаем тест: ${test.title}`);
+    } else {
+      toast.info(`Просмотр теста: ${test.title}`);
+    }
+  };
+
+  // Функция создания теста
+  const handleCreateTest = () => {
+    if (!newTest.title || !newTest.description || !newTest.category || !newTest.difficulty) {
+      toast.error("Заполните все обязательные поля");
+      return;
+    }
+
+    const test: Test = {
+      id: Date.now().toString(),
+      title: newTest.title,
+      description: newTest.description,
+      category: newTest.category,
+      difficulty: newTest.difficulty,
+      timeLimit: newTest.timeLimit,
+      questions: newTest.questions,
+      department: newTest.department,
+      createdBy: userRole === "admin" ? "Администратор" : "Преподаватель",
+      createdAt: new Date(),
+      status: "draft",
+      totalAttempts: 0,
+      averageScore: 0,
+    };
+
+    setTests([...tests, test]);
+    setNewTest({
+      title: "",
+      description: "",
+      category: "",
+      difficulty: "",
+      timeLimit: 30,
+      department: "",
+      questions: []
+    });
+    setIsCreating(false);
+    toast.success("Тест создан успешно!");
+  };
 
   const filteredTests = tests.filter((test) => {
     if (filter !== "all" && test.status !== filter) return false;
@@ -546,7 +625,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
                     Отмена
                   </Button>
                   <Button 
-                    onClick={createTest}
+                    onClick={handleCreateTest}
                     disabled={newTest.title.trim() === "" || newTest.questions.length === 0}
                   >
                     Создать тест
@@ -593,10 +672,18 @@ const TestManagement: React.FC<TestManagementProps> = ({
                 </div>
                 {canManageTests && (
                   <div className="flex space-x-1">
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditTest(test)}
+                    >
                       <Icon name="Edit" size={16} />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setDeletingTestId(test.id)}
+                    >
                       <Icon name="Trash2" size={16} />
                     </Button>
                   </div>
@@ -640,7 +727,11 @@ const TestManagement: React.FC<TestManagementProps> = ({
                     <span className="text-xs text-gray-500">
                       {test.department}
                     </span>
-                    <Button size="sm" className="flex items-center">
+                    <Button 
+                      size="sm" 
+                      className="flex items-center"
+                      onClick={() => handleTakeTest(test)}
+                    >
                       <Icon name="Play" size={14} className="mr-1" />
                       {userRole === "student" ? "Пройти" : "Просмотр"}
                     </Button>
@@ -669,6 +760,26 @@ const TestManagement: React.FC<TestManagementProps> = ({
           </p>
         </div>
       )}
+
+      {/* Диалог подтверждения удаления теста */}
+      <AlertDialog open={!!deletingTestId} onOpenChange={() => setDeletingTestId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить этот тест? Все результаты прохождения также будут удалены. Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeletingTestId(null)}>
+              Отмена
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDeleteTest(deletingTestId!)}>
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

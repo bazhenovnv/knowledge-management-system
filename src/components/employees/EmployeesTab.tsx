@@ -47,6 +47,7 @@ import {
 import Icon from "@/components/ui/icon";
 import { employees } from "@/data/mockData";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
+import { toast } from "sonner";
 
 interface EmployeesTabProps {
   userRole: string;
@@ -194,7 +195,27 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
 
   // Функция добавления сотрудника
   const handleAddEmployee = () => {
-    console.log("Добавление сотрудника:", newEmployee);
+    if (!newEmployee.name || !newEmployee.email || !newEmployee.department || !newEmployee.position) {
+      toast.error("Заполните все обязательные поля");
+      return;
+    }
+
+    const employee = {
+      id: Date.now(),
+      name: newEmployee.name,
+      email: newEmployee.email,
+      department: newEmployee.department,
+      position: newEmployee.position,
+      role: newEmployee.role,
+      status: "active",
+      tests: 0,
+      avgScore: 0,
+      score: 0,
+      testResults: []
+    };
+
+    // В реальном приложении здесь был бы API вызов
+    console.log("Добавление сотрудника:", employee);
     setIsAddDialogOpen(false);
     setNewEmployee({
       name: "",
@@ -203,6 +224,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       position: "",
       role: "employee"
     });
+    toast.success("Сотрудник успешно добавлен");
   };
 
   // Функция редактирования сотрудника
@@ -220,6 +242,12 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
 
   // Функция сохранения изменений
   const handleSaveEdit = () => {
+    if (!editingEmployee.name || !editingEmployee.email || !editingEmployee.department || !editingEmployee.position) {
+      toast.error("Заполните все обязательные поля");
+      return;
+    }
+
+    // В реальном приложении здесь был бы API вызов
     console.log("Сохранение изменений:", editingEmployee);
     setIsEditDialogOpen(false);
     setEditingEmployee({
@@ -230,12 +258,18 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       position: "",
       role: "employee"
     });
+    toast.success("Данные сотрудника обновлены");
   };
 
   // Функция удаления сотрудника
   const handleDeleteEmployee = (id: number) => {
-    console.log("Удаление сотрудника:", id);
-    setDeleteEmployeeId(null);
+    const employee = filteredEmployees.find(emp => emp.id === id);
+    if (employee) {
+      // В реальном приложении здесь был бы API вызов
+      console.log("Удаление сотрудника:", id);
+      setDeleteEmployeeId(null);
+      toast.success(`Сотрудник ${employee.name} удален`);
+    }
   };
 
   return (

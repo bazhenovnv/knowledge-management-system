@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export interface LoginForm {
   email: string;
@@ -70,6 +71,25 @@ export const useAuth = () => {
   };
 
   const handleRegister = (formData: RegisterForm) => {
+    // Валидация данных
+    if (!formData.name || !formData.email || !formData.password || !formData.department || !formData.position) {
+      toast.error("Заполните все обязательные поля");
+      return;
+    }
+
+    // Простая валидация email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Введите корректный email");
+      return;
+    }
+
+    // Валидация пароля
+    if (formData.password.length < 6) {
+      toast.error("Пароль должен содержать минимум 6 символов");
+      return;
+    }
+    
     // Всегда устанавливаем роль "employee" для новых регистраций
     setUserRole("employee");
     setIsLoggedIn(true);
@@ -85,13 +105,22 @@ export const useAuth = () => {
       role: "employee",
     });
     
+    // В реальном приложении здесь был бы API вызов
     console.log("Зарегистрирован новый сотрудник:", {...formData, role: "employee"});
+    toast.success(`Добро пожаловать, ${formData.name}!`);
   };
 
   const handlePasswordReset = (email: string) => {
-    // Здесь будет логика восстановления пароля
+    // Валидация email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Введите корректный email");
+      return;
+    }
+    
+    // В реальном приложении здесь был бы API вызов
     console.log("Восстановление пароля для:", email);
-    // В реальном приложении здесь бы был запрос к API
+    toast.success("Инструкции по восстановлению пароля отправлены на email");
   };
 
   return {

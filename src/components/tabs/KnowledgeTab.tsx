@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
 import { knowledgeBase } from "@/data/mockData";
+import { toast } from "sonner";
 import { getDifficultyColor } from "@/utils/statusUtils";
 import { AIChat } from "@/components/ai/AIChat";
 import { MaterialForm } from "@/components/materials/MaterialForm";
@@ -40,8 +41,40 @@ export const KnowledgeTab = ({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [previewMaterial, setPreviewMaterial] = useState(null);
+  const [materials, setMaterials] = useState(knowledgeBase);
+  const [studyMaterial, setStudyMaterial] = useState(null);
+  const [testMaterial, setTestMaterial] = useState(null);
 
-  const filteredKnowledge = knowledgeBase
+  // Функция создания материала
+  const handleCreateMaterial = (material: any) => {
+    const newMaterial = {
+      ...material,
+      id: Date.now().toString(),
+      rating: 0,
+      enrollments: 0,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    
+    setMaterials([...materials, newMaterial]);
+    setIsFormOpen(false);
+    toast.success("Материал успешно создан!");
+  };
+
+  // Функция изучения материала
+  const handleStudyMaterial = (material: any) => {
+    setStudyMaterial(material);
+    toast.info(`Начинаем изучение: ${material.title}`);
+    // Здесь можно добавить логику открытия материала для изучения
+  };
+
+  // Функция прохождения теста
+  const handleTakeMaterialTest = (material: any) => {
+    setTestMaterial(material);
+    toast.info(`Запускаем тест по материалу: ${material.title}`);
+    // Здесь можно добавить логику запуска теста
+  };
+
+  const filteredKnowledge = materials
     .filter(
       (item) =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -53,7 +86,7 @@ export const KnowledgeTab = ({
     );
 
   const categories = Array.from(
-    new Set(knowledgeBase.map((item) => item.category)),
+    new Set(materials.map((item) => item.category)),
   );
 
   return (
@@ -88,10 +121,7 @@ export const KnowledgeTab = ({
                 </DialogHeader>
                 <MaterialForm 
                   categories={categories}
-                  onSubmit={(material) => {
-                    console.log('New material:', material);
-                    setIsFormOpen(false);
-                  }}
+                  onSubmit={handleCreateMaterial}
                   onCancel={() => setIsFormOpen(false)}
                   onPreview={(material) => setPreviewMaterial(material)}
                 />
@@ -149,6 +179,7 @@ export const KnowledgeTab = ({
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
+                    onClick={() => handleStudyMaterial(item)}
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   >
                     Изучить
@@ -156,6 +187,7 @@ export const KnowledgeTab = ({
                   <Button
                     size="sm"
                     variant="outline"
+                    onClick={() => handleTakeMaterialTest(item)}
                     className="border-green-500 text-green-600 hover:bg-green-50"
                   >
                     <Icon name="FileText" size={14} className="mr-1" />
