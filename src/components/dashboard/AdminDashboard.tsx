@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import Icon from "@/components/ui/icon";
 import TestManagement from "@/components/tests/TestManagement";
+import { TopEmployees } from "@/components/employees/TopEmployees";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -217,6 +218,9 @@ export const AdminDashboard = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Рейтинг сотрудников */}
+      <TopEmployees />
 
       {/* Тесты */}
       <Card>

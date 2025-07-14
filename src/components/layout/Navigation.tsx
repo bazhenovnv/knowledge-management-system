@@ -20,6 +20,7 @@ interface NavigationProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   onLogout?: () => void;
+  userRole?: string;
 }
 
 export const Navigation = ({
@@ -28,6 +29,7 @@ export const Navigation = ({
   sidebarOpen,
   setSidebarOpen,
   onLogout,
+  userRole,
 }: NavigationProps) => {
   const {
     notifications,
@@ -148,6 +150,19 @@ export const Navigation = ({
                     <Icon name="BarChart3" size={16} className="mr-2" />
                     Аналитика
                   </Button>
+                  {(userRole === "admin" || userRole === "teacher") && (
+                    <Button
+                      variant={activeTab === "employees" ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setActiveTab("employees");
+                        setSidebarOpen(false);
+                      }}
+                    >
+                      <Icon name="Users" size={16} className="mr-2" />
+                      Сотрудники
+                    </Button>
+                  )}
                 </div>
               </ScrollArea>
             </SheetContent>
@@ -155,7 +170,7 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className="grid w-full grid-cols-4 mb-8 bg-white/50 backdrop-blur-sm">
+      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-5' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm`}>
 
         <TabsTrigger
           value="dashboard"
@@ -194,6 +209,17 @@ export const Navigation = ({
             Аналитика
           </span>
         </TabsTrigger>
+        {(userRole === "admin" || userRole === "teacher") && (
+          <TabsTrigger
+            value="employees"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+          >
+            <Icon name="Users" size={16} className="mr-2" />
+            <span className="hidden sm:inline text-lg text-[#000000]">
+              Сотрудники
+            </span>
+          </TabsTrigger>
+        )}
       </TabsList>
     </>
   );

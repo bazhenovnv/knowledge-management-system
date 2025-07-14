@@ -9,6 +9,7 @@ import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
+import { EmployeesTab } from "@/components/employees/EmployeesTab";
 import { employees } from "@/data/mockData";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
@@ -87,6 +88,7 @@ const Index = () => {
             sidebarOpen={sidebarOpen}
             setSidebarOpen={setSidebarOpen}
             onLogout={handleLogout}
+            userRole={userRole}
           />
 
           <TabsContent value="dashboard" className="space-y-6">
@@ -110,6 +112,12 @@ const Index = () => {
           <TabsContent value="analytics" className="space-y-6">
             <AnalyticsTab />
           </TabsContent>
+
+          {(userRole === "admin" || userRole === "teacher") && (
+            <TabsContent value="employees" className="space-y-6">
+              <EmployeesTab userRole={userRole} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 

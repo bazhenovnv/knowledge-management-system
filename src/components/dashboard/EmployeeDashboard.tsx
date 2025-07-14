@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
 import TestManagement from "@/components/tests/TestManagement";
+import { TopEmployees } from "@/components/employees/TopEmployees";
 
 interface EmployeeDashboardProps {
   onLogout: () => void;
@@ -68,6 +69,9 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Рейтинг сотрудников */}
+      <TopEmployees />
 
       {/* Тесты */}
       <Card>

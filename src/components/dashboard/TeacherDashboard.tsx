@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
 import TestManagement from "@/components/tests/TestManagement";
+import { TopEmployees } from "@/components/employees/TopEmployees";
 
 interface TeacherDashboardProps {
   onLogout: () => void;
@@ -81,6 +82,9 @@ export const TeacherDashboard = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Рейтинг сотрудников */}
+      <TopEmployees />
 
       {/* Тесты */}
       <Card>
