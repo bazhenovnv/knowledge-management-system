@@ -103,11 +103,7 @@ const Index = () => {
             />
           </TabsContent>
 
-          <TabsContent value="tests" className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <TestManagement userRole={userRole} />
-            </div>
-          </TabsContent>
+
 
           <TabsContent value="analytics" className="space-y-6">
             <AnalyticsTab />
