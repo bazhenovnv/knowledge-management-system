@@ -266,12 +266,7 @@ export const AuthForm = ({
                 >
                   Войти в систему
                 </Button>
-                <div className="text-center text-sm text-gray-600">
-                  <p>Тестовые аккаунты:</p>
-                  <p>admin@example.com - администратор</p>
-                  <p>teacher@example.com - преподаватель</p>
-                  <p>employee@example.com - сотрудник</p>
-                </div>
+
               </>
             )}
             {!showPasswordReset && (
