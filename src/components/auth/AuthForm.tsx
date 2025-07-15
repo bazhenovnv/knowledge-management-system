@@ -18,6 +18,7 @@ import {
 import Icon from "@/components/ui/icon";
 import { LoginForm, RegisterForm } from "@/hooks/useAuth";
 import { DEPARTMENTS } from "@/constants/departments";
+import { TestAccountsInfo } from "./TestAccountsInfo";
 import { useState } from "react";
 
 interface AuthFormProps {
@@ -282,6 +283,7 @@ export const AuthForm = ({
             )}
           </CardContent>
         </Card>
+        {!showRegister && !showPasswordReset && <TestAccountsInfo />}
       </div>
     </div>
   );

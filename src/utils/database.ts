@@ -16,6 +16,9 @@ export interface Employee {
     score: number;
     timeSpent: number;
   }>;
+  password?: string; // Пароль пользователя (опциональный для обратной совместимости)
+  lastLoginAt?: Date; // Время последнего входа
+  isActive?: boolean; // Активный статус
   createdAt: Date;
   updatedAt: Date;
 }

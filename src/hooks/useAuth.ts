@@ -56,33 +56,72 @@ export const useAuth = () => {
   }, [isLoggedIn, userRole, userName]);
 
   const handleLogin = (email: string, password: string) => {
-    // Проверяем тестовые аккаунты
-    if (email === "admin@example.com") {
+    // Обязательная проверка полей
+    if (!email || !password) {
+      toast.error("Введите email и пароль");
+      return;
+    }
+
+    // Проверка формата email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Введите корректный email");
+      return;
+    }
+
+    // Проверка минимальной длины пароля
+    if (password.length < 6) {
+      toast.error("Пароль должен содержать минимум 6 символов");
+      return;
+    }
+
+    // Проверяем тестовые аккаунты с паролем
+    if (email === "admin@example.com" && password === "admin123") {
       setUserRole("admin");
       setUserName("Администратор");
       setIsLoggedIn(true);
       toast.success("Вход выполнен как Администратор");
       return;
-    } else if (email === "teacher@example.com") {
+    } else if (email === "teacher@example.com" && password === "teacher123") {
       setUserRole("teacher");
       setUserName("Преподаватель");
       setIsLoggedIn(true);
       toast.success("Вход выполнен как Преподаватель");
       return;
+    } else if (email === "employee@example.com" && password === "employee123") {
+      setUserRole("employee");
+      setUserName("Сотрудник");
+      setIsLoggedIn(true);
+      toast.success("Вход выполнен как Сотрудник");
+      return;
     }
 
     // Ищем пользователя в базе данных
-    const employee = database.findEmployeeByEmail(email);
+    const employee = database.findEmployeeByEmail(email.toLowerCase());
     
-    if (employee) {
-      // В реальном приложении здесь была бы проверка пароля
-      setUserRole(employee.role);
-      setUserName(employee.name);
-      setIsLoggedIn(true);
-      toast.success(`Добро пожаловать, ${employee.name}!`);
-    } else {
+    if (!employee) {
       toast.error("Пользователь с таким email не найден");
+      return;
     }
+
+    // Проверка пароля
+    // Если у пользователя есть сохраненный пароль, используем его
+    // Иначе используем временное правило: email без @domain как пароль
+    const expectedPassword = employee.password || employee.email.split('@')[0];
+    
+    if (password !== expectedPassword) {
+      toast.error("Неверный пароль");
+      return;
+    }
+
+    // Успешный вход
+    setUserRole(employee.role);
+    setUserName(employee.name);
+    setIsLoggedIn(true);
+    toast.success(`Добро пожаловать, ${employee.name}!`);
+    
+    // Обновляем время последнего входа
+    database.updateEmployee(employee.id, { lastLoginAt: new Date() });
   };
 
   const handleLogout = () => {
@@ -147,7 +186,8 @@ export const useAuth = () => {
         score: 0,
         testResults: [],
         lastLoginAt: new Date(), // Время регистрации как первый вход
-        isActive: true // Активный статус по умолчанию
+        isActive: true, // Активный статус по умолчанию
+        password: formData.password // Сохраняем пароль (в реальном приложении нужно хэшировать)
       });
 
       // Устанавливаем пользователя как авторизованного
