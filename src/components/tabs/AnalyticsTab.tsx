@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -25,9 +26,87 @@ import {
   Line,
 } from "recharts";
 import Icon from "@/components/ui/icon";
-import { chartData, pieData, chartConfig } from "@/data/mockData";
+import { database } from '@/utils/database';
+import { chartConfig } from "@/data/mockData";
 
 export const AnalyticsTab = () => {
+  const [analyticsStats, setAnalyticsStats] = useState({
+    totalTests: 0,
+    averageScore: 0,
+    activeTests: 0,
+    totalHours: 0
+  });
+  const [chartData, setChartData] = useState([]);
+  const [pieData, setPieData] = useState([]);
+  
+  useEffect(() => {
+    loadAnalyticsData();
+    const interval = setInterval(loadAnalyticsData, 30000); // Обновление каждые 30 секунд
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadAnalyticsData = () => {
+    try {
+      const employees = database.getEmployees();
+      const tests = database.getTests();
+      const testResults = database.getTestResults();
+
+      // Основная статистика
+      const totalTests = testResults.length;
+      const averageScore = testResults.length > 0 
+        ? Math.round(testResults.reduce((sum, result) => sum + result.score, 0) / testResults.length)
+        : 0;
+      const activeTests = tests.filter(test => test.status === 'published').length;
+      const totalHours = Math.floor(totalTests * 0.5); // Примерно 30 минут на тест
+
+      setAnalyticsStats({
+        totalTests,
+        averageScore,
+        activeTests,
+        totalHours
+      });
+
+      // Данные для графиков - последние 6 месяцев
+      const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+      const currentMonth = new Date().getMonth();
+      
+      const monthlyData = Array.from({ length: 6 }, (_, i) => {
+        const monthIndex = (currentMonth - 5 + i + 12) % 12;
+        const monthName = monthNames[monthIndex];
+        
+        // Имитация данных на основе реальных показателей
+        const testsForMonth = Math.floor(totalTests * (0.8 + Math.random() * 0.4) / 6);
+        const employeesForMonth = Math.floor(employees.length * (0.8 + Math.random() * 0.4) / 6);
+        
+        return {
+          month: monthName,
+          tests: testsForMonth,
+          employees: employeesForMonth
+        };
+      });
+      
+      setChartData(monthlyData);
+
+      // Данные для круговой диаграммы - категории тестов
+      const categories = {};
+      tests.forEach(test => {
+        categories[test.category] = (categories[test.category] || 0) + 1;
+      });
+      
+      const colors = ['#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', '#EF4444'];
+      const pieChartData = Object.entries(categories).map(([name, value], index) => ({
+        name,
+        value,
+        color: colors[index % colors.length]
+      }));
+      
+      setPieData(pieChartData);
+      
+    } catch (error) {
+      console.error('Ошибка загрузки аналитики:', error);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -50,7 +129,7 @@ export const AnalyticsTab = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-blue-600">1,234</div>
+                <div className="text-3xl font-bold text-blue-600">{analyticsStats.totalTests.toLocaleString()}</div>
                 <div className="text-sm text-gray-600">Тестов пройдено</div>
               </div>
               <Icon name="FileText" size={32} className="text-blue-600" />
@@ -61,7 +140,7 @@ export const AnalyticsTab = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-green-600">87%</div>
+                <div className="text-3xl font-bold text-green-600">{analyticsStats.averageScore}%</div>
                 <div className="text-sm text-gray-600">Средний балл</div>
               </div>
               <Icon name="TrendingUp" size={32} className="text-green-600" />
@@ -72,8 +151,8 @@ export const AnalyticsTab = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-purple-600">145</div>
-                <div className="text-sm text-gray-600">Активных курсов</div>
+                <div className="text-3xl font-bold text-purple-600">{analyticsStats.activeTests}</div>
+                <div className="text-sm text-gray-600">Активных тестов</div>
               </div>
               <Icon name="BookOpen" size={32} className="text-purple-600" />
             </div>
@@ -83,7 +162,7 @@ export const AnalyticsTab = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-orange-600">2,847</div>
+                <div className="text-3xl font-bold text-orange-600">{analyticsStats.totalHours.toLocaleString()}</div>
                 <div className="text-sm text-gray-600">Часов обучения</div>
               </div>
               <Icon name="Clock" size={32} className="text-orange-600" />
