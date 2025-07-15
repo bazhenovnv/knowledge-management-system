@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
+import { useState, useEffect } from "react";
+import { database } from "@/utils/database";
 
 import { TopEmployees } from "@/components/employees/TopEmployees";
 
@@ -18,6 +20,54 @@ export const TeacherDashboard = ({
   getStatusColor,
   getStatusText,
 }: TeacherDashboardProps) => {
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    createdTests: 0,
+    averageScore: 0,
+    activeStudents: 0
+  });
+
+  // Загружаем статистику из базы данных
+  useEffect(() => {
+    const loadStats = () => {
+      const employeesData = database.getEmployees();
+      const testsData = database.getTests();
+      const testResultsData = database.getTestResults();
+      
+      // Подсчитываем студентов (роль "employee")
+      const students = employeesData.filter(emp => emp.role === 'employee');
+      
+      // Подсчитываем тесты, созданные преподавателем
+      const createdTests = testsData.filter(test => test.createdBy === 'Преподаватель').length;
+      
+      // Рассчитываем средний балл студентов
+      const totalScore = students.reduce((sum, emp) => {
+        const avgScore = emp.testResults?.length > 0 
+          ? emp.testResults.reduce((s, t) => s + t.score, 0) / emp.testResults.length 
+          : 0;
+        return sum + avgScore;
+      }, 0);
+      const averageScore = students.length > 0 ? Math.round(totalScore / students.length) : 0;
+      
+      // Активные студенты (те, кто проходил тесты)
+      const activeStudents = students.filter(emp => emp.testResults && emp.testResults.length > 0).length;
+
+      setStats({
+        totalStudents: students.length,
+        createdTests,
+        averageScore,
+        activeStudents
+      });
+    };
+
+    loadStats();
+    
+    // Обновляем статистику каждые 10 секунд
+    const interval = setInterval(loadStats, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -38,12 +88,12 @@ export const TeacherDashboard = ({
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                <div className="text-3xl font-bold text-green-600">24</div>
+                <div className="text-3xl font-bold text-green-600">{stats.totalStudents}</div>
                 <div className="text-sm text-gray-600">Студентов</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
-                <div className="text-3xl font-bold text-blue-600">156</div>
-                <div className="text-sm text-gray-600">Материалов создано</div>
+                <div className="text-3xl font-bold text-blue-600">{stats.createdTests}</div>
+                <div className="text-sm text-gray-600">Тестов создано</div>
               </div>
             </div>
           </CardContent>

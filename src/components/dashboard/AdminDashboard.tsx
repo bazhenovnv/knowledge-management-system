@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Icon from "@/components/ui/icon";
-
+import { useState, useEffect } from "react";
+import { database } from "@/utils/database";
 import { TopEmployees } from "@/components/employees/TopEmployees";
 
 interface AdminDashboardProps {
@@ -34,6 +35,50 @@ export const AdminDashboard = ({
   getStatusColor,
   getStatusText,
 }: AdminDashboardProps) => {
+  const [stats, setStats] = useState({
+    totalEmployees: 0,
+    totalTests: 0,
+    totalTestResults: 0,
+    averageScore: 0,
+    activeCourses: 0
+  });
+
+  // Загружаем статистику из базы данных
+  useEffect(() => {
+    const loadStats = () => {
+      const employeesData = database.getEmployees();
+      const testsData = database.getTests();
+      const testResultsData = database.getTestResults();
+      
+      // Рассчитываем средний балл
+      const totalScore = employeesData.reduce((sum, emp) => {
+        const avgScore = emp.testResults?.length > 0 
+          ? emp.testResults.reduce((s, t) => s + t.score, 0) / emp.testResults.length 
+          : 0;
+        return sum + avgScore;
+      }, 0);
+      const averageScore = employeesData.length > 0 ? Math.round(totalScore / employeesData.length) : 0;
+      
+      // Подсчитываем активные курсы (опубликованные тесты)
+      const activeCourses = testsData.filter(test => test.status === 'published').length;
+
+      setStats({
+        totalEmployees: employeesData.length,
+        totalTests: testsData.length,
+        totalTestResults: testResultsData.length,
+        averageScore,
+        activeCourses
+      });
+    };
+
+    loadStats();
+    
+    // Обновляем статистику каждые 10 секунд
+    const interval = setInterval(loadStats, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -44,7 +89,7 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-blue-600">95</div>
+                <div className="text-3xl font-bold text-blue-600">{stats.totalEmployees}</div>
                 <div className="text-sm text-gray-600">Сотрудников</div>
               </div>
               <Icon name="Users" size={32} className="text-blue-600" />
@@ -55,8 +100,8 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-green-600">1,234</div>
-                <div className="text-sm text-gray-600">Материалов изучено</div>
+                <div className="text-3xl font-bold text-green-600">{stats.totalTestResults}</div>
+                <div className="text-sm text-gray-600">Результатов тестов</div>
               </div>
               <Icon name="BookOpen" size={32} className="text-green-600" />
             </div>
@@ -66,7 +111,7 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-purple-600">87%</div>
+                <div className="text-3xl font-bold text-purple-600">{stats.averageScore}%</div>
                 <div className="text-sm text-gray-600">Средний балл</div>
               </div>
               <Icon name="TrendingUp" size={32} className="text-purple-600" />
@@ -77,7 +122,7 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-orange-600">12</div>
+                <div className="text-3xl font-bold text-orange-600">{stats.activeCourses}</div>
                 <div className="text-sm text-gray-600">Активных курсов</div>
               </div>
               <Icon name="BookOpen" size={32} className="text-orange-600" />

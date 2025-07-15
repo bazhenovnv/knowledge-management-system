@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,7 @@ import {
 import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
+import { database } from "@/utils/database";
 import TestTaking from "./TestTaking";
 
 interface Question {
@@ -89,66 +90,18 @@ const TestManagement: React.FC<TestManagementProps> = ({
   userId,
 }) => {
   const { markTestAsViewed, isTestNew } = useViewedTests();
-  const [tests, setTests] = useState<Test[]>([
-    {
-      id: "1",
-      title: "Основы информационной безопасности",
-      description: "Тест на знание основных принципов ИБ",
-      category: "Безопасность",
-      difficulty: "medium",
-      timeLimit: 30,
-      questions: [
-        {
-          id: "1",
-          question: "Что такое фишинг?",
-          options: [
-            "Вид рыбалки",
-            "Мошенничество через поддельные сайты",
-            "Антивирусная программа",
-            "Тип шифрования",
-          ],
-          correctAnswer: 1,
-          explanation:
-            "Фишинг - это вид интернет-мошенничества, при котором злоумышленники используют поддельные сайты для кражи личных данных.",
-        },
-      ],
-      department: "Все отделы",
-      createdBy: "Администратор",
-      createdAt: new Date("2024-01-15"),
-      status: "published",
-      totalAttempts: 45,
-      averageScore: 78,
-    },
-    {
-      id: "2",
-      title: "Работа с клиентами",
-      description: "Тест на знание принципов работы с клиентами",
-      category: "Клиентский сервис",
-      difficulty: "easy",
-      timeLimit: 20,
-      questions: [
-        {
-          id: "1",
-          question: "Как правильно приветствовать клиента?",
-          options: [
-            "Привет",
-            "Добро пожаловать! Как дела?",
-            "Здравствуйте! Чем могу помочь?",
-            "Что нужно?",
-          ],
-          correctAnswer: 2,
-          explanation:
-            "Профессиональное приветствие должно быть вежливым и предлагать помощь.",
-        },
-      ],
-      department: "Сервис",
-      createdBy: "Преподаватель",
-      createdAt: new Date("2024-01-10"),
-      status: "published",
-      totalAttempts: 23,
-      averageScore: 85,
-    },
-  ]);
+  const [tests, setTests] = useState<Test[]>([]);
+
+  // Загружаем тесты из базы данных при инициализации
+  useEffect(() => {
+    const loadTests = () => {
+      const testsFromDB = database.getTests();
+      setTests(testsFromDB);
+    };
+    loadTests();
+  }, []);
+
+
 
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -216,20 +169,32 @@ const TestManagement: React.FC<TestManagementProps> = ({
       questions: newTest.questions
     };
 
-    setTests(tests.map(t => t.id === editingTest.id ? updatedTest : t));
-    setEditingTest(null);
-    setIsEditDialogOpen(false);
-    resetForm();
-    toast.success("Тест обновлен успешно!");
+    // Обновляем тест в базе данных
+    const savedTest = database.updateTest(editingTest.id, updatedTest);
+    if (savedTest) {
+      setTests(tests.map(t => t.id === editingTest.id ? savedTest : t));
+      setEditingTest(null);
+      setIsEditDialogOpen(false);
+      resetForm();
+      toast.success("Тест обновлен в базе данных!");
+    } else {
+      toast.error("Ошибка при обновлении теста в базе данных");
+    }
   };
 
   // Функция удаления теста
   const handleDeleteTest = (testId: string) => {
     const testToDelete = tests.find(t => t.id === testId);
     if (testToDelete) {
-      setTests(tests.filter(t => t.id !== testId));
-      setDeletingTestId(null);
-      toast.success(`Тест "${testToDelete.title}" удален`);
+      // Удаляем тест из базы данных
+      const success = database.deleteTest(testId);
+      if (success) {
+        setTests(tests.filter(t => t.id !== testId));
+        setDeletingTestId(null);
+        toast.success(`Тест "${testToDelete.title}" удален из базы данных`);
+      } else {
+        toast.error("Ошибка при удалении теста из базы данных");
+      }
     }
   };
 
@@ -246,25 +211,31 @@ const TestManagement: React.FC<TestManagementProps> = ({
 
   // Функция завершения теста
   const handleTestComplete = (result: TestResult) => {
-    setTestResults(prev => [...prev, result]);
+    // Сохраняем результат в базе данных
+    const savedResult = database.saveTestResult(result);
+    setTestResults(prev => [...prev, savedResult]);
     
-    // Обновляем статистику теста
+    // Обновляем статистику теста в базе данных
     setTests(prev => prev.map(test => {
       if (test.id === result.testId) {
         const newTotalAttempts = test.totalAttempts + 1;
         const newAverageScore = Math.round(
           ((test.averageScore * test.totalAttempts) + result.score) / newTotalAttempts
         );
-        return {
+        const updatedTest = {
           ...test,
           totalAttempts: newTotalAttempts,
           averageScore: newAverageScore
         };
+        
+        // Обновляем тест в базе данных
+        database.updateTest(test.id, updatedTest);
+        return updatedTest;
       }
       return test;
     }));
     
-    toast.success(`Результат сохранен: ${result.score}%`);
+    toast.success(`Результат сохранен в базе данных: ${result.score}%`);
   };
 
   // Функция закрытия теста
@@ -300,10 +271,12 @@ const TestManagement: React.FC<TestManagementProps> = ({
       averageScore: 0,
     };
 
-    setTests([...tests, test]);
+    // Сохраняем тест в базе данных
+    const savedTest = database.saveTest(test);
+    setTests([...tests, savedTest]);
     resetForm();
     setIsCreating(false);
-    toast.success("Тест создан успешно!");
+    toast.success("Тест создан и сохранен в базе данных!");
   };
 
   const filteredTests = tests.filter((test) => {
