@@ -131,6 +131,8 @@ export const KnowledgeTab = ({
         </div>
       </div>
 
+      <AIChat />
+      
       <div className="flex items-center space-x-4">
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
           <SelectTrigger className="w-48">
@@ -200,8 +202,6 @@ export const KnowledgeTab = ({
         ))}
       </div>
 
-      <AIChat />
-      
       {/* Предпросмотр материала */}
       {previewMaterial && (
         <MaterialPreview

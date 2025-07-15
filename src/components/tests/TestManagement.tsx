@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
+import { useViewedTests } from "@/hooks/useViewedTests";
 
 interface Question {
   id: string;
@@ -75,6 +76,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
   userRole,
   userId,
 }) => {
+  const { markTestAsViewed, isTestNew } = useViewedTests();
   const [tests, setTests] = useState<Test[]>([
     {
       id: "1",
@@ -139,6 +141,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
   const [selectedTest, setSelectedTest] = useState<Test | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [editingTest, setEditingTest] = useState<Test | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -189,6 +192,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
   // Функция прохождения теста
   const handleTakeTest = (test: Test) => {
     setTakingTest(test);
+    markTestAsViewed(test.id); // Отмечаем тест как просмотренный
     if (userRole === "student") {
       toast.info(`Начинаем тест: ${test.title}`);
     } else {
@@ -235,6 +239,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
 
   const filteredTests = tests.filter((test) => {
     if (filter !== "all" && test.status !== filter) return false;
+    if (departmentFilter !== "all" && test.department !== departmentFilter) return false;
     if (
       searchTerm &&
       !test.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -638,7 +643,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
       </div>
 
       {/* Filters */}
-      <div className="flex space-x-4 items-center">
+      <div className="flex space-x-4 items-center flex-wrap">
         <Input
           placeholder="Поиск тестов..."
           value={searchTerm}
@@ -656,6 +661,18 @@ const TestManagement: React.FC<TestManagementProps> = ({
             <SelectItem value="archived">Архивированные</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Фильтр по отделу" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все отделы</SelectItem>
+            <SelectItem value="Все отделы">Все отделы</SelectItem>
+            <SelectItem value="ЦТО">ЦТО</SelectItem>
+            <SelectItem value="Сервис">Сервис</SelectItem>
+            <SelectItem value="Отдел IT">Отдел IT</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Tests Grid */}
@@ -665,7 +682,14 @@ const TestManagement: React.FC<TestManagementProps> = ({
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <CardTitle className="text-lg">{test.title}</CardTitle>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">{test.title}</CardTitle>
+                    {isTestNew(test.id, test.createdAt) && (
+                      <Badge className="bg-red-500 text-white text-xs px-2 py-1 animate-pulse">
+                        NEW
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-sm text-gray-600 mt-1">
                     {test.description}
                   </p>

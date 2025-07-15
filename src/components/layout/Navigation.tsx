@@ -13,6 +13,7 @@ import Icon from "@/components/ui/icon";
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useViewedTests } from "@/hooks/useViewedTests";
 
 interface NavigationProps {
   activeTab: string;
@@ -41,6 +42,16 @@ export const Navigation = ({
     deleteNotification,
     clearAll,
   } = useNotifications();
+  
+  const { getNewTestsCount } = useViewedTests();
+  
+  // Мок данные тестов для подсчета новых
+  const mockTests = [
+    { id: "1", createdAt: new Date("2024-01-15") },
+    { id: "2", createdAt: new Date("2024-01-10") },
+  ];
+  
+  const newTestsCount = getNewTestsCount(mockTests);
 
   const handleActionClick = (notification: any) => {
     // Закрываем панель уведомлений
@@ -135,9 +146,11 @@ export const Navigation = ({
                   >
                     <Icon name="FileText" size={16} className="mr-2" />
                     Тесты
-                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
-                      NEW
-                    </span>
+                    {newTestsCount > 0 && (
+                      <span className="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
+                        {newTestsCount > 99 ? '99+' : newTestsCount}
+                      </span>
+                    )}
                   </Button>
                   <Button
                     variant={activeTab === "analytics" ? "default" : "ghost"}
@@ -196,9 +209,11 @@ export const Navigation = ({
         >
           <Icon name="FileText" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">Тесты</span>
-          <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
-            NEW
-          </span>
+          {newTestsCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
+              {newTestsCount > 99 ? '99+' : newTestsCount}
+            </span>
+          )}
         </TabsTrigger>
         <TabsTrigger
           value="analytics"
