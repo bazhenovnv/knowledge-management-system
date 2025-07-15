@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
 import { employees } from "@/data/mockData";
+import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 
 export const TopEmployees = () => {
   // Функция для подсчета общей оценки тестирования
@@ -59,7 +60,12 @@ export const TopEmployees = () => {
             <Badge variant={testScore >= 80 ? "default" : testScore >= 60 ? "secondary" : "destructive"}>
               {testScore}
             </Badge>
-            <span className="text-sm text-gray-500">({completedTests} тестов)</span>
+            <Badge className={`${getStatusColor(employee.status)} text-white`}>
+              {getStatusText(employee.status)}
+            </Badge>
+          </div>
+          <div className="text-sm text-gray-500 mt-1">
+            Статус: {employee.status}/5
           </div>
           <Progress value={testScore} className="w-16 mt-1" />
         </div>

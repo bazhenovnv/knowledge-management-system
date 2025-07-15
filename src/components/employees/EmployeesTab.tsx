@@ -66,7 +66,8 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     email: "",
     department: "",
     position: "",
-    role: "employee"
+    role: "employee",
+    status: 3
   });
   const [editingEmployee, setEditingEmployee] = useState({
     id: null,
@@ -74,7 +75,8 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     email: "",
     department: "",
     position: "",
-    role: "employee"
+    role: "employee",
+    status: 3
   });
 
   // Функция для подсчета общей оценки тестирования
@@ -167,7 +169,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       emp.position.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter(emp => departmentFilter === "all" || emp.department === departmentFilter)
-    .filter(emp => statusFilter === "all" || emp.status === statusFilter)
+    .filter(emp => statusFilter === "all" || emp.status === parseInt(statusFilter))
     .sort((a, b) => getTestScore(b) - getTestScore(a));
 
   // Получение уникальных отделов
@@ -347,6 +349,21 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="status" className="text-right">Статус</Label>
+                    <Select value={newEmployee.status?.toString()} onValueChange={(value) => setNewEmployee({...newEmployee, status: parseInt(value)})}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Выберите статус" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 - Критический</SelectItem>
+                        <SelectItem value="2">2 - Низкий</SelectItem>
+                        <SelectItem value="3">3 - Средний</SelectItem>
+                        <SelectItem value="4">4 - Хороший</SelectItem>
+                        <SelectItem value="5">5 - Отличный</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
@@ -415,9 +432,11 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Все статусы</SelectItem>
-            <SelectItem value="active">Активные</SelectItem>
-            <SelectItem value="inactive">Неактивные</SelectItem>
-            <SelectItem value="pending">Ожидающие</SelectItem>
+            <SelectItem value="1">Статус 1 (Критический)</SelectItem>
+            <SelectItem value="2">Статус 2 (Низкий)</SelectItem>
+            <SelectItem value="3">Статус 3 (Средний)</SelectItem>
+            <SelectItem value="4">Статус 4 (Хороший)</SelectItem>
+            <SelectItem value="5">Статус 5 (Отличный)</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -440,9 +459,9 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
             <div className="flex items-center space-x-2">
               <Icon name="CheckCircle" size={20} className="text-green-600" />
               <div>
-                <p className="text-sm text-gray-600">Активные</p>
+                <p className="text-sm text-gray-600">Отличные (4-5)</p>
                 <p className="text-2xl font-bold">
-                  {employees.filter(emp => emp.status === "active").length}
+                  {employees.filter(emp => emp.status >= 4).length}
                 </p>
               </div>
             </div>

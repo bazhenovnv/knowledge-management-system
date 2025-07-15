@@ -1,27 +1,20 @@
-export const getStatusColor = (status: string): string => {
+export const getStatusColor = (status: number): string => {
   switch (status) {
-    case "green":
-      return "bg-green-500";
-    case "yellow":
-      return "bg-yellow-500";
-    case "red":
+    case 1:
+    case 2:
       return "bg-red-500";
+    case 3:
+      return "bg-yellow-500";
+    case 4:
+    case 5:
+      return "bg-green-500";
     default:
       return "bg-gray-500";
   }
 };
 
-export const getStatusText = (status: string): string => {
-  switch (status) {
-    case "green":
-      return "Отлично";
-    case "yellow":
-      return "Хорошо";
-    case "red":
-      return "Требует внимания";
-    default:
-      return "Неизвестно";
-  }
+export const getStatusText = (status: number): string => {
+  return status.toString();
 };
 
 export const getDifficultyColor = (difficulty: string): string => {
