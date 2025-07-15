@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import Icon from "@/components/ui/icon";
 import { LoginForm, RegisterForm } from "@/hooks/useAuth";
+import { DEPARTMENTS } from "@/constants/departments";
 import { useState } from "react";
 
 interface AuthFormProps {
@@ -164,11 +165,9 @@ export const AuthForm = ({
                       <SelectValue placeholder="Выберите отдел" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="it">ИТ</SelectItem>
-                      <SelectItem value="hr">HR</SelectItem>
-                      <SelectItem value="finance">Финансы</SelectItem>
-                      <SelectItem value="marketing">Маркетинг</SelectItem>
-                      <SelectItem value="operations">Операции</SelectItem>
+                      {DEPARTMENTS.map(dept => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

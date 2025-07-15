@@ -47,6 +47,7 @@ import {
 import Icon from "@/components/ui/icon";
 import { database, type Employee } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
+import { DEPARTMENTS } from "@/constants/departments";
 import { toast } from "sonner";
 
 interface EmployeesTabProps {
@@ -182,8 +183,9 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     .filter(emp => statusFilter === "all" || emp.status === parseInt(statusFilter))
     .sort((a, b) => getTestScore(b) - getTestScore(a));
 
-  // Получение уникальных отделов
-  const departments = Array.from(new Set(employees.map(emp => emp.department)));
+  // Получение уникальных отделов из существующих сотрудников + константы
+  const existingDepartments = Array.from(new Set(employees.map(emp => emp.department)));
+  const departments = Array.from(new Set([...DEPARTMENTS, ...existingDepartments]));
 
   // Функция для получения текста роли
   const getRoleText = (role: string) => {
