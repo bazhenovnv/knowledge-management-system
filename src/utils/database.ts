@@ -62,12 +62,37 @@ export interface TestResult {
   completedAt: Date;
 }
 
+export interface KnowledgeMaterial {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  category: string;
+  difficulty: "Начинающий" | "Средний" | "Продвинутый";
+  duration: string;
+  rating: number;
+  enrollments: number;
+  tags: string[];
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isPublished: boolean;
+  department?: string;
+  attachments?: Array<{
+    id: string;
+    name: string;
+    type: string;
+    url: string;
+  }>;
+}
+
 // Ключи для localStorage
 const STORAGE_KEYS = {
   EMPLOYEES: 'employees_db',
   TESTS: 'tests_db',
   TEST_RESULTS: 'test_results_db',
-  MATERIALS: 'materials_db'
+  MATERIALS: 'materials_db',
+  KNOWLEDGE_BASE: 'knowledge_base_db'
 };
 
 // Базовый класс для работы с базой данных
@@ -234,6 +259,95 @@ class DatabaseService {
   }
 
   // ========================
+  // МЕТОДЫ ДЛЯ БАЗЫ ЗНАНИЙ
+  // ========================
+
+  // Получить все материалы базы знаний
+  getKnowledgeMaterials(): KnowledgeMaterial[] {
+    return this.getData<KnowledgeMaterial>(STORAGE_KEYS.KNOWLEDGE_BASE);
+  }
+
+  // Сохранить материал базы знаний
+  saveKnowledgeMaterial(material: Omit<KnowledgeMaterial, 'id' | 'createdAt' | 'updatedAt'>): KnowledgeMaterial {
+    const materials = this.getKnowledgeMaterials();
+    const newMaterial: KnowledgeMaterial = {
+      ...material,
+      id: Date.now().toString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    materials.push(newMaterial);
+    this.setData(STORAGE_KEYS.KNOWLEDGE_BASE, materials);
+    return newMaterial;
+  }
+
+  // Обновить материал базы знаний
+  updateKnowledgeMaterial(id: string, updates: Partial<KnowledgeMaterial>): KnowledgeMaterial | null {
+    const materials = this.getKnowledgeMaterials();
+    const index = materials.findIndex(material => material.id === id);
+    
+    if (index === -1) return null;
+    
+    materials[index] = {
+      ...materials[index],
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    this.setData(STORAGE_KEYS.KNOWLEDGE_BASE, materials);
+    return materials[index];
+  }
+
+  // Удалить материал базы знаний
+  deleteKnowledgeMaterial(id: string): boolean {
+    const materials = this.getKnowledgeMaterials();
+    const filteredMaterials = materials.filter(material => material.id !== id);
+    
+    if (filteredMaterials.length === materials.length) return false;
+    
+    this.setData(STORAGE_KEYS.KNOWLEDGE_BASE, filteredMaterials);
+    return true;
+  }
+
+  // Найти материалы по категории
+  getKnowledgeMaterialsByCategory(category: string): KnowledgeMaterial[] {
+    const materials = this.getKnowledgeMaterials();
+    if (category === 'all') return materials;
+    return materials.filter(material => material.category === category);
+  }
+
+  // Поиск материалов по тексту
+  searchKnowledgeMaterials(query: string): KnowledgeMaterial[] {
+    const materials = this.getKnowledgeMaterials();
+    if (!query) return materials;
+    
+    const lowerQuery = query.toLowerCase();
+    return materials.filter(material => 
+      material.title.toLowerCase().includes(lowerQuery) ||
+      material.description.toLowerCase().includes(lowerQuery) ||
+      material.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+    );
+  }
+
+  // Увеличить количество записей на материал
+  incrementEnrollments(materialId: string): boolean {
+    const material = this.getKnowledgeMaterials().find(m => m.id === materialId);
+    if (!material) return false;
+    
+    return !!this.updateKnowledgeMaterial(materialId, {
+      enrollments: material.enrollments + 1
+    });
+  }
+
+  // Обновить рейтинг материала
+  updateMaterialRating(materialId: string, newRating: number): boolean {
+    return !!this.updateKnowledgeMaterial(materialId, {
+      rating: Math.max(0, Math.min(5, newRating)) // Ограничиваем рейтинг от 0 до 5
+    });
+  }
+
+  // ========================
   // ИНИЦИАЛИЗАЦИЯ ДАННЫХ
   // ========================
 
@@ -294,6 +408,100 @@ class DatabaseService {
 
       // Сохраняем каждого сотрудника
       initialEmployees.forEach(emp => this.saveEmployee(emp));
+    }
+
+    // Инициализируем базу знаний, если она пуста
+    const materials = this.getKnowledgeMaterials();
+    if (materials.length === 0) {
+      const initialMaterials: Omit<KnowledgeMaterial, 'id' | 'createdAt' | 'updatedAt'>[] = [
+        {
+          title: "Основы React и TypeScript",
+          description: "Изучите современные подходы к разработке веб-приложений с React и TypeScript",
+          content: "Подробное руководство по созданию компонентов, работе с состоянием, хуками и TypeScript типизацией.",
+          category: "Программирование",
+          difficulty: "Средний",
+          duration: "3 часа",
+          rating: 4.8,
+          enrollments: 245,
+          tags: ["React", "TypeScript", "Frontend", "JavaScript"],
+          createdBy: "Администратор",
+          isPublished: true,
+          department: "1С"
+        },
+        {
+          title: "Информационная безопасность в офисе",
+          description: "Основы защиты корпоративной информации и персональных данных",
+          content: "Правила работы с конфиденциальной информацией, защита от фишинга, безопасные пароли.",
+          category: "Безопасность",
+          difficulty: "Начинающий",
+          duration: "1.5 часа",
+          rating: 4.6,
+          enrollments: 567,
+          tags: ["Безопасность", "Пароли", "Фишинг", "Корпоративная политика"],
+          createdBy: "Администратор",
+          isPublished: true,
+          department: "Все отделы"
+        },
+        {
+          title: "Управление проектами Agile",
+          description: "Современные методологии управления проектами и командной работы",
+          content: "Принципы Agile, Scrum, Kanban. Планирование спринтов, проведение ретроспектив.",
+          category: "Менеджмент",
+          difficulty: "Продвинутый",
+          duration: "4 часа",
+          rating: 4.7,
+          enrollments: 123,
+          tags: ["Agile", "Scrum", "Kanban", "Управление проектами"],
+          createdBy: "Администратор",
+          isPublished: true,
+          department: "Крупные клиенты"
+        },
+        {
+          title: "Основы работы с CRM системами",
+          description: "Эффективное использование CRM для работы с клиентами",
+          content: "Ведение базы клиентов, создание воронки продаж, аналитика и отчетность.",
+          category: "Продажи",
+          difficulty: "Начинающий",
+          duration: "2 часа",
+          rating: 4.4,
+          enrollments: 324,
+          tags: ["CRM", "Продажи", "Клиенты", "Аналитика"],
+          createdBy: "Администратор",
+          isPublished: true,
+          department: "Партнерка"
+        },
+        {
+          title: "Корпоративная культура и этика",
+          description: "Ценности компании, правила внутреннего взаимодействия",
+          content: "Кодекс поведения сотрудников, корпоративные стандарты, командная работа.",
+          category: "Мягкие навыки",
+          difficulty: "Начинающий",
+          duration: "1 час",
+          rating: 4.3,
+          enrollments: 456,
+          tags: ["Корпоративная культура", "Этика", "Командная работа"],
+          createdBy: "Администратор",
+          isPublished: true,
+          department: "Все отделы"
+        },
+        {
+          title: "Техническая поддержка клиентов",
+          description: "Принципы качественного обслуживания и решения технических вопросов",
+          content: "Алгоритмы диагностики проблем, эскалация вопросов, работа с клиентами.",
+          category: "Техническая поддержка",
+          difficulty: "Средний",
+          duration: "2.5 часа",
+          rating: 4.5,
+          enrollments: 189,
+          tags: ["Техподдержка", "Клиенты", "Диагностика", "Сервис"],
+          createdBy: "Администратор",
+          isPublished: true,
+          department: "Тех. поддержка"
+        }
+      ];
+
+      // Сохраняем каждый материал
+      initialMaterials.forEach(material => this.saveKnowledgeMaterial(material));
     }
   }
 

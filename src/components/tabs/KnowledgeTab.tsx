@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,12 +20,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
-import { knowledgeBase } from "@/data/mockData";
+import { database, KnowledgeMaterial } from "@/utils/database";
 import { toast } from "sonner";
 import { getDifficultyColor } from "@/utils/statusUtils";
 import { AIChat } from "@/components/ai/AIChat";
 import { MaterialForm } from "@/components/materials/MaterialForm";
 import { MaterialPreview } from "@/components/materials/MaterialPreview";
+import { DEPARTMENTS } from "@/constants/departments";
 
 interface KnowledgeTabProps {
   searchQuery: string;
@@ -40,35 +41,111 @@ export const KnowledgeTab = ({
 }: KnowledgeTabProps) => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [previewMaterial, setPreviewMaterial] = useState(null);
-  const [materials, setMaterials] = useState(knowledgeBase);
-  const [studyMaterial, setStudyMaterial] = useState(null);
-  const [testMaterial, setTestMaterial] = useState(null);
+  const [previewMaterial, setPreviewMaterial] = useState<KnowledgeMaterial | null>(null);
+  const [materials, setMaterials] = useState<KnowledgeMaterial[]>([]);
+  const [studyMaterial, setStudyMaterial] = useState<KnowledgeMaterial | null>(null);
+  const [testMaterial, setTestMaterial] = useState<KnowledgeMaterial | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Загружаем материалы из базы данных
+  useEffect(() => {
+    loadMaterials();
+  }, []);
+
+  const loadMaterials = () => {
+    try {
+      const materialsFromDB = database.getKnowledgeMaterials();
+      setMaterials(materialsFromDB);
+      setLoading(false);
+    } catch (error) {
+      console.error('Ошибка загрузки материалов:', error);
+      toast.error('Ошибка загрузки материалов');
+      setLoading(false);
+    }
+  };
 
   // Функция создания материала
-  const handleCreateMaterial = (material: any) => {
-    const newMaterial = {
-      ...material,
-      id: Date.now().toString(),
-      rating: 0,
-      enrollments: 0,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    
-    setMaterials([...materials, newMaterial]);
-    setIsFormOpen(false);
-    toast.success("Материал успешно создан!");
+  const handleCreateMaterial = (materialData: any) => {
+    try {
+      const newMaterial = database.saveKnowledgeMaterial({
+        title: materialData.title,
+        description: materialData.description,
+        content: materialData.content || '',
+        category: materialData.category,
+        difficulty: materialData.difficulty || 'Начинающий',
+        duration: materialData.duration || '1 час',
+        rating: 0,
+        enrollments: 0,
+        tags: materialData.tags || [],
+        createdBy: 'Текущий пользователь', // В реальном приложении - из контекста
+        isPublished: true,
+        department: materialData.department
+      });
+      
+      loadMaterials(); // Перезагружаем список
+      setIsFormOpen(false);
+      toast.success('Материал создан успешно!');
+    } catch (error) {
+      console.error('Ошибка создания материала:', error);
+      toast.error('Ошибка создания материала');
+    }
+  };
+
+  // Функция удаления материала
+  const handleDeleteMaterial = (materialId: string) => {
+    try {
+      const success = database.deleteKnowledgeMaterial(materialId);
+      if (success) {
+        loadMaterials();
+        toast.success('Материал удален');
+      } else {
+        toast.error('Материал не найден');
+      }
+    } catch (error) {
+      console.error('Ошибка удаления материала:', error);
+      toast.error('Ошибка удаления материала');
+    }
   };
 
   // Функция изучения материала
-  const handleStudyMaterial = (material: any) => {
-    setStudyMaterial(material);
-    toast.info(`Начинаем изучение: ${material.title}`);
-    // Здесь можно добавить логику открытия материала для изучения
+  const handleStudyMaterial = (material: KnowledgeMaterial) => {
+    try {
+      database.incrementEnrollments(material.id);
+      setStudyMaterial(material);
+      loadMaterials(); // Обновляем счетчик записей
+    } catch (error) {
+      console.error('Ошибка при записи на материал:', error);
+      toast.error('Ошибка при записи на материал');
+    }
   };
 
+  // Фильтрация материалов
+  const filteredMaterials = materials.filter(material => {
+    const matchesCategory = selectedCategory === 'all' || material.category === selectedCategory;
+    const matchesSearch = !searchQuery || 
+      material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesCategory && matchesSearch && material.isPublished;
+  });
+
+  // Получаем уникальные категории
+  const categories = ['all', ...new Set(materials.map(m => m.category))];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <Icon name="Loader2" className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p>Загрузка базы знаний...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Функция прохождения теста
-  const handleTakeMaterialTest = (material: any) => {
+  const handleTakeMaterialTest = (material: KnowledgeMaterial) => {
     setTestMaterial(material);
     toast.info(`Запускаем тест по материалу: ${material.title}`);
     // Здесь можно добавить логику запуска теста
@@ -150,7 +227,7 @@ export const KnowledgeTab = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredKnowledge.map((item) => (
+        {filteredMaterials.map((item) => (
           <Card key={item.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -195,6 +272,16 @@ export const KnowledgeTab = ({
                     <Icon name="FileText" size={14} className="mr-1" />
                     Тест
                   </Button>
+                  {(userRole === 'admin' || userRole === 'teacher') && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteMaterial(item.id)}
+                      className="border-red-500 text-red-600 hover:bg-red-50"
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>

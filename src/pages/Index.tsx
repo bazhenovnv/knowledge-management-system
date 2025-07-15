@@ -21,13 +21,17 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
 
-  // Загружаем сотрудников из базы данных
+  // Инициализируем базу данных и загружаем сотрудников
   useEffect(() => {
-    const loadEmployees = () => {
+    const initializeAndLoadData = () => {
+      // Инициализируем базу данных с начальными данными
+      database.initializeDatabase();
+      
+      // Загружаем сотрудников
       const employeesFromDB = database.getEmployees();
       setEmployees(employeesFromDB);
     };
-    loadEmployees();
+    initializeAndLoadData();
   }, []);
 
   const {
