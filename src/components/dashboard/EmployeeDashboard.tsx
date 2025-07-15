@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
-import TestManagement from "@/components/tests/TestManagement";
+
 import { TopEmployees } from "@/components/employees/TopEmployees";
 
 interface EmployeeDashboardProps {
@@ -28,7 +28,7 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-3xl font-bold text-blue-600">15</div>
-                <div className="text-sm text-gray-600">Пройдено тестов</div>
+                <div className="text-sm text-gray-600">Изучено материалов</div>
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-3xl font-bold text-green-600">85%</div>
@@ -45,7 +45,7 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
-                  <div className="font-medium">Тест по безопасности</div>
+                  <div className="font-medium">Изучить материал по безопасности</div>
                   <div className="text-sm text-gray-600">Срок: 25 января</div>
                 </div>
                 <Badge variant="secondary">Новый</Badge>
@@ -73,12 +73,7 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
       {/* Рейтинг сотрудников */}
       <TopEmployees />
 
-      {/* Тесты */}
-      <Card>
-        <CardContent className="p-6">
-          <TestManagement userRole="student" />
-        </CardContent>
-      </Card>
+
     </div>
   );
 };

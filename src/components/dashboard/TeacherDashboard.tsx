@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
-import TestManagement from "@/components/tests/TestManagement";
+
 import { TopEmployees } from "@/components/employees/TopEmployees";
 
 interface TeacherDashboardProps {
@@ -43,14 +43,14 @@ export const TeacherDashboard = ({
               </div>
               <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                 <div className="text-3xl font-bold text-blue-600">156</div>
-                <div className="text-sm text-gray-600">Проведено тестов</div>
+                <div className="text-sm text-gray-600">Материалов создано</div>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Список тестируемых</CardTitle>
+            <CardTitle>Активные студенты</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -87,11 +87,7 @@ export const TeacherDashboard = ({
       <TopEmployees />
 
       {/* Тесты */}
-      <Card>
-        <CardContent className="p-6">
-          <TestManagement userRole="teacher" />
-        </CardContent>
-      </Card>
+
     </div>
   );
 };

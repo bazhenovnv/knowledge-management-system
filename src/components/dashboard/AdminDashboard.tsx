@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Icon from "@/components/ui/icon";
-import TestManagement from "@/components/tests/TestManagement";
+
 import { TopEmployees } from "@/components/employees/TopEmployees";
 
 interface AdminDashboardProps {
@@ -56,9 +56,9 @@ export const AdminDashboard = ({
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-3xl font-bold text-green-600">1,234</div>
-                <div className="text-sm text-gray-600">Тестов пройдено</div>
+                <div className="text-sm text-gray-600">Материалов изучено</div>
               </div>
-              <Icon name="FileText" size={32} className="text-green-600" />
+              <Icon name="BookOpen" size={32} className="text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -198,9 +198,9 @@ export const AdminDashboard = ({
                 </div>
                 <div className="flex items-center space-x-4">
                   <div className="text-right">
-                    <div className="font-medium">{employee.tests} тестов</div>
+                    <div className="font-medium">Активность</div>
                     <div className="text-sm text-gray-600">
-                      Средний балл: {employee.avgScore}%
+                      Последняя активность: Сегодня
                     </div>
                   </div>
                   <Badge
@@ -222,12 +222,7 @@ export const AdminDashboard = ({
       {/* Рейтинг сотрудников */}
       <TopEmployees />
 
-      {/* Тесты */}
-      <Card>
-        <CardContent className="p-6">
-          <TestManagement userRole="admin" />
-        </CardContent>
-      </Card>
+
     </div>
   );
 };
