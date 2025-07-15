@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { database } from "@/utils/database";
 
 export interface LoginForm {
   email: string;
@@ -55,22 +56,33 @@ export const useAuth = () => {
   }, [isLoggedIn, userRole, userName]);
 
   const handleLogin = (email: string, password: string) => {
-    let role: "employee" | "teacher" | "admin" = "employee";
-    let name = "";
-    
+    // Проверяем тестовые аккаунты
     if (email === "admin@example.com") {
-      role = "admin";
-      name = "Администратор";
+      setUserRole("admin");
+      setUserName("Администратор");
+      setIsLoggedIn(true);
+      toast.success("Вход выполнен как Администратор");
+      return;
     } else if (email === "teacher@example.com") {
-      role = "teacher";
-      name = "Преподаватель";
-    } else {
-      name = "Сотрудник";
+      setUserRole("teacher");
+      setUserName("Преподаватель");
+      setIsLoggedIn(true);
+      toast.success("Вход выполнен как Преподаватель");
+      return;
     }
+
+    // Ищем пользователя в базе данных
+    const employee = database.findEmployeeByEmail(email);
     
-    setUserRole(role);
-    setUserName(name);
-    setIsLoggedIn(true);
+    if (employee) {
+      // В реальном приложении здесь была бы проверка пароля
+      setUserRole(employee.role);
+      setUserName(employee.name);
+      setIsLoggedIn(true);
+      toast.success(`Добро пожаловать, ${employee.name}!`);
+    } else {
+      toast.error("Пользователь с таким email не найден");
+    }
   };
 
   const handleLogout = () => {
@@ -104,26 +116,52 @@ export const useAuth = () => {
       toast.error("Пароль должен содержать минимум 6 символов");
       return;
     }
+
+    // Проверяем, существует ли уже сотрудник с таким email
+    const existingEmployee = database.findEmployeeByEmail(formData.email);
+    if (existingEmployee) {
+      toast.error("Пользователь с таким email уже зарегистрирован");
+      return;
+    }
     
-    // Всегда устанавливаем роль "employee" для новых регистраций
-    setUserRole("employee");
-    setUserName(formData.name);
-    setIsLoggedIn(true);
-    setShowRegister(false);
-    
-    // Сбрасываем форму и устанавливаем роль "employee"
-    setRegisterForm({
-      name: "",
-      department: "",
-      position: "",
-      email: "",
-      password: "",
-      role: "employee",
-    });
-    
-    // В реальном приложении здесь был бы API вызов
-    console.log("Зарегистрирован новый сотрудник:", {...formData, role: "employee"});
-    toast.success(`Добро пожаловать, ${formData.name}!`);
+    try {
+      // Сохраняем нового сотрудника в базе данных
+      const newEmployee = database.saveEmployee({
+        name: formData.name,
+        email: formData.email,
+        department: formData.department,
+        position: formData.position,
+        role: "employee", // Всегда устанавливаем роль "employee" для новых регистраций
+        status: 3, // Средний статус по умолчанию
+        tests: 0,
+        avgScore: 0,
+        score: 0,
+        testResults: []
+      });
+
+      // Устанавливаем пользователя как авторизованного
+      setUserRole("employee");
+      setUserName(formData.name);
+      setIsLoggedIn(true);
+      setShowRegister(false);
+      
+      // Сбрасываем форму
+      setRegisterForm({
+        name: "",
+        department: "",
+        position: "",
+        email: "",
+        password: "",
+        role: "employee",
+      });
+      
+      toast.success(`Добро пожаловать, ${formData.name}! Вы зарегистрированы в системе.`);
+      console.log("Новый сотрудник сохранен в базе данных:", newEmployee);
+      
+    } catch (error) {
+      toast.error("Ошибка при регистрации. Попробуйте еще раз.");
+      console.error("Ошибка регистрации:", error);
+    }
   };
 
   const handlePasswordReset = (email: string) => {

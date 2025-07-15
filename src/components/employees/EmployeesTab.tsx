@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -45,7 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Icon from "@/components/ui/icon";
-import { employees as initialEmployees } from "@/data/mockData";
+import { database, type Employee } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import { toast } from "sonner";
 
@@ -54,7 +54,7 @@ interface EmployeesTabProps {
 }
 
 export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
-  const [employees, setEmployees] = useState(initialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -62,6 +62,15 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [deleteEmployeeId, setDeleteEmployeeId] = useState(null);
+
+  // Загружаем сотрудников из базы данных при инициализации
+  useEffect(() => {
+    const loadEmployees = () => {
+      const employeesFromDB = database.getEmployees();
+      setEmployees(employeesFromDB);
+    };
+    loadEmployees();
+  }, []);
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     email: "",
@@ -203,32 +212,44 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       return;
     }
 
-    const employee = {
-      id: Date.now(),
-      name: newEmployee.name,
-      email: newEmployee.email,
-      department: newEmployee.department,
-      position: newEmployee.position,
-      role: newEmployee.role,
-      status: newEmployee.status,
-      tests: 0,
-      avgScore: 0,
-      score: 0,
-      testResults: []
-    };
+    // Проверяем, существует ли уже сотрудник с таким email
+    const existingEmployee = database.findEmployeeByEmail(newEmployee.email);
+    if (existingEmployee) {
+      toast.error("Сотрудник с таким email уже существует");
+      return;
+    }
 
-    // Добавляем сотрудника в состояние
-    setEmployees(prev => [...prev, employee]);
-    setIsAddDialogOpen(false);
-    setNewEmployee({
-      name: "",
-      email: "",
-      department: "",
-      position: "",
-      role: "employee",
-      status: 3
-    });
-    toast.success("Сотрудник успешно добавлен");
+    try {
+      // Сохраняем сотрудника в базе данных
+      const savedEmployee = database.saveEmployee({
+        name: newEmployee.name,
+        email: newEmployee.email,
+        department: newEmployee.department,
+        position: newEmployee.position,
+        role: newEmployee.role as "admin" | "teacher" | "employee",
+        status: newEmployee.status,
+        tests: 0,
+        avgScore: 0,
+        score: 0,
+        testResults: []
+      });
+
+      // Обновляем локальное состояние
+      setEmployees(prev => [...prev, savedEmployee]);
+      setIsAddDialogOpen(false);
+      setNewEmployee({
+        name: "",
+        email: "",
+        department: "",
+        position: "",
+        role: "employee",
+        status: 3
+      });
+      toast.success("Сотрудник успешно добавлен в базу данных");
+    } catch (error) {
+      toast.error("Ошибка при сохранении сотрудника");
+      console.error("Ошибка сохранения:", error);
+    }
   };
 
   // Функция редактирования сотрудника
@@ -252,34 +273,65 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       return;
     }
 
-    // Обновляем сотрудника в состоянии
-    setEmployees(prev => prev.map(emp => 
-      emp.id === editingEmployee.id 
-        ? { ...emp, ...editingEmployee }
-        : emp
-    ));
-    
-    setIsEditDialogOpen(false);
-    setEditingEmployee({
-      id: null,
-      name: "",
-      email: "",
-      department: "",
-      position: "",
-      role: "employee",
-      status: 3
-    });
-    toast.success("Данные сотрудника обновлены");
+    try {
+      // Обновляем сотрудника в базе данных
+      const updatedEmployee = database.updateEmployee(editingEmployee.id!, {
+        name: editingEmployee.name,
+        email: editingEmployee.email,
+        department: editingEmployee.department,
+        position: editingEmployee.position,
+        role: editingEmployee.role as "admin" | "teacher" | "employee",
+        status: editingEmployee.status
+      });
+
+      if (updatedEmployee) {
+        // Обновляем локальное состояние
+        setEmployees(prev => prev.map(emp => 
+          emp.id === editingEmployee.id 
+            ? updatedEmployee
+            : emp
+        ));
+        
+        setIsEditDialogOpen(false);
+        setEditingEmployee({
+          id: null,
+          name: "",
+          email: "",
+          department: "",
+          position: "",
+          role: "employee",
+          status: 3
+        });
+        toast.success("Данные сотрудника обновлены в базе данных");
+      } else {
+        toast.error("Сотрудник не найден");
+      }
+    } catch (error) {
+      toast.error("Ошибка при обновлении данных сотрудника");
+      console.error("Ошибка обновления:", error);
+    }
   };
 
   // Функция удаления сотрудника
   const handleDeleteEmployee = (id: number) => {
     const employee = employees.find(emp => emp.id === id);
     if (employee) {
-      // Удаляем сотрудника из состояния
-      setEmployees(prev => prev.filter(emp => emp.id !== id));
-      setDeleteEmployeeId(null);
-      toast.success(`Сотрудник ${employee.name} удален`);
+      try {
+        // Удаляем сотрудника из базы данных
+        const success = database.deleteEmployee(id);
+        
+        if (success) {
+          // Удаляем из локального состояния
+          setEmployees(prev => prev.filter(emp => emp.id !== id));
+          setDeleteEmployeeId(null);
+          toast.success(`Сотрудник ${employee.name} удален из базы данных`);
+        } else {
+          toast.error("Сотрудник не найден в базе данных");
+        }
+      } catch (error) {
+        toast.error("Ошибка при удалении сотрудника");
+        console.error("Ошибка удаления:", error);
+      }
     }
   };
 

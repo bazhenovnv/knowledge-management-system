@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthForm } from "@/components/auth/AuthForm";
@@ -10,7 +10,7 @@ import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { EmployeesTab } from "@/components/employees/EmployeesTab";
-import { employees } from "@/data/mockData";
+import { database } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
 import TestManagement from "@/components/tests/TestManagement";
@@ -19,6 +19,16 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [employees, setEmployees] = useState([]);
+
+  // Загружаем сотрудников из базы данных
+  useEffect(() => {
+    const loadEmployees = () => {
+      const employeesFromDB = database.getEmployees();
+      setEmployees(employeesFromDB);
+    };
+    loadEmployees();
+  }, []);
 
   const {
     isLoggedIn,
