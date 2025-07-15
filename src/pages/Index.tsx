@@ -23,6 +23,7 @@ const Index = () => {
   const {
     isLoggedIn,
     userRole,
+    userName,
     loginForm,
     registerForm,
     showRegister,
@@ -89,6 +90,7 @@ const Index = () => {
             setSidebarOpen={setSidebarOpen}
             onLogout={handleLogout}
             userRole={userRole}
+            userName={userName}
           />
 
           <TabsContent value="dashboard" className="space-y-6">

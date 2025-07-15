@@ -45,7 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Icon from "@/components/ui/icon";
-import { employees } from "@/data/mockData";
+import { employees as initialEmployees } from "@/data/mockData";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import { toast } from "sonner";
 
@@ -54,6 +54,7 @@ interface EmployeesTabProps {
 }
 
 export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
+  const [employees, setEmployees] = useState(initialEmployees);
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -209,22 +210,23 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       department: newEmployee.department,
       position: newEmployee.position,
       role: newEmployee.role,
-      status: "active",
+      status: newEmployee.status,
       tests: 0,
       avgScore: 0,
       score: 0,
       testResults: []
     };
 
-    // В реальном приложении здесь был бы API вызов
-    console.log("Добавление сотрудника:", employee);
+    // Добавляем сотрудника в состояние
+    setEmployees(prev => [...prev, employee]);
     setIsAddDialogOpen(false);
     setNewEmployee({
       name: "",
       email: "",
       department: "",
       position: "",
-      role: "employee"
+      role: "employee",
+      status: 3
     });
     toast.success("Сотрудник успешно добавлен");
   };
@@ -237,7 +239,8 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       email: employee.email,
       department: employee.department,
       position: employee.position,
-      role: employee.role
+      role: employee.role,
+      status: employee.status
     });
     setIsEditDialogOpen(true);
   };
@@ -249,8 +252,13 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       return;
     }
 
-    // В реальном приложении здесь был бы API вызов
-    console.log("Сохранение изменений:", editingEmployee);
+    // Обновляем сотрудника в состоянии
+    setEmployees(prev => prev.map(emp => 
+      emp.id === editingEmployee.id 
+        ? { ...emp, ...editingEmployee }
+        : emp
+    ));
+    
     setIsEditDialogOpen(false);
     setEditingEmployee({
       id: null,
@@ -258,17 +266,18 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       email: "",
       department: "",
       position: "",
-      role: "employee"
+      role: "employee",
+      status: 3
     });
     toast.success("Данные сотрудника обновлены");
   };
 
   // Функция удаления сотрудника
   const handleDeleteEmployee = (id: number) => {
-    const employee = filteredEmployees.find(emp => emp.id === id);
+    const employee = employees.find(emp => emp.id === id);
     if (employee) {
-      // В реальном приложении здесь был бы API вызов
-      console.log("Удаление сотрудника:", id);
+      // Удаляем сотрудника из состояния
+      setEmployees(prev => prev.filter(emp => emp.id !== id));
       setDeleteEmployeeId(null);
       toast.success(`Сотрудник ${employee.name} удален`);
     }

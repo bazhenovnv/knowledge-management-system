@@ -22,6 +22,7 @@ interface NavigationProps {
   setSidebarOpen: (open: boolean) => void;
   onLogout?: () => void;
   userRole?: string;
+  userName?: string;
 }
 
 export const Navigation = ({
@@ -31,6 +32,7 @@ export const Navigation = ({
   setSidebarOpen,
   onLogout,
   userRole,
+  userName,
 }: NavigationProps) => {
   const {
     notifications,
@@ -74,6 +76,12 @@ export const Navigation = ({
             Центр развития и тестирования АБ
           </h1>
           <NotificationBadge count={unreadCount} />
+          {userName && (
+            <div className="hidden md:flex items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2">
+              <Icon name="User" size={16} className="text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">{userName}</span>
+            </div>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <NotificationPanel

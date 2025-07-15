@@ -27,6 +27,12 @@ export const useAuth = () => {
     const saved = localStorage.getItem("userRole");
     return (saved as "employee" | "teacher" | "admin") || "employee";
   });
+  
+  const [userName, setUserName] = useState(() => {
+    // Проверяем localStorage при инициализации
+    const saved = localStorage.getItem("userName");
+    return saved || "";
+  });
   const [loginForm, setLoginForm] = useState<LoginForm>({
     email: "",
     password: "",
@@ -45,29 +51,38 @@ export const useAuth = () => {
   useEffect(() => {
     localStorage.setItem("isLoggedIn", isLoggedIn.toString());
     localStorage.setItem("userRole", userRole);
-  }, [isLoggedIn, userRole]);
+    localStorage.setItem("userName", userName);
+  }, [isLoggedIn, userRole, userName]);
 
   const handleLogin = (email: string, password: string) => {
     let role: "employee" | "teacher" | "admin" = "employee";
+    let name = "";
     
     if (email === "admin@example.com") {
       role = "admin";
+      name = "Администратор";
     } else if (email === "teacher@example.com") {
       role = "teacher";
+      name = "Преподаватель";
+    } else {
+      name = "Сотрудник";
     }
     
     setUserRole(role);
+    setUserName(name);
     setIsLoggedIn(true);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUserRole("employee");
+    setUserName("");
     setLoginForm({ email: "", password: "" });
     
     // Очищаем localStorage
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
   };
 
   const handleRegister = (formData: RegisterForm) => {
@@ -92,6 +107,7 @@ export const useAuth = () => {
     
     // Всегда устанавливаем роль "employee" для новых регистраций
     setUserRole("employee");
+    setUserName(formData.name);
     setIsLoggedIn(true);
     setShowRegister(false);
     
@@ -126,6 +142,7 @@ export const useAuth = () => {
   return {
     isLoggedIn,
     userRole,
+    userName,
     loginForm,
     registerForm,
     showRegister,
