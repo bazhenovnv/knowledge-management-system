@@ -130,6 +130,13 @@ export const KnowledgeTab = ({
     return matchesCategory && matchesSearch && material.isPublished;
   });
 
+  // Функция прохождения теста
+  const handleTakeMaterialTest = (material: KnowledgeMaterial) => {
+    setTestMaterial(material);
+    toast.info(`Запускаем тест по материалу: ${material.title}`);
+    // Здесь можно добавить логику запуска теста
+  };
+
   // Получаем уникальные категории
   const categories = ['all', ...new Set(materials.map(m => m.category))];
 
@@ -143,28 +150,6 @@ export const KnowledgeTab = ({
       </div>
     );
   }
-
-  // Функция прохождения теста
-  const handleTakeMaterialTest = (material: KnowledgeMaterial) => {
-    setTestMaterial(material);
-    toast.info(`Запускаем тест по материалу: ${material.title}`);
-    // Здесь можно добавить логику запуска теста
-  };
-
-  const filteredKnowledge = materials
-    .filter(
-      (item) =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
-    .filter(
-      (item) =>
-        selectedCategory === "all" || item.category === selectedCategory,
-    );
-
-  const categories = Array.from(
-    new Set(materials.map((item) => item.category)),
-  );
 
   return (
     <div className="space-y-6">
