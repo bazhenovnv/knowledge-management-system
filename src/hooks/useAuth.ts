@@ -111,10 +111,19 @@ export const useAuth = () => {
       return;
     }
 
-    // Валидация пароля
+    // Расширенная валидация пароля
     if (formData.password.length < 6) {
       toast.error("Пароль должен содержать минимум 6 символов");
       return;
+    }
+    
+    // Проверка на сложность пароля
+    const hasUpperCase = /[A-Z]/.test(formData.password);
+    const hasLowerCase = /[a-z]/.test(formData.password);
+    const hasNumbers = /\d/.test(formData.password);
+    
+    if (!(hasUpperCase && hasLowerCase && hasNumbers)) {
+      toast.warning("Рекомендуется использовать пароль с заглавными и строчными буквами, а также цифрами");
     }
 
     // Проверяем, существует ли уже сотрудник с таким email
@@ -128,7 +137,7 @@ export const useAuth = () => {
       // Сохраняем нового сотрудника в базе данных
       const newEmployee = database.saveEmployee({
         name: formData.name,
-        email: formData.email,
+        email: formData.email.toLowerCase(), // Приводим email к нижнему регистру
         department: formData.department,
         position: formData.position,
         role: "employee", // Всегда устанавливаем роль "employee" для новых регистраций
@@ -136,7 +145,9 @@ export const useAuth = () => {
         tests: 0,
         avgScore: 0,
         score: 0,
-        testResults: []
+        testResults: [],
+        lastLoginAt: new Date(), // Время регистрации как первый вход
+        isActive: true // Активный статус по умолчанию
       });
 
       // Устанавливаем пользователя как авторизованного

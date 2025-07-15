@@ -40,7 +40,8 @@ export const AdminDashboard = ({
     totalTests: 0,
     totalTestResults: 0,
     averageScore: 0,
-    activeCourses: 0
+    activeCourses: 0,
+    newRegistrations: 0 // Новые регистрации за последний день
   });
 
   // Загружаем статистику из базы данных
@@ -61,13 +62,21 @@ export const AdminDashboard = ({
       
       // Подсчитываем активные курсы (опубликованные тесты)
       const activeCourses = testsData.filter(test => test.status === 'published').length;
+      
+      // Подсчитываем новые регистрации за последние 24 часа
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const newRegistrations = employeesData.filter(emp => 
+        new Date(emp.createdAt) > yesterday
+      ).length;
 
       setStats({
         totalEmployees: employeesData.length,
         totalTests: testsData.length,
         totalTestResults: testResultsData.length,
         averageScore,
-        activeCourses
+        activeCourses,
+        newRegistrations
       });
     };
 
@@ -122,10 +131,11 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-orange-600">{stats.activeCourses}</div>
-                <div className="text-sm text-gray-600">Активных курсов</div>
+                <div className="text-3xl font-bold text-orange-600">{stats.newRegistrations}</div>
+                <div className="text-sm text-gray-600">Новых регистраций</div>
+                <div className="text-xs text-gray-500">за последние 24 часа</div>
               </div>
-              <Icon name="BookOpen" size={32} className="text-orange-600" />
+              <Icon name="UserPlus" size={32} className="text-orange-600" />
             </div>
           </CardContent>
         </Card>
