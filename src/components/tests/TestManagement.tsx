@@ -41,6 +41,7 @@ import {
 import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
+import TestTaking from "./TestTaking";
 
 interface Question {
   id: string;
@@ -65,6 +66,17 @@ interface Test {
   status: "draft" | "published" | "archived";
   totalAttempts: number;
   averageScore: number;
+}
+
+interface TestResult {
+  testId: string;
+  userId: string;
+  score: number;
+  totalQuestions: number;
+  correctAnswers: number;
+  timeSpent: number;
+  answers: { questionId: string; selectedAnswer: number; correct: boolean }[];
+  completedAt: Date;
 }
 
 interface TestManagementProps {
@@ -171,12 +183,44 @@ const TestManagement: React.FC<TestManagementProps> = ({
   
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
   const [editingQuestionIndex, setEditingQuestionIndex] = useState<number | null>(null);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
 
   // Функция редактирования теста
   const handleEditTest = (test: Test) => {
     setEditingTest(test);
+    setNewTest({
+      title: test.title,
+      description: test.description,
+      category: test.category,
+      difficulty: test.difficulty,
+      timeLimit: test.timeLimit,
+      department: test.department || "",
+      questions: test.questions
+    });
     setIsEditDialogOpen(true);
     toast.info(`Редактирование теста: ${test.title}`);
+  };
+
+  // Функция сохранения изменений теста
+  const handleSaveEditTest = () => {
+    if (!editingTest) return;
+    
+    const updatedTest: Test = {
+      ...editingTest,
+      title: newTest.title,
+      description: newTest.description,
+      category: newTest.category,
+      difficulty: newTest.difficulty,
+      timeLimit: newTest.timeLimit,
+      department: newTest.department,
+      questions: newTest.questions
+    };
+
+    setTests(tests.map(t => t.id === editingTest.id ? updatedTest : t));
+    setEditingTest(null);
+    setIsEditDialogOpen(false);
+    resetForm();
+    toast.success("Тест обновлен успешно!");
   };
 
   // Функция удаления теста
@@ -198,6 +242,34 @@ const TestManagement: React.FC<TestManagementProps> = ({
     } else {
       toast.info(`Просмотр теста: ${test.title}`);
     }
+  };
+
+  // Функция завершения теста
+  const handleTestComplete = (result: TestResult) => {
+    setTestResults(prev => [...prev, result]);
+    
+    // Обновляем статистику теста
+    setTests(prev => prev.map(test => {
+      if (test.id === result.testId) {
+        const newTotalAttempts = test.totalAttempts + 1;
+        const newAverageScore = Math.round(
+          ((test.averageScore * test.totalAttempts) + result.score) / newTotalAttempts
+        );
+        return {
+          ...test,
+          totalAttempts: newTotalAttempts,
+          averageScore: newAverageScore
+        };
+      }
+      return test;
+    }));
+    
+    toast.success(`Результат сохранен: ${result.score}%`);
+  };
+
+  // Функция закрытия теста
+  const handleCloseTakingTest = () => {
+    setTakingTest(null);
   };
 
   // Функция создания теста
@@ -383,7 +455,14 @@ const TestManagement: React.FC<TestManagementProps> = ({
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Тесты</h2>
         {canManageTests && (
-          <Dialog open={isCreating} onOpenChange={setIsCreating}>
+          <Dialog open={isCreating || isEditDialogOpen} onOpenChange={(open) => {
+            if (!open) {
+              setIsCreating(false);
+              setIsEditDialogOpen(false);
+              setEditingTest(null);
+              resetForm();
+            }
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Icon name="Plus" size={16} className="mr-2" />
@@ -392,7 +471,9 @@ const TestManagement: React.FC<TestManagementProps> = ({
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Создать новый тест</DialogTitle>
+                <DialogTitle>
+                  {editingTest ? "Редактировать тест" : "Создать новый тест"}
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-6">
                 {/* Основная информация */}
@@ -630,10 +711,10 @@ const TestManagement: React.FC<TestManagementProps> = ({
                     Отмена
                   </Button>
                   <Button 
-                    onClick={handleCreateTest}
+                    onClick={editingTest ? handleSaveEditTest : handleCreateTest}
                     disabled={newTest.title.trim() === "" || newTest.questions.length === 0}
                   >
-                    Создать тест
+                    {editingTest ? "Сохранить изменения" : "Создать тест"}
                   </Button>
                 </div>
               </div>
@@ -804,6 +885,14 @@ const TestManagement: React.FC<TestManagementProps> = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Компонент прохождения теста */}
+      <TestTaking
+        test={takingTest}
+        onClose={handleCloseTakingTest}
+        onComplete={handleTestComplete}
+        userId={userId || "anonymous"}
+      />
     </div>
   );
 };
