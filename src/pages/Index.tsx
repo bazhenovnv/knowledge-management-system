@@ -13,7 +13,7 @@ import { EmployeesTab } from "@/components/employees/EmployeesTab";
 import { employees } from "@/data/mockData";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
-import { TestManagement } from "@/components/tests/TestManagement";
+import TestManagement from "@/components/tests/TestManagement";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
