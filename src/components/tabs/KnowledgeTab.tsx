@@ -156,19 +156,6 @@ export const KnowledgeTab = ({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">База знаний</h2>
         <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Icon
-              name="Search"
-              size={20}
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-            />
-            <Input
-              placeholder="Поиск по базе знаний..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
           {userRole !== "employee" && (
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
               <DialogTrigger asChild>
@@ -193,7 +180,32 @@ export const KnowledgeTab = ({
         </div>
       </div>
 
-      <AIChat />
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon name="Search" size={20} />
+            Поиск по базе знаний
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col space-y-4">
+            <div className="relative">
+              <Icon
+                name="Search"
+                size={20}
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              />
+              <Input
+                placeholder="Поиск по базе знаний..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+            <AIChat />
+          </div>
+        </CardContent>
+      </Card>
       
       <div className="flex items-center space-x-4">
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
