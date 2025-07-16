@@ -20,14 +20,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
-import { database, KnowledgeMaterial } from "@/utils/database";
+import { KnowledgeMaterial, Test, getTests } from "@/utils/database";
 import { toast } from "sonner";
 import { getDifficultyColor } from "@/utils/statusUtils";
 import { AIChat } from "@/components/ai/AIChat";
 import { MaterialForm } from "@/components/materials/MaterialForm";
 import { MaterialPreview } from "@/components/materials/MaterialPreview";
 import { DEPARTMENTS } from "@/constants/departments";
-import { Test, database } from "@/utils/database";
 import { createTestFromMaterial, findBestTestForMaterial } from "@/utils/testGenerator";
 
 interface KnowledgeTabProps {
@@ -153,7 +152,7 @@ export const KnowledgeTab = ({
     const newTest = createTestFromMaterial(material, 'current-user', userRole || 'admin');
     
     // Сохраняем тест как черновик
-    const tests = database.getTests();
+    const tests = getTests();
     tests.push(newTest);
     localStorage.setItem('tests_db', JSON.stringify(tests));
     
@@ -165,7 +164,7 @@ export const KnowledgeTab = ({
   };
 
   const handleStartTestFromMaterial = (material: KnowledgeMaterial) => {
-    const tests = database.getTests();
+    const tests = getTests();
     const matchingTest = findBestTestForMaterial(tests, material);
     
     if (matchingTest) {
