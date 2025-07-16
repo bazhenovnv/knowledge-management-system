@@ -93,17 +93,19 @@ export const KnowledgeTab = ({
 
   // Функция удаления материала
   const handleDeleteMaterial = (materialId: string) => {
-    try {
-      const success = database.deleteKnowledgeMaterial(materialId);
-      if (success) {
-        loadMaterials();
-        toast.success('Материал удален');
-      } else {
-        toast.error('Материал не найден');
+    if (window.confirm('Вы уверены, что хотите удалить этот материал?')) {
+      try {
+        const success = database.deleteKnowledgeMaterial(materialId);
+        if (success) {
+          loadMaterials();
+          toast.success('Материал удален');
+        } else {
+          toast.error('Материал не найден');
+        }
+      } catch (error) {
+        console.error('Ошибка удаления материала:', error);
+        toast.error('Ошибка удаления материала');
       }
-    } catch (error) {
-      console.error('Ошибка удаления материала:', error);
-      toast.error('Ошибка удаления материала');
     }
   };
 
@@ -113,6 +115,7 @@ export const KnowledgeTab = ({
       database.incrementEnrollments(material.id);
       setStudyMaterial(material);
       loadMaterials(); // Обновляем счетчик записей
+      toast.success(`Начинаем изучение: ${material.title}`);
     } catch (error) {
       console.error('Ошибка при записи на материал:', error);
       toast.error('Ошибка при записи на материал');
@@ -306,6 +309,85 @@ export const KnowledgeTab = ({
           isOpen={!!previewMaterial}
           onClose={() => setPreviewMaterial(null)}
         />
+      )}
+
+      {/* Модальное окно для изучения материала */}
+      {studyMaterial && (
+        <Dialog open={!!studyMaterial} onOpenChange={() => setStudyMaterial(null)}>
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Icon name="BookOpen" size={20} />
+                {studyMaterial.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Badge className={getDifficultyColor(studyMaterial.difficulty)}>
+                  {studyMaterial.difficulty}
+                </Badge>
+                <span className="text-sm text-gray-600">{studyMaterial.duration}</span>
+                <span className="text-sm text-gray-600">{studyMaterial.category}</span>
+              </div>
+              <p className="text-gray-700">{studyMaterial.description}</p>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Содержание материала:</h4>
+                <div className="whitespace-pre-wrap text-sm">
+                  {studyMaterial.content || 'Материал содержания не заполнен'}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setStudyMaterial(null)}
+                >
+                  Закрыть
+                </Button>
+                <Button
+                  onClick={() => {
+                    setStudyMaterial(null);
+                    handleTakeMaterialTest(studyMaterial);
+                  }}
+                  className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
+                >
+                  <Icon name="FileText" size={16} className="mr-2" />
+                  Пройти тест
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Модальное окно для тестирования */}
+      {testMaterial && (
+        <Dialog open={!!testMaterial} onOpenChange={() => setTestMaterial(null)}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Icon name="FileText" size={20} />
+                Тест по материалу: {testMaterial.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="text-center py-8">
+                <Icon name="CheckCircle" size={48} className="mx-auto mb-4 text-green-500" />
+                <h3 className="text-lg font-medium mb-2">Тест запущен!</h3>
+                <p className="text-gray-600">
+                  Тест по материалу "{testMaterial.title}" будет доступен в разделе Тесты.
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setTestMaterial(null)}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  Понятно
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
