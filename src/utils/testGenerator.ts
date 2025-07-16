@@ -1,5 +1,4 @@
-import { KnowledgeMaterial } from '@/types/knowledge';
-import { Test } from '@/utils/database';
+import { KnowledgeMaterial, Test } from '@/utils/database';
 import { generateId } from '@/utils/common';
 
 // Создание теста на основе материала базы знаний
