@@ -18,9 +18,10 @@ interface MaterialPreviewProps {
   };
   isOpen: boolean;
   onClose: () => void;
+  userRole?: string;
 }
 
-export const MaterialPreview = ({ material, isOpen, onClose }: MaterialPreviewProps) => {
+export const MaterialPreview = ({ material, isOpen, onClose, userRole }: MaterialPreviewProps) => {
   if (!material) return null;
 
   const renderMediaFile = (file: any, index: number) => {
@@ -93,7 +94,7 @@ export const MaterialPreview = ({ material, isOpen, onClose }: MaterialPreviewPr
                 size="lg"
               >
                 <Icon name="FileText" size={20} className="mr-2" />
-                Пройти тест по данной теме
+                {userRole === 'admin' || userRole === 'teacher' ? 'Создать тест по теме' : 'Пройти тест по теме'}
               </Button>
             </div>
           </CardContent>

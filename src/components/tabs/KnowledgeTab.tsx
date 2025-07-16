@@ -283,7 +283,7 @@ export const KnowledgeTab = ({
                     className="border-green-500 text-green-600 hover:bg-green-50"
                   >
                     <Icon name="FileText" size={14} className="mr-1" />
-                    Тест
+                    {userRole === 'admin' || userRole === 'teacher' ? 'Создать тест' : 'Пройти тест'}
                   </Button>
                   {(userRole === 'admin' || userRole === 'teacher') && (
                     <Button
@@ -308,6 +308,7 @@ export const KnowledgeTab = ({
           material={previewMaterial}
           isOpen={!!previewMaterial}
           onClose={() => setPreviewMaterial(null)}
+          userRole={userRole}
         />
       )}
 
@@ -351,7 +352,7 @@ export const KnowledgeTab = ({
                   className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700"
                 >
                   <Icon name="FileText" size={16} className="mr-2" />
-                  Пройти тест
+                  {userRole === 'admin' || userRole === 'teacher' ? 'Создать тест' : 'Пройти тест'}
                 </Button>
               </div>
             </div>
