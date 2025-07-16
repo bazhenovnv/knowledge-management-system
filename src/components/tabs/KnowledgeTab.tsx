@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
-import { KnowledgeMaterial, Test, getTests } from "@/utils/database";
+import { database, KnowledgeMaterial, Test, getTests } from "@/utils/database";
 import { toast } from "sonner";
 import { getDifficultyColor } from "@/utils/statusUtils";
 import { AIChat } from "@/components/ai/AIChat";
