@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { database, Employee, Test, Material, TestResult } from '@/data/database';
+import { database, Employee, Test, KnowledgeMaterial as Material, TestResult } from '@/utils/database';
 import { toast } from 'sonner';
 
 // Хук для управления сотрудниками
@@ -18,7 +18,7 @@ export function useEmployees() {
   const addEmployee = useCallback(async (employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>) => {
     setLoading(true);
     try {
-      const newEmployee = database.addEmployee(employee);
+      const newEmployee = database.saveEmployee(employee);
       refreshEmployees();
       toast.success(`Сотрудник ${newEmployee.name} добавлен`);
       return newEmployee;
@@ -72,7 +72,7 @@ export function useEmployees() {
   }, [refreshEmployees]);
 
   const getEmployeeById = useCallback((id: number) => {
-    return database.getEmployeeById(id);
+    return database.getEmployees().find(emp => emp.id === id) || null;
   }, []);
 
   return {
@@ -99,10 +99,10 @@ export function useTests() {
     refreshTests();
   }, [refreshTests]);
 
-  const addTest = useCallback(async (test: Omit<Test, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addTest = useCallback(async (test: Omit<Test, 'createdAt'>) => {
     setLoading(true);
     try {
-      const newTest = database.addTest(test);
+      const newTest = database.saveTest(test);
       refreshTests();
       toast.success(`Тест "${newTest.title}" создан`);
       return newTest;
@@ -156,7 +156,7 @@ export function useTests() {
   }, [refreshTests]);
 
   const getTestById = useCallback((id: string) => {
-    return database.getTestById(id);
+    return database.getTests().find(test => test.id === id) || null;
   }, []);
 
   return {
@@ -176,7 +176,7 @@ export function useMaterials() {
   const [loading, setLoading] = useState(false);
 
   const refreshMaterials = useCallback(() => {
-    setMaterials(database.getMaterials());
+    setMaterials(database.getKnowledgeMaterials());
   }, []);
 
   useEffect(() => {
@@ -186,7 +186,7 @@ export function useMaterials() {
   const addMaterial = useCallback(async (material: Omit<Material, 'id' | 'createdAt' | 'updatedAt'>) => {
     setLoading(true);
     try {
-      const newMaterial = database.addMaterial(material);
+      const newMaterial = database.saveKnowledgeMaterial(material);
       refreshMaterials();
       toast.success(`Материал "${newMaterial.title}" добавлен`);
       return newMaterial;
@@ -201,7 +201,7 @@ export function useMaterials() {
   const updateMaterial = useCallback(async (id: string, updates: Partial<Material>) => {
     setLoading(true);
     try {
-      const updatedMaterial = database.updateMaterial(id, updates);
+      const updatedMaterial = database.updateKnowledgeMaterial(id, updates);
       if (updatedMaterial) {
         refreshMaterials();
         toast.success(`Материал "${updatedMaterial.title}" обновлен`);
@@ -221,8 +221,8 @@ export function useMaterials() {
   const deleteMaterial = useCallback(async (id: string) => {
     setLoading(true);
     try {
-      const material = database.getMaterialById(id);
-      const success = database.deleteMaterial(id);
+      const material = database.getKnowledgeMaterials().find(m => m.id === id);
+      const success = database.deleteKnowledgeMaterial(id);
       if (success) {
         refreshMaterials();
         toast.success(`Материал "${material?.title || ''}" удален`);
@@ -240,7 +240,7 @@ export function useMaterials() {
   }, [refreshMaterials]);
 
   const getMaterialById = useCallback((id: string) => {
-    return database.getMaterialById(id);
+    return database.getKnowledgeMaterials().find(m => m.id === id) || null;
   }, []);
 
   return {
@@ -270,7 +270,7 @@ export function useTestResults() {
   const addTestResult = useCallback(async (result: Omit<TestResult, 'id'>) => {
     setLoading(true);
     try {
-      const newResult = database.addTestResult(result);
+      const newResult = database.saveTestResult(result);
       refreshTestResults();
       toast.success(`Результат теста сохранен: ${newResult.score}%`);
       return newResult;
@@ -283,11 +283,11 @@ export function useTestResults() {
   }, [refreshTestResults]);
 
   const getTestResultsByEmployee = useCallback((employeeId: number) => {
-    return database.getTestResultsByEmployee(employeeId);
+    return database.getTestResultsByUser(employeeId.toString());
   }, []);
 
   const getTestResultsByTest = useCallback((testId: string) => {
-    return database.getTestResultsByTest(testId);
+    return database.getTestResultsByTestId(testId);
   }, []);
 
   return {

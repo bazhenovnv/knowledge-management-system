@@ -27,7 +27,7 @@ import { AIChat } from "@/components/ai/AIChat";
 import { MaterialForm } from "@/components/materials/MaterialForm";
 import { MaterialPreview } from "@/components/materials/MaterialPreview";
 import { DEPARTMENTS } from "@/constants/departments";
-import { Test, getTests } from "@/utils/database";
+import { Test, database } from "@/utils/database";
 import { createTestFromMaterial, findBestTestForMaterial } from "@/utils/testGenerator";
 
 interface KnowledgeTabProps {
@@ -153,7 +153,7 @@ export const KnowledgeTab = ({
     const newTest = createTestFromMaterial(material, 'current-user', userRole || 'admin');
     
     // Сохраняем тест как черновик
-    const tests = getTests();
+    const tests = database.getTests();
     tests.push(newTest);
     localStorage.setItem('tests_db', JSON.stringify(tests));
     
@@ -165,7 +165,7 @@ export const KnowledgeTab = ({
   };
 
   const handleStartTestFromMaterial = (material: KnowledgeMaterial) => {
-    const tests = getTests();
+    const tests = database.getTests();
     const matchingTest = findBestTestForMaterial(tests, material);
     
     if (matchingTest) {

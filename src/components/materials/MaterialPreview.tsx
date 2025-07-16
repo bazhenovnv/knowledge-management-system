@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
-import { KnowledgeMaterial, Test, getTests } from "@/utils/database";
+import { KnowledgeMaterial, Test, database } from "@/utils/database";
 import { createTestFromMaterial, findBestTestForMaterial } from "@/utils/testGenerator";
 import { toast } from "sonner";
 
@@ -41,7 +41,7 @@ export const MaterialPreview = ({ material, isOpen, onClose, userRole }: Materia
     const newTest = createTestFromMaterial(material, 'current-user', userRole || 'admin');
     
     // Сохраняем тест как черновик
-    const tests = getTests();
+    const tests = database.getTests();
     tests.push(newTest);
     localStorage.setItem('tests_db', JSON.stringify(tests));
     
@@ -52,7 +52,7 @@ export const MaterialPreview = ({ material, isOpen, onClose, userRole }: Materia
   };
 
   const handleStartTestFromMaterial = () => {
-    const tests = getTests();
+    const tests = database.getTests();
     const matchingTest = findBestTestForMaterial(tests, material);
     
     if (matchingTest) {

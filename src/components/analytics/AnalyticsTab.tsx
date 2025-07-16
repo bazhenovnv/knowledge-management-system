@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { database } from '@/utils/database';
-import { Employee, Test, TestResult } from '@/types/database';
+import { Employee, Test, TestResult } from '@/utils/database';
 import {
   BarChart,
   Bar,

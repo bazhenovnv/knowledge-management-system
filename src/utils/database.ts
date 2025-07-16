@@ -548,5 +548,11 @@ class DatabaseService {
 // Создаем единственный экземпляр службы базы данных
 export const database = new DatabaseService();
 
+// Вспомогательные функции для удобства использования
+export const getTests = () => database.getTests();
+export const getEmployees = () => database.getEmployees();
+export const getKnowledgeMaterials = () => database.getKnowledgeMaterials();
+export const getTestResults = () => database.getTestResults();
+
 // Инициализируем базу данных при первом импорте
 database.initializeDatabase();
