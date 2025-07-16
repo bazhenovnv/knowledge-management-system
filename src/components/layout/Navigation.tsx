@@ -73,7 +73,7 @@ export const Navigation = ({
       <div className="flex items-center justify-between mb-6 px-[7px] bg-emerald-100 border border-black">
         <div className="flex items-center space-x-4">
           <img 
-            src="https://cdn.poehali.dev/files/0d75b4bb-a833-486e-9995-4fae8bd3f3d3.png" 
+            src="https://cdn.poehali.dev/files/65342c5d-10a8-4eec-a846-cace70dfffd9.png" 
             alt="Logo" 
             className="w-10 h-10 object-contain"
           />
