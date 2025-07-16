@@ -72,8 +72,13 @@ export const Navigation = ({
     <>
       <div className="flex items-center justify-between mb-6 px-[7px] bg-emerald-100">
         <div className="flex items-center space-x-4">
+          <img 
+            src="/img/14623829-33ed-4ebc-8cfa-3a0ce3045319.jpg" 
+            alt="Logo" 
+            className="w-10 h-10 object-contain"
+          />
           <h1 className="text-2xl font-bold text-gray-900">
-            Центр развития и тестирования АБ
+            Центр развития и тестирования
           </h1>
           <NotificationBadge count={unreadCount} />
           {userName && (
