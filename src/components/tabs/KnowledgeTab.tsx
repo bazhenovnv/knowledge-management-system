@@ -125,7 +125,10 @@ export const KnowledgeTab = ({
     const matchesSearch = !searchQuery || 
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       material.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      material.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      material.createdBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.department.toLowerCase().includes(searchQuery.toLowerCase());
     
     return matchesCategory && matchesSearch && material.isPublished;
   });
@@ -214,13 +217,16 @@ export const KnowledgeTab = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Все категории</SelectItem>
-            {categories.map((category) => (
+            {categories.filter(cat => cat !== 'all').map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        <div className="text-sm text-gray-600">
+          Найдено: {filteredMaterials.length} материалов
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -239,6 +245,13 @@ export const KnowledgeTab = ({
               <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                 <span>{item.category}</span>
                 <span>{item.duration}</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mb-4">
+                {item.tags.map((tag, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">

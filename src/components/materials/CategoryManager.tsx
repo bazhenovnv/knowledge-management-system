@@ -80,7 +80,7 @@ export const CategoryManager = ({
           <SelectValue placeholder="Выберите категорию" />
         </SelectTrigger>
         <SelectContent>
-          {categories.map((category) => (
+          {categories.filter(cat => cat !== 'all').map((category) => (
             <SelectItem key={category} value={category}>
               {category}
             </SelectItem>

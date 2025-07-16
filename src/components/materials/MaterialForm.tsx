@@ -29,8 +29,13 @@ export const MaterialForm = ({
 }: MaterialFormProps) => {
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
     category: "",
     content: "",
+    difficulty: "Начинающий",
+    duration: "1 час",
+    tags: [],
+    department: "",
     mediaFiles: [],
   });
   const [customCategories, setCustomCategories] = useState(categories);
@@ -74,6 +79,20 @@ export const MaterialForm = ({
         </div>
 
         <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="description" className="text-right">
+            Описание
+          </Label>
+          <Textarea
+            id="description"
+            placeholder="Краткое описание материала"
+            className="col-span-3"
+            rows={2}
+            value={formData.description}
+            onChange={(e) => handleInputChange("description", e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="category" className="text-right">
             Категория
           </Label>
@@ -85,6 +104,66 @@ export const MaterialForm = ({
               onCategoriesUpdate={setCustomCategories}
             />
           </div>
+        </div>
+
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="difficulty" className="text-right">
+            Сложность
+          </Label>
+          <Select value={formData.difficulty} onValueChange={(value) => handleInputChange("difficulty", value)}>
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="Выберите сложность" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Начинающий">Начинающий</SelectItem>
+              <SelectItem value="Средний">Средний</SelectItem>
+              <SelectItem value="Продвинутый">Продвинутый</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="duration" className="text-right">
+            Длительность
+          </Label>
+          <Input
+            id="duration"
+            placeholder="Например: 2 часа"
+            className="col-span-3"
+            value={formData.duration}
+            onChange={(e) => handleInputChange("duration", e.target.value)}
+          />
+        </div>
+
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="tags" className="text-right">
+            Теги
+          </Label>
+          <Input
+            id="tags"
+            placeholder="Теги через запятую"
+            className="col-span-3"
+            value={formData.tags.join(", ")}
+            onChange={(e) => handleInputChange("tags", e.target.value.split(", ").filter(tag => tag.trim()))}
+          />
+        </div>
+
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="department" className="text-right">
+            Отдел
+          </Label>
+          <Select value={formData.department} onValueChange={(value) => handleInputChange("department", value)}>
+            <SelectTrigger className="col-span-3">
+              <SelectValue placeholder="Выберите отдел" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="IT">IT</SelectItem>
+              <SelectItem value="HR">HR</SelectItem>
+              <SelectItem value="Marketing">Marketing</SelectItem>
+              <SelectItem value="Finance">Finance</SelectItem>
+              <SelectItem value="Operations">Operations</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid grid-cols-4 items-start gap-4">
