@@ -32,12 +32,21 @@ export const useViewedTests = () => {
   };
 
   // Проверяем, является ли тест новым (не просмотренным)
-  const isTestNew = (testId: string, testCreatedAt: Date) => {
+  const isTestNew = (testId: string, testCreatedAt: Date | string) => {
     // Тест считается новым если:
     // 1. Он не был просмотрен
     // 2. Он был создан в последние 7 дней
     const isNotViewed = !viewedTests.includes(testId);
-    const isRecent = new Date().getTime() - testCreatedAt.getTime() < 7 * 24 * 60 * 60 * 1000; // 7 дней
+    
+    // Преобразуем в Date, если это строка
+    const date = typeof testCreatedAt === 'string' ? new Date(testCreatedAt) : testCreatedAt;
+    
+    // Проверяем валидность даты
+    if (!date || isNaN(date.getTime())) {
+      return isNotViewed; // Если дата невалидна, проверяем только статус просмотра
+    }
+    
+    const isRecent = new Date().getTime() - date.getTime() < 7 * 24 * 60 * 60 * 1000; // 7 дней
     
     return isNotViewed && isRecent;
   };

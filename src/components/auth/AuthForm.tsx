@@ -74,6 +74,13 @@ export const AuthForm = ({
 
         <Card className="w-full">
           <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src="https://cdn.poehali.dev/files/559b1a38-bc91-4187-8a3f-b47c1947c45c.png" 
+                alt="Логотип" 
+                className="h-16 w-auto"
+              />
+            </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
               {showPasswordReset
                 ? "Восстановление пароля"
