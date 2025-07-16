@@ -43,6 +43,7 @@ import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { database } from "@/utils/database";
 import TestTaking from "./TestTaking";
+import { DEPARTMENTS } from "@/constants/departments";
 
 interface Question {
   id: string;
@@ -774,9 +775,9 @@ const TestManagement: React.FC<TestManagementProps> = ({
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Все отделы">Все отделы</SelectItem>
-                          <SelectItem value="ЦТО">ЦТО</SelectItem>
-                          <SelectItem value="Сервис">Сервис</SelectItem>
-                          <SelectItem value="Отдел IT">Отдел IT</SelectItem>
+                          {DEPARTMENTS.map(dept => (
+                            <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -980,9 +981,9 @@ const TestManagement: React.FC<TestManagementProps> = ({
           <SelectContent>
             <SelectItem value="all">Все отделы</SelectItem>
             <SelectItem value="Все отделы">Все отделы</SelectItem>
-            <SelectItem value="ЦТО">ЦТО</SelectItem>
-            <SelectItem value="Сервис">Сервис</SelectItem>
-            <SelectItem value="Отдел IT">Отдел IT</SelectItem>
+            {DEPARTMENTS.map(dept => (
+              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
