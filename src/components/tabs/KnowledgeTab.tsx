@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
 import { database, KnowledgeMaterial } from "@/utils/database";
 import { toast } from "sonner";
 import { getDifficultyColor } from "@/utils/statusUtils";
+import { MaterialForm } from "@/components/forms/MaterialForm";
+import { DeleteConfirmation } from "@/components/ui/delete-confirmation";
 
 interface KnowledgeTabProps {
   searchQuery: string;
@@ -23,6 +24,15 @@ export const KnowledgeTab = ({
   const [materials, setMaterials] = useState<KnowledgeMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  
+  // Состояние для формы материала
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState<KnowledgeMaterial | null>(null);
+  
+  // Состояние для удаления
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [materialToDelete, setMaterialToDelete] = useState<KnowledgeMaterial | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Загружаем материалы из базы данных
   useEffect(() => {
@@ -53,6 +63,61 @@ export const KnowledgeTab = ({
   // Получаем уникальные категории
   const categories = ['all', ...new Set(materials.map(m => m.category))];
 
+  // Обработчики действий
+  const handleCreateMaterial = () => {
+    setEditingMaterial(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditMaterial = (material: KnowledgeMaterial) => {
+    setEditingMaterial(material);
+    setIsFormOpen(true);
+  };
+
+  const handleDeleteMaterial = (material: KnowledgeMaterial) => {
+    setMaterialToDelete(material);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!materialToDelete) return;
+
+    setDeleting(true);
+    try {
+      const success = database.deleteKnowledgeMaterial(materialToDelete.id);
+      if (success) {
+        toast.success('Материал успешно удален');
+        loadMaterials(); // Перезагружаем список
+      } else {
+        toast.error('Не удалось удалить материал');
+      }
+    } catch (error) {
+      console.error('Ошибка удаления материала:', error);
+      toast.error('Ошибка при удалении материала');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+      setMaterialToDelete(null);
+    }
+  };
+
+  const handleFormSave = () => {
+    loadMaterials(); // Перезагружаем список после сохранения
+  };
+
+  const handleEnrollment = (materialId: string) => {
+    try {
+      database.incrementEnrollments(materialId);
+      loadMaterials(); // Обновляем список
+      toast.success('Вы записались на изучение материала');
+    } catch (error) {
+      console.error('Ошибка записи на материал:', error);
+      toast.error('Ошибка при записи на материал');
+    }
+  };
+
+  const canEditMaterial = (userRole === 'admin' || userRole === 'teacher');
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -70,8 +135,11 @@ export const KnowledgeTab = ({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">База знаний</h2>
         <div className="flex items-center space-x-4">
-          {userRole !== "employee" && (
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+          {canEditMaterial && (
+            <Button 
+              onClick={handleCreateMaterial}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
               <Icon name="Plus" size={16} className="mr-2" />
               Добавить материал
             </Button>
@@ -133,15 +201,27 @@ export const KnowledgeTab = ({
                   <Badge className={getDifficultyColor(item.difficulty)}>
                     {item.difficulty}
                   </Badge>
-                  {(userRole === 'admin' || userRole === 'teacher') && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                      title="Редактировать материал"
-                    >
-                      <Icon name="Edit" size={16} />
-                    </Button>
+                  {canEditMaterial && (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                        title="Редактировать материал"
+                        onClick={() => handleEditMaterial(item)}
+                      >
+                        <Icon name="Edit" size={16} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 transition-colors"
+                        title="Удалить материал"
+                        onClick={() => handleDeleteMaterial(item)}
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -175,6 +255,7 @@ export const KnowledgeTab = ({
                   <Button
                     size="sm"
                     className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    onClick={() => handleEnrollment(item.id)}
                   >
                     Изучить
                   </Button>
@@ -184,17 +265,8 @@ export const KnowledgeTab = ({
                     className="border-green-500 text-green-600 hover:bg-green-50"
                   >
                     <Icon name="FileText" size={14} className="mr-1" />
-                    {userRole === 'admin' || userRole === 'teacher' ? 'Создать тест' : 'Пройти тест'}
+                    {canEditMaterial ? 'Создать тест' : 'Пройти тест'}
                   </Button>
-                  {(userRole === 'admin' || userRole === 'teacher') && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-red-500 text-red-600 hover:bg-red-50"
-                    >
-                      <Icon name="Trash2" size={14} />
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardContent>
@@ -211,14 +283,42 @@ export const KnowledgeTab = ({
           <p className="text-gray-600 mb-4">
             Попробуйте изменить критерии поиска или добавьте новый материал.
           </p>
-          {userRole !== "employee" && (
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+          {canEditMaterial && (
+            <Button 
+              onClick={handleCreateMaterial}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
               <Icon name="Plus" size={16} className="mr-2" />
               Добавить материал
             </Button>
           )}
         </div>
       )}
+
+      {/* Форма создания/редактирования материала */}
+      <MaterialForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setEditingMaterial(null);
+        }}
+        material={editingMaterial}
+        onSave={handleFormSave}
+      />
+
+      {/* Диалог подтверждения удаления */}
+      <DeleteConfirmation
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setMaterialToDelete(null);
+        }}
+        onConfirm={confirmDelete}
+        title="Удалить материал"
+        description={`Вы уверены, что хотите удалить материал "${materialToDelete?.title}"? Это действие нельзя отменить.`}
+        itemName="материал"
+        loading={deleting}
+      />
     </div>
   );
 };

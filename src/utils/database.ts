@@ -70,7 +70,7 @@ export interface KnowledgeMaterial {
   description: string;
   content: string;
   category: string;
-  difficulty: "Начинающий" | "Средний" | "Продвинутый";
+  difficulty: "Начальный" | "Средний" | "Продвинутый";
   duration: string;
   rating: number;
   enrollments: number;
@@ -284,6 +284,14 @@ class DatabaseService {
     return newMaterial;
   }
 
+  // Добавить материал базы знаний (альтернативное название для удобства)
+  addKnowledgeMaterial(material: KnowledgeMaterial): KnowledgeMaterial {
+    const materials = this.getKnowledgeMaterials();
+    materials.push(material);
+    this.setData(STORAGE_KEYS.KNOWLEDGE_BASE, materials);
+    return material;
+  }
+
   // Обновить материал базы знаний
   updateKnowledgeMaterial(id: string, updates: Partial<KnowledgeMaterial>): KnowledgeMaterial | null {
     const materials = this.getKnowledgeMaterials();
@@ -435,7 +443,7 @@ class DatabaseService {
           description: "Основы защиты корпоративной информации и персональных данных",
           content: "Правила работы с конфиденциальной информацией, защита от фишинга, безопасные пароли.",
           category: "Безопасность",
-          difficulty: "Начинающий",
+          difficulty: "Начальный",
           duration: "1.5 часа",
           rating: 4.6,
           enrollments: 567,
@@ -463,7 +471,7 @@ class DatabaseService {
           description: "Эффективное использование CRM для работы с клиентами",
           content: "Ведение базы клиентов, создание воронки продаж, аналитика и отчетность.",
           category: "Продажи",
-          difficulty: "Начинающий",
+          difficulty: "Начальный",
           duration: "2 часа",
           rating: 4.4,
           enrollments: 324,
@@ -477,7 +485,7 @@ class DatabaseService {
           description: "Ценности компании, правила внутреннего взаимодействия",
           content: "Кодекс поведения сотрудников, корпоративные стандарты, командная работа.",
           category: "Мягкие навыки",
-          difficulty: "Начинающий",
+          difficulty: "Начальный",
           duration: "1 час",
           rating: 4.3,
           enrollments: 456,
