@@ -127,7 +127,7 @@ export const AIChat = ({ className = "" }: AIChatProps) => {
 
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <Input
-            placeholder="Задайте вопрос AI помощнику..."
+            placeholder="Ваш вопрос..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             className="flex-1"
@@ -144,17 +144,13 @@ export const AIChat = ({ className = "" }: AIChatProps) => {
         </form>
 
         {messages.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-4 text-gray-500">
             <Icon
               name="MessageCircle"
-              size={48}
-              className="mx-auto mb-4 text-gray-300"
+              size={32}
+              className="mx-auto mb-2 text-gray-300"
             />
-            <p className="text-lg font-medium mb-2">Добро пожаловать!</p>
-            <p className="text-sm">
-              Задайте любой вопрос по программированию, дизайну, менеджменту или
-              другим темам
-            </p>
+            <p className="text-sm">Чем могу помочь?</p>
           </div>
         )}
       </CardContent>
