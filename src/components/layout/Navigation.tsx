@@ -72,19 +72,19 @@ export const Navigation = ({
   };
   return (
     <>
-      <div className="flex items-center justify-between mb-6 px-[7px] bg-emerald-100 border border-black">
-        <div className="flex items-center space-x-4">
+      <div className={`flex items-center justify-between mb-6 px-[7px] bg-emerald-100 border border-black ${isMobileView ? 'flex-col space-y-4 py-4' : ''}`}>
+        <div className={`flex items-center ${isMobileView ? 'flex-col space-y-2' : 'space-x-4'}`}>
           <img 
             src="https://cdn.poehali.dev/files/65342c5d-10a8-4eec-a846-cace70dfffd9.png" 
             alt="Logo" 
-            className="w-10 h-10 object-contain"
+            className={`object-contain ${isMobileView ? 'w-12 h-12' : 'w-10 h-10'}`}
           />
-          <h1 className="text-2xl font-bold text-gray-900">
-            Центр развития и тестирования
+          <h1 className={`font-bold text-gray-900 ${isMobileView ? 'text-lg text-center' : 'text-2xl'}`}>
+            {isMobileView ? 'Центр развития' : 'Центр развития и тестирования'}
           </h1>
           <NotificationBadge count={unreadCount} />
           {userName && (
-            <div className="hidden md:flex items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2">
+            <div className={`items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 ${isMobileView ? 'flex' : 'hidden md:flex'}`}>
               <Icon name="User" size={16} className="text-gray-600" />
               <span className="text-sm font-medium text-gray-700">{userName}</span>
             </div>
@@ -228,15 +228,15 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-5' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
+      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-5' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2 ${isMobileView ? 'grid-cols-2 gap-1' : ''}`}>
 
         <TabsTrigger
           value="dashboard"
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
-            Панель
+          <span className={`${isMobileView ? 'text-xs' : 'hidden sm:inline text-lg'} text-[#000000]`}>
+            {isMobileView ? 'Панель' : 'Панель'}
           </span>
         </TabsTrigger>
         <TabsTrigger
@@ -244,8 +244,8 @@ export const Navigation = ({
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
-            База знаний
+          <span className={`${isMobileView ? 'text-xs' : 'hidden sm:inline text-lg'} text-[#000000]`}>
+            {isMobileView ? 'База' : 'База знаний'}
           </span>
         </TabsTrigger>
         <TabsTrigger
@@ -253,7 +253,9 @@ export const Navigation = ({
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative border border-black hover:scale-105 active:scale-95"
         >
           <Icon name="FileText" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">Тесты</span>
+          <span className={`${isMobileView ? 'text-xs' : 'hidden sm:inline text-lg'} text-[#000000]`}>
+            Тесты
+          </span>
           {newTestsCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full animate-bounce">
               {newTestsCount > 99 ? '99+' : newTestsCount}
@@ -265,8 +267,8 @@ export const Navigation = ({
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
-            Аналитика
+          <span className={`${isMobileView ? 'text-xs' : 'hidden sm:inline text-lg'} text-[#000000]`}>
+            {isMobileView ? 'Статистика' : 'Аналитика'}
           </span>
         </TabsTrigger>
         {(userRole === "admin" || userRole === "teacher") && (
@@ -275,8 +277,8 @@ export const Navigation = ({
             className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
           >
             <Icon name="Users" size={16} className="mr-2" />
-            <span className="hidden sm:inline text-lg text-[#000000]">
-              Сотрудники
+            <span className={`${isMobileView ? 'text-xs' : 'hidden sm:inline text-lg'} text-[#000000]`}>
+              {isMobileView ? 'Люди' : 'Сотрудники'}
             </span>
           </TabsTrigger>
         )}
