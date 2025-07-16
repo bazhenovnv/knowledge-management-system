@@ -9,11 +9,14 @@ import { toast } from "sonner";
 import { getDifficultyColor } from "@/utils/statusUtils";
 import { MaterialForm } from "@/components/forms/MaterialForm";
 import { DeleteConfirmation } from "@/components/ui/delete-confirmation";
+import { MaterialViewer } from "@/components/dialogs/MaterialViewer";
+import { TestFromMaterialForm } from "@/components/forms/TestFromMaterialForm";
 
 interface KnowledgeTabProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   userRole?: string;
+  onSwitchToTests?: () => void;
 }
 
 export const KnowledgeTab = ({
@@ -33,6 +36,14 @@ export const KnowledgeTab = ({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [materialToDelete, setMaterialToDelete] = useState<KnowledgeMaterial | null>(null);
   const [deleting, setDeleting] = useState(false);
+  
+  // Состояние для просмотра материала
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewingMaterial, setViewingMaterial] = useState<KnowledgeMaterial | null>(null);
+  
+  // Состояние для создания теста
+  const [testFormOpen, setTestFormOpen] = useState(false);
+  const [testMaterial, setTestMaterial] = useState<KnowledgeMaterial | null>(null);
 
   // Загружаем материалы из базы данных
   useEffect(() => {
@@ -105,14 +116,20 @@ export const KnowledgeTab = ({
     loadMaterials(); // Перезагружаем список после сохранения
   };
 
-  const handleEnrollment = (materialId: string) => {
-    try {
-      database.incrementEnrollments(materialId);
-      loadMaterials(); // Обновляем список
-      toast.success('Вы записались на изучение материала');
-    } catch (error) {
-      console.error('Ошибка записи на материал:', error);
-      toast.error('Ошибка при записи на материал');
+  const handleStudyMaterial = (material: KnowledgeMaterial) => {
+    setViewingMaterial(material);
+    setViewerOpen(true);
+  };
+  
+  const handleCreateTest = (material: KnowledgeMaterial) => {
+    setTestMaterial(material);
+    setTestFormOpen(true);
+  };
+  
+  const handleTestCreated = () => {
+    toast.success('Тест создан! Переходим к разделу тестов...');
+    if (onSwitchToTests) {
+      onSwitchToTests();
     }
   };
 
@@ -193,7 +210,7 @@ export const KnowledgeTab = ({
       {/* Список материалов */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMaterials.map((item) => (
-          <Card key={item.id} className="hover:shadow-lg transition-shadow">
+          <Card key={item.id} className="hover:shadow-lg transition-shadow card-hover">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{item.title}</CardTitle>
@@ -254,8 +271,8 @@ export const KnowledgeTab = ({
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                    onClick={() => handleEnrollment(item.id)}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 gradient-button"
+                    onClick={() => handleStudyMaterial(item)}
                   >
                     Изучить
                   </Button>
@@ -263,6 +280,7 @@ export const KnowledgeTab = ({
                     size="sm"
                     variant="outline"
                     className="border-green-500 text-green-600 hover:bg-green-50"
+                    onClick={() => canEditMaterial ? handleCreateTest(item) : handleStudyMaterial(item)}
                   >
                     <Icon name="FileText" size={14} className="mr-1" />
                     {canEditMaterial ? 'Создать тест' : 'Пройти тест'}
@@ -318,6 +336,29 @@ export const KnowledgeTab = ({
         description={`Вы уверены, что хотите удалить материал "${materialToDelete?.title}"? Это действие нельзя отменить.`}
         itemName="материал"
         loading={deleting}
+      />
+      
+      {/* Просмотр материала */}
+      <MaterialViewer
+        isOpen={viewerOpen}
+        onClose={() => {
+          setViewerOpen(false);
+          setViewingMaterial(null);
+        }}
+        material={viewingMaterial}
+        userRole={userRole}
+        onCreateTest={handleCreateTest}
+      />
+      
+      {/* Создание теста из материала */}
+      <TestFromMaterialForm
+        isOpen={testFormOpen}
+        onClose={() => {
+          setTestFormOpen(false);
+          setTestMaterial(null);
+        }}
+        material={testMaterial}
+        onSuccess={handleTestCreated}
       />
     </div>
   );
