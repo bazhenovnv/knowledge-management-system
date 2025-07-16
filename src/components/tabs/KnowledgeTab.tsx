@@ -27,6 +27,8 @@ import { AIChat } from "@/components/ai/AIChat";
 import { MaterialForm } from "@/components/materials/MaterialForm";
 import { MaterialPreview } from "@/components/materials/MaterialPreview";
 import { DEPARTMENTS } from "@/constants/departments";
+import { Test, getTests } from "@/utils/database";
+import { createTestFromMaterial, findBestTestForMaterial } from "@/utils/testGenerator";
 
 interface KnowledgeTabProps {
   searchQuery: string;
@@ -138,9 +140,45 @@ export const KnowledgeTab = ({
 
   // Функция прохождения теста
   const handleTakeMaterialTest = (material: KnowledgeMaterial) => {
-    setTestMaterial(material);
-    toast.info(`Запускаем тест по материалу: ${material.title}`);
-    // Здесь можно добавить логику запуска теста
+    if (userRole === 'admin' || userRole === 'teacher') {
+      // Администратор/преподаватель создает тест
+      handleCreateTestFromMaterial(material);
+    } else {
+      // Сотрудник запускает прохождение теста
+      handleStartTestFromMaterial(material);
+    }
+  };
+
+  const handleCreateTestFromMaterial = (material: KnowledgeMaterial) => {
+    const newTest = createTestFromMaterial(material, 'current-user', userRole || 'admin');
+    
+    // Сохраняем тест как черновик
+    const tests = getTests();
+    tests.push(newTest);
+    localStorage.setItem('tests_db', JSON.stringify(tests));
+    
+    toast.success(`Создан черновик теста: ${newTest.title}`);
+    toast.info('Тест создан в разделе "Тесты". Заполните вопросы и опубликуйте тест.');
+    
+    // Можно добавить переход к разделу тестов
+    // setCurrentTab('tests');
+  };
+
+  const handleStartTestFromMaterial = (material: KnowledgeMaterial) => {
+    const tests = getTests();
+    const matchingTest = findBestTestForMaterial(tests, material);
+    
+    if (matchingTest) {
+      if (matchingTest.status === 'published') {
+        toast.success(`Запускаем тест: ${matchingTest.title}`);
+        setTestMaterial(material);
+        // Здесь можно добавить логику запуска теста
+      } else {
+        toast.warning('Тест по данной теме еще не опубликован');
+      }
+    } else {
+      toast.info('Тест по данной теме пока не создан');
+    }
   };
 
   // Получаем уникальные категории

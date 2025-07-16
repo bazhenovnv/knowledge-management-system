@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
+import { KnowledgeMaterial, Test, getTests } from "@/utils/database";
+import { createTestFromMaterial, findBestTestForMaterial } from "@/utils/testGenerator";
+import { toast } from "sonner";
 
 interface MaterialPreviewProps {
   material: {
@@ -23,6 +26,47 @@ interface MaterialPreviewProps {
 
 export const MaterialPreview = ({ material, isOpen, onClose, userRole }: MaterialPreviewProps) => {
   if (!material) return null;
+
+  const handleTestAction = () => {
+    if (userRole === 'admin' || userRole === 'teacher') {
+      // Администратор/преподаватель создает тест
+      handleCreateTestFromMaterial();
+    } else {
+      // Сотрудник запускает прохождение теста
+      handleStartTestFromMaterial();
+    }
+  };
+
+  const handleCreateTestFromMaterial = () => {
+    const newTest = createTestFromMaterial(material, 'current-user', userRole || 'admin');
+    
+    // Сохраняем тест как черновик
+    const tests = getTests();
+    tests.push(newTest);
+    localStorage.setItem('tests_db', JSON.stringify(tests));
+    
+    toast.success(`Создан черновик теста: ${newTest.title}`);
+    toast.info('Тест создан в разделе "Тесты". Заполните вопросы и опубликуйте тест.');
+    
+    onClose();
+  };
+
+  const handleStartTestFromMaterial = () => {
+    const tests = getTests();
+    const matchingTest = findBestTestForMaterial(tests, material);
+    
+    if (matchingTest) {
+      if (matchingTest.status === 'published') {
+        toast.success(`Запускаем тест: ${matchingTest.title}`);
+        // Здесь можно добавить логику запуска теста
+        onClose();
+      } else {
+        toast.warning('Тест по данной теме еще не опубликован');
+      }
+    } else {
+      toast.info('Тест по данной теме пока не создан');
+    }
+  };
 
   const renderMediaFile = (file: any, index: number) => {
     if (file.type === 'image') {
@@ -92,6 +136,7 @@ export const MaterialPreview = ({ material, isOpen, onClose, userRole }: Materia
               <Button
                 className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                 size="lg"
+                onClick={handleTestAction}
               >
                 <Icon name="FileText" size={20} className="mr-2" />
                 {userRole === 'admin' || userRole === 'teacher' ? 'Создать тест по теме' : 'Пройти тест по теме'}

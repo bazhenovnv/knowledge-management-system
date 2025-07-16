@@ -44,6 +44,8 @@ export interface Test {
   status: "draft" | "published" | "archived";
   totalAttempts: number;
   averageScore: number;
+  sourceMaterialId?: string;
+  isGeneratedFromMaterial?: boolean;
 }
 
 export interface TestResult {
