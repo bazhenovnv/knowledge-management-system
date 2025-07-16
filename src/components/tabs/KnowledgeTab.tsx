@@ -92,6 +92,40 @@ export const KnowledgeTab = ({
     }
   };
 
+  // Функция редактирования материала
+  const handleEditMaterial = (material: KnowledgeMaterial) => {
+    setEditingMaterial(material);
+    setIsFormOpen(true);
+    toast.info(`Редактируем материал: ${material.title}`);
+  };
+
+  const handleUpdateMaterial = (updatedMaterial: KnowledgeMaterial) => {
+    if (editingMaterial) {
+      const success = updateKnowledgeMaterial(updatedMaterial);
+      if (success) {
+        loadMaterials();
+        setIsFormOpen(false);
+        setEditingMaterial(null);
+        toast.success("Материал успешно обновлен!");
+      } else {
+        toast.error("Ошибка при обновлении материала");
+      }
+    }
+  };
+
+  const handleFormSubmit = (material: KnowledgeMaterial) => {
+    if (editingMaterial) {
+      handleUpdateMaterial(material);
+    } else {
+      handleCreateMaterial(material);
+    }
+  };
+
+  const handleFormCancel = () => {
+    setIsFormOpen(false);
+    setEditingMaterial(null);
+  };
+
   // Функция удаления материала
   const handleDeleteMaterial = (materialId: string) => {
     if (window.confirm('Вы уверены, что хотите удалить этот материал?')) {
@@ -275,9 +309,22 @@ export const KnowledgeTab = ({
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{item.title}</CardTitle>
-                <Badge className={getDifficultyColor(item.difficulty)}>
-                  {item.difficulty}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge className={getDifficultyColor(item.difficulty)}>
+                    {item.difficulty}
+                  </Badge>
+                  {(userRole === 'admin' || userRole === 'teacher') && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleEditMaterial(item)}
+                      className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                      title="Редактировать материал"
+                    >
+                      <Icon name="Edit" size={16} />
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -323,24 +370,14 @@ export const KnowledgeTab = ({
                     {userRole === 'admin' || userRole === 'teacher' ? 'Создать тест' : 'Пройти тест'}
                   </Button>
                   {(userRole === 'admin' || userRole === 'teacher') && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditMaterial(item)}
-                        className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                      >
-                        <Icon name="Edit" size={14} />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteMaterial(item.id)}
-                        className="border-red-500 text-red-600 hover:bg-red-50"
-                      >
-                        <Icon name="Trash2" size={14} />
-                      </Button>
-                    </>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDeleteMaterial(item.id)}
+                      className="border-red-500 text-red-600 hover:bg-red-50"
+                    >
+                      <Icon name="Trash2" size={14} />
+                    </Button>
                   )}
                 </div>
               </div>
