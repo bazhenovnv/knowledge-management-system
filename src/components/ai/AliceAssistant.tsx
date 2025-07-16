@@ -40,14 +40,7 @@ const AliceAssistant: React.FC<AliceAssistantProps> = ({
   userRole = "student",
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      type: "alice",
-      text: "Привет! Я Алиса - ваш AI помощник в системе обучения. Могу помочь с навигацией, ответить на вопросы о тестах и курсах, или найти нужную информацию. Чем могу помочь?",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -251,15 +244,15 @@ const AliceAssistant: React.FC<AliceAssistantProps> = ({
               <Icon name="Bot" size={24} className="text-white" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md h-[600px] flex flex-col">
-            <DialogHeader className="pb-4">
+          <DialogContent className="max-w-md h-[400px] flex flex-col">
+            <DialogHeader className="pb-2">
               <DialogTitle className="flex items-center space-x-2">
-                <div className="p-2 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">
-                  <Icon name="Bot" size={20} className="text-purple-600" />
+                <div className="p-1 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full">
+                  <Icon name="Bot" size={16} className="text-purple-600" />
                 </div>
-                <span>Алиса - AI Помощник</span>
-                <Badge variant="outline" className="ml-auto">
-                  <Icon name="Sparkles" size={12} className="mr-1" />
+                <span className="text-base font-medium">AI Помощник</span>
+                <Badge variant="outline" className="ml-auto text-xs">
+                  <Icon name="Sparkles" size={10} className="mr-1" />
                   Онлайн
                 </Badge>
               </DialogTitle>
@@ -332,8 +325,8 @@ const AliceAssistant: React.FC<AliceAssistantProps> = ({
                   <Textarea
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Напишите ваш вопрос..."
-                    className="min-h-0 h-9 resize-none text-sm"
+                    placeholder="Ваш вопрос..."
+                    className="min-h-0 h-8 resize-none text-sm"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
