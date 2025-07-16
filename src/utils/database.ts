@@ -553,6 +553,7 @@ export const getTests = () => database.getTests();
 export const getEmployees = () => database.getEmployees();
 export const getKnowledgeMaterials = () => database.getKnowledgeMaterials();
 export const getTestResults = () => database.getTestResults();
+export const updateKnowledgeMaterial = (material: KnowledgeMaterial) => database.updateKnowledgeMaterial(material);
 
 // Инициализируем базу данных при первом импорте
 database.initializeDatabase();

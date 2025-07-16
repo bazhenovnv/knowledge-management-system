@@ -212,7 +212,7 @@ export const MaterialForm = ({
             onClick={handleSubmit}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
           >
-            Создать материал
+            {isEditing ? 'Сохранить изменения' : 'Создать материал'}
           </Button>
         </div>
       </div>

@@ -323,14 +323,24 @@ export const KnowledgeTab = ({
                     {userRole === 'admin' || userRole === 'teacher' ? 'Создать тест' : 'Пройти тест'}
                   </Button>
                   {(userRole === 'admin' || userRole === 'teacher') && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDeleteMaterial(item.id)}
-                      className="border-red-500 text-red-600 hover:bg-red-50"
-                    >
-                      <Icon name="Trash2" size={14} />
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleEditMaterial(item)}
+                        className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                      >
+                        <Icon name="Edit" size={14} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeleteMaterial(item.id)}
+                        className="border-red-500 text-red-600 hover:bg-red-50"
+                      >
+                        <Icon name="Trash2" size={14} />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
