@@ -196,11 +196,11 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-5' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm`}>
+      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-5' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
 
         <TabsTrigger
           value="dashboard"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">
@@ -209,7 +209,7 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="knowledge"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">
@@ -218,7 +218,7 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="tests"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative border border-black"
         >
           <Icon name="FileText" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">Тесты</span>
@@ -230,7 +230,7 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="analytics"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">
@@ -240,7 +240,7 @@ export const Navigation = ({
         {(userRole === "admin" || userRole === "teacher") && (
           <TabsTrigger
             value="employees"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black"
           >
             <Icon name="Users" size={16} className="mr-2" />
             <span className="hidden sm:inline text-lg text-[#000000]">
