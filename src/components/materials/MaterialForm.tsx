@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +40,23 @@ export const MaterialForm = ({
   });
   const [customCategories, setCustomCategories] = useState(categories);
 
+  // Обновляем formData при изменении initialData
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title || "",
+        description: initialData.description || "",
+        category: initialData.category || "",
+        content: initialData.content || "",
+        difficulty: initialData.difficulty || "Начинающий",
+        duration: initialData.duration || "1 час",
+        tags: initialData.tags || [],
+        department: initialData.department || "",
+        mediaFiles: initialData.mediaFiles || [],
+      });
+    }
+  }, [initialData]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -55,7 +72,12 @@ export const MaterialForm = ({
   };
 
   const handleSubmit = () => {
-    onSubmit(formData);
+    const submissionData = {
+      ...formData,
+      // Сохраняем id при редактировании
+      ...(initialData?.id && { id: initialData.id })
+    };
+    onSubmit(submissionData);
   };
 
   const handlePreview = () => {

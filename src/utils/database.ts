@@ -543,6 +543,19 @@ class DatabaseService {
       this.setData(STORAGE_KEYS.TEST_RESULTS, data.testResults);
     }
   }
+
+  // Обновление материала базы знаний
+  updateKnowledgeMaterial(updatedMaterial: KnowledgeMaterial): boolean {
+    const materials = this.getKnowledgeMaterials();
+    const index = materials.findIndex(m => m.id === updatedMaterial.id || m.title === updatedMaterial.title);
+    
+    if (index !== -1) {
+      materials[index] = { ...materials[index], ...updatedMaterial };
+      this.setData(STORAGE_KEYS.KNOWLEDGE_MATERIALS, materials);
+      return true;
+    }
+    return false;
+  }
 }
 
 // Создаем единственный экземпляр службы базы данных

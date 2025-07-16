@@ -101,7 +101,14 @@ export const KnowledgeTab = ({
 
   const handleUpdateMaterial = (updatedMaterial: KnowledgeMaterial) => {
     if (editingMaterial) {
-      const success = updateKnowledgeMaterial(updatedMaterial);
+      console.log('Обновляем материал:', editingMaterial.id, updatedMaterial);
+      // Убеждаемся, что id сохраняется
+      const materialWithId = {
+        ...updatedMaterial,
+        id: editingMaterial.id
+      };
+      const success = updateKnowledgeMaterial(materialWithId);
+      console.log('Результат обновления:', success);
       if (success) {
         loadMaterials();
         setIsFormOpen(false);
@@ -243,13 +250,17 @@ export const KnowledgeTab = ({
               </DialogTrigger>
               <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Добавить новый материал</DialogTitle>
+                  <DialogTitle>
+                    {editingMaterial ? 'Редактировать материал' : 'Добавить новый материал'}
+                  </DialogTitle>
                 </DialogHeader>
                 <MaterialForm 
                   categories={categories}
-                  onSubmit={handleCreateMaterial}
-                  onCancel={() => setIsFormOpen(false)}
+                  onSubmit={handleFormSubmit}
+                  onCancel={handleFormCancel}
                   onPreview={(material) => setPreviewMaterial(material)}
+                  initialData={editingMaterial}
+                  isEditing={!!editingMaterial}
                 />
               </DialogContent>
             </Dialog>
