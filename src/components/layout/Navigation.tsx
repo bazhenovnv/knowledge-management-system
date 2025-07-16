@@ -14,6 +14,7 @@ import { NotificationPanel } from "@/components/notifications/NotificationPanel"
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useViewedTests } from "@/hooks/useViewedTests";
+import { useState } from "react";
 
 interface NavigationProps {
   activeTab: string;
@@ -46,6 +47,7 @@ export const Navigation = ({
   } = useNotifications();
   
   const { getNewTestsCount } = useViewedTests();
+  const [isMobileView, setIsMobileView] = useState(false);
   
   // Мок данные тестов для подсчета новых
   const mockTests = [
@@ -100,6 +102,36 @@ export const Navigation = ({
             onClearAll={clearAll}
             onActionClick={handleActionClick}
           />
+          {/* Переключатель версий */}
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={!isMobileView ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setIsMobileView(false)}
+              className={`px-3 py-1 text-xs transition-all ${
+                !isMobileView 
+                  ? "bg-white shadow-sm text-gray-900" 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Icon name="Monitor" size={14} className="mr-1" />
+              ПК
+            </Button>
+            <Button
+              variant={isMobileView ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setIsMobileView(true)}
+              className={`px-3 py-1 text-xs transition-all ${
+                isMobileView 
+                  ? "bg-white shadow-sm text-gray-900" 
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <Icon name="Smartphone" size={14} className="mr-1" />
+              Моб
+            </Button>
+          </div>
+          
           {onLogout && (
             <Button
               variant="outline"
