@@ -81,15 +81,6 @@ export const Navigation = ({
           <h1 className="font-bold text-gray-900 text-2xl">
             Центр развития и тестирования
           </h1>
-          <NotificationBadge count={unreadCount} />
-          {userName && (
-            <div className="items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 hidden md:flex">
-              <Icon name="User" size={16} className="text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">{userName}</span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
           <NotificationPanel
             notifications={notifications}
             unreadCount={unreadCount}
@@ -101,8 +92,15 @@ export const Navigation = ({
             onClearAll={clearAll}
             onActionClick={handleActionClick}
           />
-
-          
+          <NotificationBadge count={unreadCount} />
+          {userName && (
+            <div className="items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 hidden md:flex">
+              <Icon name="User" size={16} className="text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">{userName}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
           {onLogout && (
             <Button
               variant="outline"
