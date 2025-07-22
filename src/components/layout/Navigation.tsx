@@ -190,6 +190,17 @@ export const Navigation = ({
                       Сотрудники
                     </Button>
                   )}
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      window.location.href = '/bitrix24';
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    <Icon name="Zap" size={16} className="mr-2" />
+                    Битрикс24
+                  </Button>
                 </div>
               </ScrollArea>
             </SheetContent>
