@@ -780,7 +780,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Отмена
             </Button>
-            <Button onClick={handleSaveEdit}>
+            <Button onClick={handleSaveEdit} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
               Сохранить
             </Button>
           </div>
@@ -800,7 +800,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
             <AlertDialogCancel onClick={() => setDeleteEmployeeId(null)}>
               Отмена
             </AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleDeleteEmployee(deleteEmployeeId)}>
+            <AlertDialogAction onClick={() => handleDeleteEmployee(deleteEmployeeId)} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
               Удалить
             </AlertDialogAction>
           </AlertDialogFooter>
