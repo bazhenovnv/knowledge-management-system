@@ -53,6 +53,9 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
 
   const [isSelectAll, setIsSelectAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Сброс формы при закрытии
   const handleClose = () => {
@@ -66,15 +69,32 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
     });
     setIsSelectAll(false);
     setSearchQuery('');
+    setSelectedDepartments([]);
+    setSelectedRoles([]);
+    setShowFilters(false);
     onClose();
   };
 
-  // Фильтрация сотрудников по поиску
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.department.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Получение уникальных отделов и ролей
+  const departments = [...new Set(employees.map(emp => emp.department))].filter(Boolean);
+  const roles = [...new Set(employees.map(emp => emp.position))].filter(Boolean);
+
+  // Фильтрация сотрудников по поиску, отделам и ролям
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = !searchQuery || 
+      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.position.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesDepartment = selectedDepartments.length === 0 || 
+      selectedDepartments.includes(emp.department);
+    
+    const matchesRole = selectedRoles.length === 0 || 
+      selectedRoles.includes(emp.position);
+    
+    return matchesSearch && matchesDepartment && matchesRole;
+  });
 
   // Выбор/снятие выбора сотрудника
   const toggleEmployee = (employeeId: number) => {
@@ -94,6 +114,73 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
       setFormData(prev => ({ ...prev, recipients: filteredEmployees.map(emp => emp.id) }));
     }
     setIsSelectAll(!isSelectAll);
+  };
+
+  // Выбрать сотрудников по отделу
+  const handleSelectByDepartment = (department: string) => {
+    const departmentEmployees = employees.filter(emp => emp.department === department);
+    const departmentIds = departmentEmployees.map(emp => emp.id);
+    const allSelected = departmentIds.every(id => formData.recipients.includes(id));
+    
+    if (allSelected) {
+      // Убираем всех из отдела
+      setFormData(prev => ({
+        ...prev,
+        recipients: prev.recipients.filter(id => !departmentIds.includes(id))
+      }));
+    } else {
+      // Добавляем всех из отдела
+      setFormData(prev => ({
+        ...prev,
+        recipients: [...new Set([...prev.recipients, ...departmentIds])]
+      }));
+    }
+  };
+
+  // Выбрать сотрудников по роли
+  const handleSelectByRole = (role: string) => {
+    const roleEmployees = employees.filter(emp => emp.position === role);
+    const roleIds = roleEmployees.map(emp => emp.id);
+    const allSelected = roleIds.every(id => formData.recipients.includes(id));
+    
+    if (allSelected) {
+      // Убираем всех с этой ролью
+      setFormData(prev => ({
+        ...prev,
+        recipients: prev.recipients.filter(id => !roleIds.includes(id))
+      }));
+    } else {
+      // Добавляем всех с этой ролью
+      setFormData(prev => ({
+        ...prev,
+        recipients: [...new Set([...prev.recipients, ...roleIds])]
+      }));
+    }
+  };
+
+  // Переключение фильтра отдела
+  const toggleDepartmentFilter = (department: string) => {
+    setSelectedDepartments(prev => 
+      prev.includes(department) 
+        ? prev.filter(d => d !== department)
+        : [...prev, department]
+    );
+  };
+
+  // Переключение фильтра роли
+  const toggleRoleFilter = (role: string) => {
+    setSelectedRoles(prev => 
+      prev.includes(role) 
+        ? prev.filter(r => r !== role)
+        : [...prev, role]
+    );
+  };
+
+  // Очистить все фильтры
+  const clearAllFilters = () => {
+    setSelectedDepartments([]);
+    setSelectedRoles([]);
+    setSearchQuery('');
   };
 
   // Получение цвета приоритета
@@ -318,9 +405,10 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={handleSelectAll}
+                    onClick={() => setShowFilters(!showFilters)}
                   >
-                    {isSelectAll ? 'Снять выбор' : 'Выбрать всех'}
+                    <Icon name="Filter" size={16} className="mr-1" />
+                    Фильтры
                   </Button>
                   <Badge variant="secondary">
                     {formData.recipients.length} выбрано
@@ -328,42 +416,230 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
                 </div>
               </div>
 
+              {/* Быстрые действия */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                >
+                  {isSelectAll ? '❌ Снять все' : '✅ Выбрать всех'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAllFilters}
+                >
+                  <Icon name="RotateCcw" size={14} className="mr-1" />
+                  Сбросить фильтры
+                </Button>
+              </div>
+
+              {/* Фильтры */}
+              {showFilters && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                  {/* Фильтр по отделам */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Отделы:</Label>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {departments.map(department => {
+                        const departmentEmployees = employees.filter(emp => emp.department === department);
+                        const selectedInDept = departmentEmployees.filter(emp => formData.recipients.includes(emp.id)).length;
+                        const totalInDept = departmentEmployees.length;
+                        
+                        return (
+                          <div key={department} className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedDepartments.includes(department)}
+                                onChange={() => toggleDepartmentFilter(department)}
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm">{department}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="text-xs">
+                                {selectedInDept}/{totalInDept}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => handleSelectByDepartment(department)}
+                              >
+                                {selectedInDept === totalInDept ? 'Убрать' : 'Выбрать'}
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Фильтр по ролям */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Роли:</Label>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {roles.map(role => {
+                        const roleEmployees = employees.filter(emp => emp.position === role);
+                        const selectedInRole = roleEmployees.filter(emp => formData.recipients.includes(emp.id)).length;
+                        const totalInRole = roleEmployees.length;
+                        
+                        return (
+                          <div key={role} className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedRoles.includes(role)}
+                                onChange={() => toggleRoleFilter(role)}
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm">{role}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="text-xs">
+                                {selectedInRole}/{totalInRole}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => handleSelectByRole(role)}
+                              >
+                                {selectedInRole === totalInRole ? 'Убрать' : 'Выбрать'}
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Поиск получателей */}
               <div className="relative">
                 <Icon name="Search" size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
-                  placeholder="Поиск сотрудников..."
+                  placeholder="Поиск по имени, email, отделу или должности..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
 
-              {/* Список получателей */}
-              <div className="max-h-40 overflow-y-auto border rounded-md p-2 space-y-1">
-                {filteredEmployees.map((employee) => (
-                  <div
-                    key={employee.id}
-                    className={`flex items-center space-x-3 p-2 rounded cursor-pointer hover:bg-gray-50 ${
-                      formData.recipients.includes(employee.id) ? 'bg-blue-50 border border-blue-200' : ''
-                    }`}
-                    onClick={() => toggleEmployee(employee.id)}
+              {/* Статистика поиска */}
+              {(searchQuery || selectedDepartments.length > 0 || selectedRoles.length > 0) && (
+                <div className="flex items-center justify-between text-sm text-gray-600 bg-blue-50 p-2 rounded">
+                  <span>Найдено: {filteredEmployees.length} сотрудников</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      const filteredIds = filteredEmployees.map(emp => emp.id);
+                      const allFilteredSelected = filteredIds.every(id => formData.recipients.includes(id));
+                      
+                      if (allFilteredSelected) {
+                        setFormData(prev => ({
+                          ...prev,
+                          recipients: prev.recipients.filter(id => !filteredIds.includes(id))
+                        }));
+                      } else {
+                        setFormData(prev => ({
+                          ...prev,
+                          recipients: [...new Set([...prev.recipients, ...filteredIds])]
+                        }));
+                      }
+                    }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={formData.recipients.includes(employee.id)}
-                      onChange={() => toggleEmployee(employee.id)}
-                      className="w-4 h-4"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium">{employee.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {employee.position} • {employee.department}
-                      </div>
-                    </div>
+                    {filteredEmployees.every(emp => formData.recipients.includes(emp.id)) 
+                      ? 'Убрать найденных' 
+                      : 'Выбрать найденных'
+                    }
+                  </Button>
+                </div>
+              )}
+
+              {/* Список получателей */}
+              <div className="max-h-48 overflow-y-auto border rounded-md">
+                {filteredEmployees.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    <Icon name="Users" size={24} className="mx-auto mb-2 opacity-50" />
+                    <p>Сотрудники не найдены</p>
+                    <p className="text-xs">Попробуйте изменить параметры поиска</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="p-2 space-y-1">
+                    {filteredEmployees.map((employee) => (
+                      <div
+                        key={employee.id}
+                        className={`flex items-center space-x-3 p-3 rounded cursor-pointer hover:bg-gray-50 transition-colors ${
+                          formData.recipients.includes(employee.id) 
+                            ? 'bg-blue-50 border border-blue-200 shadow-sm' 
+                            : 'border border-transparent'
+                        }`}
+                        onClick={() => toggleEmployee(employee.id)}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.recipients.includes(employee.id)}
+                          onChange={() => toggleEmployee(employee.id)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium">{employee.name}</span>
+                            {formData.recipients.includes(employee.id) && (
+                              <Icon name="Check" size={14} className="text-blue-600" />
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500 flex items-center space-x-2">
+                            <Icon name="Briefcase" size={12} />
+                            <span>{employee.position}</span>
+                            <span>•</span>
+                            <Icon name="Building2" size={12} />
+                            <span>{employee.department}</span>
+                          </div>
+                          <div className="text-xs text-gray-400 flex items-center space-x-1">
+                            <Icon name="Mail" size={10} />
+                            <span>{employee.email}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Выбранные получатели */}
+              {formData.recipients.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Выбранные получатели ({formData.recipients.length}):</Label>
+                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto p-2 bg-gray-50 rounded">
+                    {employees
+                      .filter(emp => formData.recipients.includes(emp.id))
+                      .map(employee => (
+                        <Badge 
+                          key={employee.id} 
+                          variant="secondary" 
+                          className="flex items-center space-x-1 cursor-pointer hover:bg-red-100"
+                          onClick={() => toggleEmployee(employee.id)}
+                        >
+                          <span>{employee.name}</span>
+                          <Icon name="X" size={12} />
+                        </Badge>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
