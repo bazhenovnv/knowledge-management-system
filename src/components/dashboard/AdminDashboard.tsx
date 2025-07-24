@@ -38,6 +38,7 @@ import { useState, useEffect } from "react";
 import { database } from "@/utils/database";
 import { TopEmployees } from "@/components/employees/TopEmployees";
 import { toast } from "sonner";
+import NotificationForm from "@/components/notifications/NotificationForm";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -61,6 +62,8 @@ export const AdminDashboard = ({
     newRegistrations: 0 // Новые регистрации за последний день
   });
   const [deleteEmployeeId, setDeleteEmployeeId] = useState<number | null>(null);
+  const [notificationFormOpen, setNotificationFormOpen] = useState(false);
+  const [selectedEmployeeForNotification, setSelectedEmployeeForNotification] = useState<any>(null);
 
   // Загружаем статистику из базы данных
   useEffect(() => {
@@ -135,13 +138,27 @@ export const AdminDashboard = ({
 
   // Функция для отправки уведомления
   const handleSendNotification = (employee: any) => {
-    toast.success(`Уведомление отправлено сотруднику ${employee.name}`);
+    setSelectedEmployeeForNotification(employee);
+    setNotificationFormOpen(true);
+  };
+
+  // Функция для массовой отправки уведомлений
+  const handleBulkNotification = () => {
+    setSelectedEmployeeForNotification(null);
+    setNotificationFormOpen(true);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Панель администратора</h2>
+        <Button 
+          onClick={handleBulkNotification}
+          className="flex items-center space-x-2"
+        >
+          <Icon name="Bell" size={16} />
+          <span>Отправить уведомление</span>
+        </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
@@ -402,6 +419,18 @@ export const AdminDashboard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Форма отправки уведомлений */}
+      <NotificationForm
+        isOpen={notificationFormOpen}
+        onClose={() => {
+          setNotificationFormOpen(false);
+          setSelectedEmployeeForNotification(null);
+        }}
+        employees={employees}
+        selectedEmployee={selectedEmployeeForNotification}
+        currentUserRole="admin"
+      />
 
     </div>
   );

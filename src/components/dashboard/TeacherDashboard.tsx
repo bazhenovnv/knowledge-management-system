@@ -23,6 +23,7 @@ import { database } from "@/utils/database";
 import { toast } from "sonner";
 
 import { TopEmployees } from "@/components/employees/TopEmployees";
+import NotificationForm from "@/components/notifications/NotificationForm";
 
 interface TeacherDashboardProps {
   onLogout: () => void;
@@ -44,6 +45,8 @@ export const TeacherDashboard = ({
     activeStudents: 0
   });
   const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
+  const [notificationFormOpen, setNotificationFormOpen] = useState(false);
+  const [selectedStudentForNotification, setSelectedStudentForNotification] = useState<any>(null);
 
   // Загружаем статистику из базы данных
   useEffect(() => {
@@ -118,6 +121,18 @@ export const TeacherDashboard = ({
     toast.success(`Задание отправлено студенту ${student.name}`);
   };
 
+  // Функция для отправки уведомления студенту
+  const handleSendNotification = (student: any) => {
+    setSelectedStudentForNotification(student);
+    setNotificationFormOpen(true);
+  };
+
+  // Функция для массовой отправки уведомлений студентам
+  const handleBulkNotification = () => {
+    setSelectedStudentForNotification(null);
+    setNotificationFormOpen(true);
+  };
+
   // Функция для просмотра результатов
   const handleViewResults = (student: any) => {
     const testResults = student.testResults || [];
@@ -132,6 +147,13 @@ export const TeacherDashboard = ({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Личный кабинет преподавателя</h2>
+        <Button 
+          onClick={handleBulkNotification}
+          className="flex items-center space-x-2"
+        >
+          <Icon name="Bell" size={16} />
+          <span>Уведомить студентов</span>
+        </Button>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
@@ -226,6 +248,13 @@ export const TeacherDashboard = ({
                           <Icon name="Mail" size={16} className="mr-2" />
                           Написать письмо
                         </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleSendNotification(employee)}
+                          className="cursor-pointer"
+                        >
+                          <Icon name="Bell" size={16} className="mr-2" />
+                          Отправить уведомление
+                        </DropdownMenuItem>
                         <div className="border-t my-1"></div>
                         <DropdownMenuItem 
                           onClick={() => setDeleteStudentId(employee.id)}
@@ -266,6 +295,18 @@ export const TeacherDashboard = ({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Форма отправки уведомлений */}
+      <NotificationForm
+        isOpen={notificationFormOpen}
+        onClose={() => {
+          setNotificationFormOpen(false);
+          setSelectedStudentForNotification(null);
+        }}
+        employees={employees}
+        selectedEmployee={selectedStudentForNotification}
+        currentUserRole="teacher"
+      />
 
       {/* Тесты */}
 

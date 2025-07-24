@@ -77,6 +77,24 @@ export interface KnowledgeMaterial {
   tags: string[];
   createdBy: string;
   createdAt: Date;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  priority: 'low' | 'medium' | 'high';
+  type: 'info' | 'warning' | 'urgent' | 'reminder';
+  recipients: number[];
+  recipientNames?: string[];
+  createdBy: string;
+  createdByRole: 'admin' | 'teacher';
+  createdAt: Date;
+  scheduledFor?: Date;
+  status: 'draft' | 'sent' | 'scheduled';
+  readBy: number[];
+  deliveredTo: number[];
+}
   updatedAt: Date;
   isPublished: boolean;
   department?: string;
@@ -94,7 +112,8 @@ const STORAGE_KEYS = {
   TESTS: 'tests_db',
   TEST_RESULTS: 'test_results_db',
   MATERIALS: 'materials_db',
-  KNOWLEDGE_BASE: 'knowledge_base_db'
+  KNOWLEDGE_BASE: 'knowledge_base_db',
+  NOTIFICATIONS: 'notifications_db'
 };
 
 // Базовый класс для работы с базой данных
@@ -563,6 +582,130 @@ class DatabaseService {
       return true;
     }
     return false;
+  }
+
+  // ========================
+  // МЕТОДЫ ДЛЯ УВЕДОМЛЕНИЙ
+  // ========================
+
+  // Получить все уведомления
+  getNotifications(): Notification[] {
+    return this.getData<Notification>(STORAGE_KEYS.NOTIFICATIONS);
+  }
+
+  // Создать уведомление
+  createNotification(notificationData: Omit<Notification, 'id' | 'createdAt' | 'readBy' | 'deliveredTo'>): Notification {
+    const notifications = this.getNotifications();
+    const employees = this.getEmployees();
+    
+    // Получаем имена получателей для удобства
+    const recipientNames = employees
+      .filter(emp => notificationData.recipients.includes(emp.id))
+      .map(emp => emp.name);
+
+    const newNotification: Notification = {
+      ...notificationData,
+      id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      recipientNames,
+      createdAt: new Date(),
+      readBy: [],
+      deliveredTo: []
+    };
+    
+    notifications.push(newNotification);
+    this.setData(STORAGE_KEYS.NOTIFICATIONS, notifications);
+    return newNotification;
+  }
+
+  // Получить уведомления для конкретного пользователя
+  getNotificationsForUser(userId: number): Notification[] {
+    const notifications = this.getNotifications();
+    return notifications.filter(notification => 
+      notification.recipients.includes(userId) && 
+      notification.status === 'sent'
+    );
+  }
+
+  // Получить непрочитанные уведомления для пользователя
+  getUnreadNotificationsForUser(userId: number): Notification[] {
+    const notifications = this.getNotificationsForUser(userId);
+    return notifications.filter(notification => 
+      !notification.readBy.includes(userId)
+    );
+  }
+
+  // Отметить уведомление как прочитанное
+  markNotificationAsRead(notificationId: string, userId: number): boolean {
+    const notifications = this.getNotifications();
+    const notification = notifications.find(n => n.id === notificationId);
+    
+    if (!notification || !notification.recipients.includes(userId)) return false;
+    
+    if (!notification.readBy.includes(userId)) {
+      notification.readBy.push(userId);
+      this.setData(STORAGE_KEYS.NOTIFICATIONS, notifications);
+    }
+    
+    return true;
+  }
+
+  // Отметить уведомление как доставленное
+  markNotificationAsDelivered(notificationId: string, userId: number): boolean {
+    const notifications = this.getNotifications();
+    const notification = notifications.find(n => n.id === notificationId);
+    
+    if (!notification || !notification.recipients.includes(userId)) return false;
+    
+    if (!notification.deliveredTo.includes(userId)) {
+      notification.deliveredTo.push(userId);
+      this.setData(STORAGE_KEYS.NOTIFICATIONS, notifications);
+    }
+    
+    return true;
+  }
+
+  // Получить уведомления, созданные конкретным пользователем
+  getNotificationsByCreator(createdBy: string): Notification[] {
+    const notifications = this.getNotifications();
+    return notifications.filter(notification => notification.createdBy === createdBy);
+  }
+
+  // Удалить уведомление
+  deleteNotification(notificationId: string): boolean {
+    const notifications = this.getNotifications();
+    const filteredNotifications = notifications.filter(n => n.id !== notificationId);
+    
+    if (filteredNotifications.length === notifications.length) return false;
+    
+    this.setData(STORAGE_KEYS.NOTIFICATIONS, filteredNotifications);
+    return true;
+  }
+
+  // Получить статистику уведомлений
+  getNotificationStats(): {
+    totalNotifications: number;
+    sentNotifications: number;
+    scheduledNotifications: number;
+    totalRecipients: number;
+    totalReadNotifications: number;
+    readRate: number;
+  } {
+    const notifications = this.getNotifications();
+    const sent = notifications.filter(n => n.status === 'sent');
+    const scheduled = notifications.filter(n => n.status === 'scheduled');
+    
+    const totalRecipients = sent.reduce((sum, n) => sum + n.recipients.length, 0);
+    const totalReadNotifications = sent.reduce((sum, n) => sum + n.readBy.length, 0);
+    const readRate = totalRecipients > 0 ? Math.round((totalReadNotifications / totalRecipients) * 100) : 0;
+
+    return {
+      totalNotifications: notifications.length,
+      sentNotifications: sent.length,
+      scheduledNotifications: scheduled.length,
+      totalRecipients,
+      totalReadNotifications,
+      readRate
+    };
   }
 }
 
