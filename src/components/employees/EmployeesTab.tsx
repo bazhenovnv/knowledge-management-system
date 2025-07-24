@@ -623,23 +623,58 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
                     </TableCell>
                     {userRole === "admin" && (
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditEmployee(employee)}
-                          >
-                            <Icon name="Edit" size={14} />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeleteEmployeeId(employee.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Icon name="Trash2" size={14} />
-                          </Button>
-                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Icon name="MoreVertical" size={16} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => handleEditEmployee(employee)} className="cursor-pointer">
+                              <Icon name="Edit" size={16} className="mr-2" />
+                              Редактировать
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                navigator.clipboard.writeText(employee.email);
+                                toast.success("Email скопирован в буфер обмена");
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Icon name="Copy" size={16} className="mr-2" />
+                              Копировать email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                const text = `${employee.name} - ${employee.position}, ${employee.department}`;
+                                navigator.clipboard.writeText(text);
+                                toast.success("Информация скопирована");
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Icon name="User" size={16} className="mr-2" />
+                              Копировать инфо
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                const mailtoLink = `mailto:${employee.email}?subject=Уведомление от системы управления персоналом`;
+                                window.open(mailtoLink);
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Icon name="Mail" size={16} className="mr-2" />
+                              Написать письмо
+                            </DropdownMenuItem>
+                            <div className="border-t my-1"></div>
+                            <DropdownMenuItem 
+                              onClick={() => setDeleteEmployeeId(employee.id)}
+                              className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                            >
+                              <Icon name="Trash2" size={16} className="mr-2" />
+                              Удалить сотрудника
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     )}
                   </TableRow>
