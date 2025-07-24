@@ -359,7 +359,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
         <div className="flex items-center space-x-2">
           <Button 
             onClick={handleBulkNotification}
-            className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white"
+            className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
           >
             <Icon name="Bell" size={16} />
             <span>Отправить уведомление</span>
@@ -454,7 +454,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
                   <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                     Отмена
                   </Button>
-                  <Button onClick={handleAddEmployee}>
+                  <Button onClick={handleAddEmployee} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                     Добавить
                   </Button>
                 </div>
@@ -464,7 +464,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
           {(userRole === "admin" || userRole === "teacher") && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                   <Icon name="Download" size={16} className="mr-2" />
                   Выгрузить отчет
                   <Icon name="ChevronDown" size={16} className="ml-2" />
