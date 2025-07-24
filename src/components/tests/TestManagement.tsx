@@ -438,7 +438,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
                   setIsCreating(true);
                   setEditingTest(null);
                   resetForm();
-                }} className="bg-purple-600 hover:bg-purple-700 text-white">
+                }} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                   <Icon name="Plus" size={16} className="mr-2" />
                   Создать тест
                 </Button>
@@ -685,6 +685,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
                   <Button 
                     onClick={handleCreateTest}
                     disabled={newTest.title.trim() === "" || newTest.questions.length === 0}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                   >
                     Создать тест
                   </Button>
@@ -944,6 +945,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
                   <Button 
                     onClick={handleSaveEditTest}
                     disabled={newTest.title.trim() === "" || newTest.questions.length === 0}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                   >
                     Сохранить изменения
                   </Button>

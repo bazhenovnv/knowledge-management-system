@@ -220,7 +220,7 @@ export const MaterialForm = ({
           <Button
             variant="outline"
             onClick={handlePreview}
-            className="border-blue-500 text-blue-600 hover:bg-blue-50"
+            className="border-purple-500 text-purple-600 hover:bg-purple-50"
           >
             <Icon name="Eye" size={16} className="mr-2" />
             Предпросмотр

@@ -888,7 +888,7 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
             <Button type="button" variant="outline" onClick={handleClose}>
               Отмена
             </Button>
-            <Button type="submit" className="flex items-center space-x-2">
+            <Button type="submit" className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
               <Icon name="Send" size={16} />
               <span>
                 {formData.scheduledFor ? 'Запланировать' : 'Отправить'}

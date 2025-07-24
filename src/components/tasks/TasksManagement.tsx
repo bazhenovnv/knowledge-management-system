@@ -170,7 +170,7 @@ export const TasksManagement = () => {
         <h1 className="text-2xl font-bold">Управление задачами</h1>
         <Dialog open={isAddingTask} onOpenChange={setIsAddingTask}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
               <Icon name="Plus" size={16} className="mr-2" />
               Создать задачу
             </Button>
@@ -245,7 +245,7 @@ export const TasksManagement = () => {
                 </Popover>
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleAddTask} className="flex-1">
+                <Button onClick={handleAddTask} className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                   Создать задачу
                 </Button>
                 <Button variant="outline" onClick={() => setIsAddingTask(false)} className="flex-1">
