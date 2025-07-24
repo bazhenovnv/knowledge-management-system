@@ -95,16 +95,6 @@ export interface Notification {
   readBy: number[];
   deliveredTo: number[];
 }
-  updatedAt: Date;
-  isPublished: boolean;
-  department?: string;
-  attachments?: Array<{
-    id: string;
-    name: string;
-    type: string;
-    url: string;
-  }>;
-}
 
 // Ключи для localStorage
 const STORAGE_KEYS = {
