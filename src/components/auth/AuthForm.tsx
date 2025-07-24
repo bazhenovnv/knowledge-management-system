@@ -19,7 +19,7 @@ import Icon from "@/components/ui/icon";
 import { LoginForm, RegisterForm } from "@/hooks/useAuth";
 import { DEPARTMENTS } from "@/constants/departments";
 import { TestAccountsInfo } from "./TestAccountsInfo";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 interface AuthFormProps {
   showRegister: boolean;
@@ -47,6 +47,50 @@ export const AuthForm = ({
   const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [showPasswords, setShowPasswords] = useState({
+    login: false,
+    register: false
+  });
+  
+  // Функция валидации пароля
+  const validatePassword = useCallback((password: string) => {
+    const minLength = password.length >= 6;
+    const hasLetter = /[a-zA-Zа-яА-Я]/.test(password);
+    const hasNumber = /\d/.test(password);
+    
+    return {
+      isValid: minLength && hasLetter && hasNumber,
+      checks: {
+        minLength,
+        hasLetter,
+        hasNumber
+      },
+      strength: minLength && hasLetter && hasNumber ? 'strong' : 
+               (minLength && (hasLetter || hasNumber)) ? 'medium' : 'weak'
+    };
+  }, []);
+  
+  // Получение цвета подсветки
+  const getPasswordHighlight = useCallback((password: string, isFocused: boolean) => {
+    if (!password && !isFocused) return '';
+    
+    const validation = validatePassword(password);
+    const baseClasses = 'transition-all duration-300 ease-in-out';
+    
+    if (!password) {
+      return `${baseClasses} ring-2 ring-blue-300 border-blue-400 bg-blue-50/30`;
+    }
+    
+    switch (validation.strength) {
+      case 'strong':
+        return `${baseClasses} ring-2 ring-green-400 border-green-500 bg-green-50/30 shadow-lg shadow-green-200/50`;
+      case 'medium':
+        return `${baseClasses} ring-2 ring-yellow-400 border-yellow-500 bg-yellow-50/30 shadow-lg shadow-yellow-200/50`;
+      default:
+        return `${baseClasses} ring-2 ring-red-400 border-red-500 bg-red-50/30 shadow-lg shadow-red-200/50`;
+    }
+  }, [validatePassword]);
 
   const handlePasswordReset = () => {
     if (resetEmail) {
@@ -210,18 +254,123 @@ export const AuthForm = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Пароль</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Введите пароль"
-                    value={registerForm.password}
-                    onChange={(e) =>
-                      onRegisterFormChange({
-                        ...registerForm,
-                        password: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPasswords.register ? "text" : "password"}
+                      placeholder="Введите пароль"
+                      value={registerForm.password}
+                      onChange={(e) =>
+                        onRegisterFormChange({
+                          ...registerForm,
+                          password: e.target.value,
+                        })
+                      }
+                      onFocus={() => setFocusedInput("register-password")}
+                      onBlur={() => setFocusedInput(null)}
+                      className={getPasswordHighlight(
+                        registerForm.password,
+                        focusedInput === "register-password"
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() =>
+                        setShowPasswords(prev => ({ ...prev, register: !prev.register }))
+                      }
+                    >
+                      <Icon
+                        name={showPasswords.register ? "EyeOff" : "Eye"}
+                        size={16}
+                        className="text-gray-500"
+                      />
+                    </Button>
+                  </div>
+                  {(focusedInput === "register-password" || registerForm.password) && (
+                    <div className="space-y-2 p-3 bg-gray-50 rounded-lg border animate-in fade-in duration-200">
+                      <div className="text-sm font-medium text-gray-700">Требования к паролю:</div>
+                      <div className="space-y-1">
+                        {(() => {
+                          const validation = validatePassword(registerForm.password);
+                          return (
+                            <>
+                              <div className={`text-xs flex items-center space-x-2 ${
+                                validation.checks.minLength ? 'text-green-600' : 'text-red-500'
+                              }`}>
+                                <Icon 
+                                  name={validation.checks.minLength ? "CheckCircle" : "XCircle"} 
+                                  size={12} 
+                                />
+                                <span>Минимум 6 символов</span>
+                              </div>
+                              <div className={`text-xs flex items-center space-x-2 ${
+                                validation.checks.hasLetter ? 'text-green-600' : 'text-red-500'
+                              }`}>
+                                <Icon 
+                                  name={validation.checks.hasLetter ? "CheckCircle" : "XCircle"} 
+                                  size={12} 
+                                />
+                                <span>Содержит буквы</span>
+                              </div>
+                              <div className={`text-xs flex items-center space-x-2 ${
+                                validation.checks.hasNumber ? 'text-green-600' : 'text-red-500'
+                              }`}>
+                                <Icon 
+                                  name={validation.checks.hasNumber ? "CheckCircle" : "XCircle"} 
+                                  size={12} 
+                                />
+                                <span>Содержит цифры</span>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <div className="mt-2">
+                        <div className="text-xs text-gray-600 mb-1">Надёжность пароля:</div>
+                        <div className="flex space-x-1">
+                          {(() => {
+                            const validation = validatePassword(registerForm.password);
+                            const strengthLevel = validation.strength === 'strong' ? 3 : 
+                                               validation.strength === 'medium' ? 2 : 1;
+                            return (
+                              <>
+                                {[1, 2, 3].map((level) => (
+                                  <div
+                                    key={level}
+                                    className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                                      level <= strengthLevel
+                                        ? level === 1 && strengthLevel === 1
+                                          ? 'bg-red-400'
+                                          : level <= 2 && strengthLevel === 2
+                                          ? 'bg-yellow-400'
+                                          : 'bg-green-400'
+                                        : 'bg-gray-200'
+                                    }`}
+                                  />
+                                ))}
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <div className="text-xs mt-1 font-medium">
+                          {(() => {
+                            const validation = validatePassword(registerForm.password);
+                            switch (validation.strength) {
+                              case 'strong':
+                                return <span className="text-green-600">Надёжный пароль</span>;
+                              case 'medium':
+                                return <span className="text-yellow-600">Средний пароль</span>;
+                              default:
+                                return <span className="text-red-600">Слабый пароль</span>;
+                            }
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <Button
                   onClick={() => onRegister(registerForm)}
@@ -246,18 +395,41 @@ export const AuthForm = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password">Пароль</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Введите пароль"
-                    value={loginForm.password}
-                    onChange={(e) =>
-                      onLoginFormChange({
-                        ...loginForm,
-                        password: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPasswords.login ? "text" : "password"}
+                      placeholder="Введите пароль"
+                      value={loginForm.password}
+                      onChange={(e) =>
+                        onLoginFormChange({
+                          ...loginForm,
+                          password: e.target.value,
+                        })
+                      }
+                      onFocus={() => setFocusedInput("login-password")}
+                      onBlur={() => setFocusedInput(null)}
+                      className={getPasswordHighlight(
+                        loginForm.password,
+                        focusedInput === "login-password"
+                      )}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() =>
+                        setShowPasswords(prev => ({ ...prev, login: !prev.login }))
+                      }
+                    >
+                      <Icon
+                        name={showPasswords.login ? "EyeOff" : "Eye"}
+                        size={16}
+                        className="text-gray-500"
+                      />
+                    </Button>
+                  </div>
                 </div>
                 <div className="text-right">
                   <Button
