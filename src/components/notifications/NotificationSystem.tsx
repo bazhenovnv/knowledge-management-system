@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import Icon from "@/components/ui/icon";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
+import { database } from "@/utils/database";
+import NotificationForm from "./NotificationForm";
 
 interface Notification {
   id: string;
@@ -34,6 +36,9 @@ interface NotificationSettings {
 }
 
 export const NotificationSystem = () => {
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [notificationFormOpen, setNotificationFormOpen] = useState(false);
+  
   const [notifications, setNotifications] = useState<Notification[]>([
     {
       id: '1',
@@ -75,23 +80,16 @@ export const NotificationSystem = () => {
     systemNotifications: true,
   });
 
-  const [newNotification, setNewNotification] = useState({
-    title: '',
-    message: '',
-    type: 'info' as const,
-    recipient: '',
-  });
-
-  const [isCreatingNotification, setIsCreatingNotification] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  const employees = [
-    'Иван Иванов',
-    'Мария Петрова',
-    'Алексей Сидоров',
-    'Елена Кузнецова',
-    'Все сотрудники',
-  ];
+  // Загружаем сотрудников из базы данных
+  useEffect(() => {
+    const loadEmployees = () => {
+      const employeesData = database.getEmployees();
+      setEmployees(employeesData);
+    };
+    loadEmployees();
+  }, []);
 
   const handleMarkAsRead = (notificationId: string) => {
     setNotifications(notifications.map(notif => 
@@ -107,21 +105,7 @@ export const NotificationSystem = () => {
     setNotifications(notifications.filter(notif => notif.id !== notificationId));
   };
 
-  const handleCreateNotification = () => {
-    if (newNotification.title && newNotification.message && newNotification.recipient) {
-      const notification: Notification = {
-        id: Date.now().toString(),
-        ...newNotification,
-        isRead: false,
-        createdAt: new Date(),
-        source: 'manual',
-      };
-      
-      setNotifications([notification, ...notifications]);
-      setNewNotification({ title: '', message: '', type: 'info', recipient: '' });
-      setIsCreatingNotification(false);
-    }
-  };
+
 
   const handleSettingsChange = (key: keyof NotificationSettings, value: boolean) => {
     setSettings({ ...settings, [key]: value });
@@ -186,75 +170,13 @@ export const NotificationSystem = () => {
             <Icon name="Check" size={16} className="mr-2" />
             Отметить все как прочитанные
           </Button>
-          <Dialog open={isCreatingNotification} onOpenChange={setIsCreatingNotification}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Icon name="Plus" size={16} className="mr-2" />
-                Создать уведомление
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Создать уведомление</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Заголовок</Label>
-                  <Input
-                    id="title"
-                    value={newNotification.title}
-                    onChange={(e) => setNewNotification({...newNotification, title: e.target.value})}
-                    placeholder="Введите заголовок уведомления"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Сообщение</Label>
-                  <Textarea
-                    id="message"
-                    value={newNotification.message}
-                    onChange={(e) => setNewNotification({...newNotification, message: e.target.value})}
-                    placeholder="Введите текст уведомления"
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Тип</Label>
-                  <Select value={newNotification.type} onValueChange={(value: Notification['type']) => setNewNotification({...newNotification, type: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите тип" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="info">Информация</SelectItem>
-                      <SelectItem value="success">Успех</SelectItem>
-                      <SelectItem value="warning">Предупреждение</SelectItem>
-                      <SelectItem value="error">Ошибка</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="recipient">Получатель</Label>
-                  <Select value={newNotification.recipient} onValueChange={(value) => setNewNotification({...newNotification, recipient: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Выберите получателя" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map(employee => (
-                        <SelectItem key={employee} value={employee}>{employee}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={handleCreateNotification} className="flex-1">
-                    Отправить уведомление
-                  </Button>
-                  <Button variant="outline" onClick={() => setIsCreatingNotification(false)} className="flex-1">
-                    Отмена
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            onClick={() => setNotificationFormOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Icon name="Plus" size={16} className="mr-2" />
+            Создать уведомление
+          </Button>
         </div>
       </div>
 
@@ -439,6 +361,15 @@ export const NotificationSystem = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Форма отправки уведомлений */}
+      <NotificationForm
+        isOpen={notificationFormOpen}
+        onClose={() => setNotificationFormOpen(false)}
+        employees={employees}
+        selectedEmployee={null}
+        currentUserRole="admin"
+      />
     </div>
   );
 };
