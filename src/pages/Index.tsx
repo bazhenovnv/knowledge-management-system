@@ -10,6 +10,7 @@ import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { EmployeesTab } from "@/components/employees/EmployeesTab";
+import AdvancedEmployeeManagement from "@/components/employees/AdvancedEmployeeManagement";
 import { database } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
@@ -134,7 +135,14 @@ const Index = () => {
 
           {(userRole === "admin" || userRole === "teacher") && (
             <TabsContent value="employees" className="space-y-6">
-              <EmployeesTab userRole={userRole} />
+              {userRole === "admin" ? (
+                <AdvancedEmployeeManagement 
+                  employees={employees} 
+                  onUpdateEmployees={setEmployees}
+                />
+              ) : (
+                <EmployeesTab userRole={userRole} />
+              )}
             </TabsContent>
           )}
         </Tabs>
