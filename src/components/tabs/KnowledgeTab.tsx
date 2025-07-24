@@ -122,8 +122,23 @@ export const KnowledgeTab = ({
   };
   
   const handleCreateTest = (material: KnowledgeMaterial) => {
+    // Проверяем, существует ли уже тест для этого материала
+    const existingTests = database.getTests();
+    const existingTest = existingTests.find(test => test.sourceMaterialId === material.id);
+    
+    if (existingTest) {
+      toast.error(`Тест для материала "${material.title}" уже существует: "${existingTest.title}"`);
+      return;
+    }
+    
     setTestMaterial(material);
     setTestFormOpen(true);
+  };
+  
+  // Функция для проверки существования теста для материала
+  const hasExistingTest = (materialId: string) => {
+    const existingTests = database.getTests();
+    return existingTests.some(test => test.sourceMaterialId === materialId);
   };
   
   const handleTestCreated = () => {
@@ -279,11 +294,11 @@ export const KnowledgeTab = ({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-purple-500 text-purple-600 hover:bg-purple-50"
+                    className={hasExistingTest(item.id) ? "border-green-500 text-green-600 hover:bg-green-50" : "border-purple-500 text-purple-600 hover:bg-purple-50"}
                     onClick={() => canEditMaterial ? handleCreateTest(item) : handleStudyMaterial(item)}
                   >
-                    <Icon name="FileText" size={14} className="mr-1" />
-                    {canEditMaterial ? 'Создать тест' : 'Пройти тест'}
+                    <Icon name={hasExistingTest(item.id) ? "CheckCircle" : "FileText"} size={14} className="mr-1" />
+                    {canEditMaterial ? (hasExistingTest(item.id) ? 'Тест создан' : 'Создать тест') : 'Пройти тест'}
                   </Button>
                 </div>
               </div>

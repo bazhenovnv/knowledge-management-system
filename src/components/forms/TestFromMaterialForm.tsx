@@ -143,6 +143,15 @@ export const TestFromMaterialForm = ({
   const handleCreateTest = async () => {
     if (!material) return;
 
+    // Проверяем, существует ли уже тест для данного материала
+    const existingTests = database.getTests();
+    const existingTest = existingTests.find(test => test.sourceMaterialId === material.id);
+    
+    if (existingTest) {
+      toast.error(`Тест для материала "${material.title}" уже существует: "${existingTest.title}"`);
+      return;
+    }
+
     setLoading(true);
     try {
       const newTest: Omit<Test, 'createdAt'> = {

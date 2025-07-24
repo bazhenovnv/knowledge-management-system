@@ -159,6 +159,17 @@ const TestManagement: React.FC<TestManagementProps> = ({
   const handleSaveEditTest = () => {
     if (!editingTest) return;
     
+    // Проверяем, существует ли уже тест с таким названием (исключая редактируемый)
+    const existingTest = tests.find(test => 
+      test.id !== editingTest.id && 
+      test.title.toLowerCase().trim() === newTest.title.toLowerCase().trim()
+    );
+    
+    if (existingTest) {
+      toast.error(`Тест с названием "${newTest.title}" уже существует`);
+      return;
+    }
+    
     const updatedTest: Test = {
       ...editingTest,
       title: newTest.title,
@@ -253,6 +264,16 @@ const TestManagement: React.FC<TestManagementProps> = ({
 
     if (newTest.questions.length === 0) {
       toast.error("Добавьте хотя бы один вопрос");
+      return;
+    }
+
+    // Проверяем, существует ли уже тест с таким названием
+    const existingTest = tests.find(test => 
+      test.title.toLowerCase().trim() === newTest.title.toLowerCase().trim()
+    );
+    
+    if (existingTest) {
+      toast.error(`Тест с названием "${newTest.title}" уже существует`);
       return;
     }
 
