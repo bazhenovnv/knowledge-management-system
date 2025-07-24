@@ -49,6 +49,7 @@ import { database, type Employee } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import { DEPARTMENTS } from "@/constants/departments";
 import { toast } from "sonner";
+import NotificationForm from "@/components/notifications/NotificationForm";
 
 interface EmployeesTabProps {
   userRole: string;
@@ -63,6 +64,8 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [deleteEmployeeId, setDeleteEmployeeId] = useState(null);
+  const [notificationFormOpen, setNotificationFormOpen] = useState(false);
+  const [selectedEmployeeForNotification, setSelectedEmployeeForNotification] = useState<Employee | null>(null);
 
   // Загружаем сотрудников из базы данных при инициализации
   useEffect(() => {
@@ -314,6 +317,18 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     }
   };
 
+  // Функция отправки уведомления конкретному сотруднику
+  const handleSendNotification = (employee: Employee) => {
+    setSelectedEmployeeForNotification(employee);
+    setNotificationFormOpen(true);
+  };
+
+  // Функция массовой отправки уведомлений
+  const handleBulkNotification = () => {
+    setSelectedEmployeeForNotification(null);
+    setNotificationFormOpen(true);
+  };
+
   // Функция удаления сотрудника
   const handleDeleteEmployee = (id: number) => {
     const employee = employees.find(emp => emp.id === id);
@@ -342,6 +357,13 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Зарегистрированные сотрудники</h2>
         <div className="flex items-center space-x-2">
+          <Button 
+            onClick={handleBulkNotification}
+            className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Icon name="Bell" size={16} />
+            <span>Отправить уведомление</span>
+          </Button>
           {userRole === "admin" && (
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
@@ -635,6 +657,13 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
                               Редактировать
                             </DropdownMenuItem>
                             <DropdownMenuItem 
+                              onClick={() => handleSendNotification(employee)}
+                              className="cursor-pointer"
+                            >
+                              <Icon name="Bell" size={16} className="mr-2" />
+                              Отправить уведомление
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
                               onClick={() => {
                                 navigator.clipboard.writeText(employee.email);
                                 toast.success("Email скопирован в буфер обмена");
@@ -777,6 +806,18 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Форма отправки уведомлений */}
+      <NotificationForm
+        isOpen={notificationFormOpen}
+        onClose={() => {
+          setNotificationFormOpen(false);
+          setSelectedEmployeeForNotification(null);
+        }}
+        employees={employees}
+        selectedEmployee={selectedEmployeeForNotification}
+        currentUserRole={userRole as 'admin' | 'teacher'}
+      />
     </div>
   );
 };
