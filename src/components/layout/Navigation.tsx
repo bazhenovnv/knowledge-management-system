@@ -221,7 +221,7 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="knowledge"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">
@@ -230,7 +230,7 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="tests"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative border border-black hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="FileText" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">
@@ -244,7 +244,7 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="analytics"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg text-[#000000]">
@@ -254,7 +254,7 @@ export const Navigation = ({
         {(userRole === "admin" || userRole === "teacher") && (
           <TabsTrigger
             value="employees"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
           >
             <Icon name="Users" size={16} className="mr-2" />
             <span className="hidden sm:inline text-lg text-[#000000]">
