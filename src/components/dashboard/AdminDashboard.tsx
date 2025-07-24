@@ -8,6 +8,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -21,6 +37,7 @@ import Icon from "@/components/ui/icon";
 import { useState, useEffect } from "react";
 import { database } from "@/utils/database";
 import { TopEmployees } from "@/components/employees/TopEmployees";
+import { toast } from "sonner";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -43,6 +60,7 @@ export const AdminDashboard = ({
     activeCourses: 0,
     newRegistrations: 0 // Новые регистрации за последний день
   });
+  const [deleteEmployeeId, setDeleteEmployeeId] = useState<number | null>(null);
 
   // Загружаем статистику из базы данных
   useEffect(() => {
@@ -87,6 +105,38 @@ export const AdminDashboard = ({
     
     return () => clearInterval(interval);
   }, []);
+
+  // Функция для удаления сотрудника
+  const handleDeleteEmployee = (employeeId: number) => {
+    const employee = employees.find(emp => emp.id === employeeId);
+    if (employee) {
+      try {
+        const success = database.deleteEmployee(employeeId);
+        
+        if (success) {
+          setDeleteEmployeeId(null);
+          toast.success(`Сотрудник ${employee.name} удален из базы данных`);
+          // Обновляем статистику
+          window.location.reload();
+        } else {
+          toast.error("Сотрудник не найден в базе данных");
+        }
+      } catch (error) {
+        toast.error("Ошибка при удалении сотрудника");
+        console.error("Ошибка удаления:", error);
+      }
+    }
+  };
+
+  // Функция для редактирования сотрудника
+  const handleEditEmployee = (employee: any) => {
+    toast.info("Для редактирования перейдите в раздел 'Сотрудники'");
+  };
+
+  // Функция для отправки уведомления
+  const handleSendNotification = (employee: any) => {
+    toast.success(`Уведомление отправлено сотруднику ${employee.name}`);
+  };
 
   return (
     <div className="space-y-6">
@@ -264,9 +314,65 @@ export const AdminDashboard = ({
                   >
                     {getStatusText(employee.status)}
                   </Badge>
-                  <Button variant="ghost" size="sm">
-                    <Icon name="MoreHorizontal" size={16} />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Icon name="MoreHorizontal" size={16} />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => handleEditEmployee(employee)} className="cursor-pointer">
+                        <Icon name="Edit" size={16} className="mr-2" />
+                        Редактировать
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          navigator.clipboard.writeText(employee.email);
+                          toast.success("Email скопирован в буфер обмена");
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Icon name="Copy" size={16} className="mr-2" />
+                        Копировать email
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          const text = `${employee.name} - ${employee.position}, ${employee.department}`;
+                          navigator.clipboard.writeText(text);
+                          toast.success("Информация скопирована");
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Icon name="User" size={16} className="mr-2" />
+                        Копировать инфо
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleSendNotification(employee)}
+                        className="cursor-pointer"
+                      >
+                        <Icon name="Bell" size={16} className="mr-2" />
+                        Отправить уведомление
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          const mailtoLink = `mailto:${employee.email}?subject=Уведомление от администратора`;
+                          window.open(mailtoLink);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        <Icon name="Mail" size={16} className="mr-2" />
+                        Написать письмо
+                      </DropdownMenuItem>
+                      <div className="border-t my-1"></div>
+                      <DropdownMenuItem 
+                        onClick={() => setDeleteEmployeeId(employee.id)}
+                        className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                      >
+                        <Icon name="Trash2" size={16} className="mr-2" />
+                        Удалить сотрудника
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}
@@ -277,6 +383,25 @@ export const AdminDashboard = ({
       {/* Рейтинг сотрудников */}
       <TopEmployees />
 
+      {/* Диалог подтверждения удаления */}
+      <AlertDialog open={!!deleteEmployeeId} onOpenChange={() => setDeleteEmployeeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить этого сотрудника? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteEmployeeId(null)}>
+              Отмена
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDeleteEmployee(deleteEmployeeId!)}>
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
