@@ -55,7 +55,53 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [quickFilters, setQuickFilters] = useState({
+    adminsOnly: false,
+    teachersOnly: false,
+    activeOnly: false,
+    studentsOnly: false
+  });
+  
+  // Шаблоны уведомлений
+  const notificationTemplates = [
+    {
+      id: 'meeting',
+      title: 'Приглашение на собрание',
+      message: 'Уважаемые коллеги! Приглашаем вас на собрание, которое состоится [дата] в [время]. Тема: [тема собрания]. Просьба подтвердить участие.',
+      type: 'reminder' as const,
+      priority: 'medium' as const
+    },
+    {
+      id: 'deadline',
+      title: 'Напоминание о дедлайне',
+      message: 'Напоминаем, что срок выполнения задачи "[название задачи]" истекает [дата]. Пожалуйста, завершите работу в указанные сроки.',
+      type: 'warning' as const,
+      priority: 'high' as const
+    },
+    {
+      id: 'test_available',
+      title: 'Новый тест доступен',
+      message: 'Для вас доступен новый тест: "[название теста]". Пройдите тестирование до [дата]. Время выполнения: [время] минут.',
+      type: 'info' as const,
+      priority: 'medium' as const
+    },
+    {
+      id: 'system_update',
+      title: 'Обновление системы',
+      message: 'Уведомляем о плановом обновлении системы [дата] с [время] по [время]. В это время доступ к системе будет ограничен.',
+      type: 'info' as const,
+      priority: 'low' as const
+    },
+    {
+      id: 'urgent',
+      title: 'Срочное уведомление',
+      message: '[Срочное сообщение]. Просьба принять к сведению и при необходимости связаться с администрацией.',
+      type: 'urgent' as const,
+      priority: 'high' as const
+    }
+  ];
 
   // Сброс формы при закрытии
   const handleClose = () => {
@@ -71,13 +117,21 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
     setSearchQuery('');
     setSelectedDepartments([]);
     setSelectedRoles([]);
+    setSelectedStatuses([]);
     setShowFilters(false);
+    setQuickFilters({
+      adminsOnly: false,
+      teachersOnly: false,
+      activeOnly: false,
+      studentsOnly: false
+    });
     onClose();
   };
 
-  // Получение уникальных отделов и ролей
+  // Получение уникальных отделов, ролей и статусов
   const departments = [...new Set(employees.map(emp => emp.department))].filter(Boolean);
   const roles = [...new Set(employees.map(emp => emp.position))].filter(Boolean);
+  const statuses = [...new Set(employees.map(emp => emp.status || 'active'))].filter(Boolean);
 
   // Фильтрация сотрудников по поиску, отделам и ролям
   const filteredEmployees = employees.filter(emp => {
@@ -93,7 +147,17 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
     const matchesRole = selectedRoles.length === 0 || 
       selectedRoles.includes(emp.position);
     
-    return matchesSearch && matchesDepartment && matchesRole;
+    const matchesStatus = selectedStatuses.length === 0 || 
+      selectedStatuses.includes(emp.status || 'active');
+    
+    // Быстрые фильтры
+    const matchesQuickFilters = 
+      (!quickFilters.adminsOnly || emp.role === 'admin') &&
+      (!quickFilters.teachersOnly || emp.role === 'teacher') &&
+      (!quickFilters.studentsOnly || emp.role === 'student') &&
+      (!quickFilters.activeOnly || emp.status === 'active');
+    
+    return matchesSearch && matchesDepartment && matchesRole && matchesStatus && matchesQuickFilters;
   });
 
   // Выбор/снятие выбора сотрудника
@@ -176,11 +240,46 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
     );
   };
 
+  // Переключение фильтра статуса
+  const toggleStatusFilter = (status: string) => {
+    setSelectedStatuses(prev => 
+      prev.includes(status) 
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    );
+  };
+
+  // Переключение быстрых фильтров
+  const toggleQuickFilter = (filterKey: keyof typeof quickFilters) => {
+    setQuickFilters(prev => ({
+      ...prev,
+      [filterKey]: !prev[filterKey]
+    }));
+  };
+
   // Очистить все фильтры
   const clearAllFilters = () => {
     setSelectedDepartments([]);
     setSelectedRoles([]);
+    setSelectedStatuses([]);
     setSearchQuery('');
+    setQuickFilters({
+      adminsOnly: false,
+      teachersOnly: false,
+      activeOnly: false,
+      studentsOnly: false
+    });
+  };
+
+  // Применение шаблона
+  const applyTemplate = (template: typeof notificationTemplates[0]) => {
+    setFormData(prev => ({
+      ...prev,
+      title: template.title,
+      message: template.message,
+      type: template.type,
+      priority: template.priority
+    }));
   };
 
   // Получение цвета приоритета
@@ -281,6 +380,44 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Шаблоны уведомлений */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Быстрые шаблоны:</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {notificationTemplates.map((template) => (
+                <Button
+                  key={template.id}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="justify-start text-left h-auto p-3"
+                  onClick={() => applyTemplate(template)}
+                >
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{template.title}</div>
+                    <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      {template.message.substring(0, 60)}...
+                    </div>
+                    <div className="flex items-center space-x-2 mt-2">
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs ${getPriorityColor(template.priority)} text-white`}
+                      >
+                        {template.priority === 'high' ? 'Высокий' : 
+                         template.priority === 'medium' ? 'Средний' : 'Низкий'}
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {template.type === 'urgent' ? 'Срочно' :
+                         template.type === 'warning' ? 'Предупреждение' :
+                         template.type === 'reminder' ? 'Напоминание' : 'Информация'}
+                      </Badge>
+                    </div>
+                  </div>
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Заголовок */}
           <div className="space-y-2">
             <Label htmlFor="title">Заголовок уведомления *</Label>
@@ -288,7 +425,7 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
               id="title"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Введите заголовок..."
+              placeholder="Введите заголовок или выберите шаблон выше..."
               required
             />
           </div>
@@ -300,10 +437,13 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
               id="message"
               value={formData.message}
               onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Введите текст уведомления..."
+              placeholder="Введите текст уведомления или выберите шаблон выше..."
               rows={4}
               required
             />
+            <div className="text-xs text-gray-500">
+              💡 Совет: В шаблонах используйте [скобки] для обозначения мест, которые нужно заменить на актуальную информацию
+            </div>
           </div>
 
           {/* Приоритет и тип */}
@@ -416,30 +556,76 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
                 </div>
               </div>
 
-              {/* Быстрые действия */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                >
-                  {isSelectAll ? '❌ Снять все' : '✅ Выбрать всех'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={clearAllFilters}
-                >
-                  <Icon name="RotateCcw" size={14} className="mr-1" />
-                  Сбросить фильтры
-                </Button>
+              {/* Быстрые фильтры */}
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant={quickFilters.adminsOnly ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleQuickFilter('adminsOnly')}
+                    className="text-xs"
+                  >
+                    <Icon name="Shield" size={12} className="mr-1" />
+                    Только админы
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={quickFilters.teachersOnly ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleQuickFilter('teachersOnly')}
+                    className="text-xs"
+                  >
+                    <Icon name="BookOpen" size={12} className="mr-1" />
+                    Только преподаватели
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={quickFilters.studentsOnly ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleQuickFilter('studentsOnly')}
+                    className="text-xs"
+                  >
+                    <Icon name="GraduationCap" size={12} className="mr-1" />
+                    Только студенты
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={quickFilters.activeOnly ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => toggleQuickFilter('activeOnly')}
+                    className="text-xs"
+                  >
+                    <Icon name="UserCheck" size={12} className="mr-1" />
+                    Только активные
+                  </Button>
+                </div>
+                
+                {/* Быстрые действия */}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                  >
+                    {isSelectAll ? '❌ Снять все' : '✅ Выбрать всех'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearAllFilters}
+                  >
+                    <Icon name="RotateCcw" size={14} className="mr-1" />
+                    Сбросить фильтры
+                  </Button>
+                </div>
               </div>
 
               {/* Фильтры */}
               {showFilters && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                   {/* Фильтр по отделам */}
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Отделы:</Label>
@@ -512,6 +698,61 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
                                 onClick={() => handleSelectByRole(role)}
                               >
                                 {selectedInRole === totalInRole ? 'Убрать' : 'Выбрать'}
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Фильтр по статусам */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Статусы:</Label>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {statuses.map(status => {
+                        const statusEmployees = employees.filter(emp => (emp.status || 'active') === status);
+                        const selectedInStatus = statusEmployees.filter(emp => formData.recipients.includes(emp.id)).length;
+                        const totalInStatus = statusEmployees.length;
+                        
+                        return (
+                          <div key={status} className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={selectedStatuses.includes(status)}
+                                onChange={() => toggleStatusFilter(status)}
+                                className="w-4 h-4"
+                              />
+                              <span className="text-sm capitalize">{status}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="text-xs">
+                                {selectedInStatus}/{totalInStatus}
+                              </Badge>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => {
+                                  const statusIds = statusEmployees.map(emp => emp.id);
+                                  const allSelected = statusIds.every(id => formData.recipients.includes(id));
+                                  
+                                  if (allSelected) {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      recipients: prev.recipients.filter(id => !statusIds.includes(id))
+                                    }));
+                                  } else {
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      recipients: [...new Set([...prev.recipients, ...statusIds])]
+                                    }));
+                                  }
+                                }}
+                              >
+                                {selectedInStatus === totalInStatus ? 'Убрать' : 'Выбрать'}
                               </Button>
                             </div>
                           </div>
