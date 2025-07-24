@@ -279,7 +279,7 @@ export const KnowledgeTab = ({
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-green-500 text-green-600 hover:bg-green-50"
+                    className="border-purple-500 text-purple-600 hover:bg-purple-50"
                     onClick={() => canEditMaterial ? handleCreateTest(item) : handleStudyMaterial(item)}
                   >
                     <Icon name="FileText" size={14} className="mr-1" />

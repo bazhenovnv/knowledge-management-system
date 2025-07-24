@@ -134,7 +134,7 @@ export const MaterialPreview = ({ material, isOpen, onClose, userRole }: Materia
             {/* Кнопка для прохождения теста */}
             <div className="border-t pt-4 mt-6">
               <Button
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
                 size="lg"
                 onClick={handleTestAction}
               >

@@ -205,7 +205,7 @@ export const MaterialViewer = ({
                 <Button
                   onClick={handleCreateTest}
                   variant="outline"
-                  className="border-green-500 text-green-600 hover:bg-green-50 hover:scale-105 transition-all"
+                  className="border-purple-500 text-purple-600 hover:bg-purple-50 hover:scale-105 transition-all"
                 >
                   <Icon name="FileText" size={16} className="mr-2" />
                   Создать тест по материалу

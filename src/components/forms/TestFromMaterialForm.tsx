@@ -357,7 +357,7 @@ export const TestFromMaterialForm = ({
                   <Icon name="ArrowLeft" size={16} className="mr-2" />
                   Назад
                 </Button>
-                <Button onClick={handleCreateTest} disabled={loading} className="hover:scale-105 transition-transform">
+                <Button onClick={handleCreateTest} disabled={loading} className="hover:scale-105 transition-transform bg-purple-600 hover:bg-purple-700 text-white">
                   {loading ? (
                     <>
                       <Icon name="Loader2" size={16} className="mr-2 animate-spin" />

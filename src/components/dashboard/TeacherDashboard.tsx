@@ -149,7 +149,7 @@ export const TeacherDashboard = ({
         <h2 className="text-2xl font-bold">Личный кабинет преподавателя</h2>
         <Button 
           onClick={handleBulkNotification}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white"
         >
           <Icon name="Bell" size={16} />
           <span>Уведомить студентов</span>

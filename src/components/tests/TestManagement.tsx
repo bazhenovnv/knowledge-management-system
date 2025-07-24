@@ -438,7 +438,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
                   setIsCreating(true);
                   setEditingTest(null);
                   resetForm();
-                }}>
+                }} className="bg-purple-600 hover:bg-purple-700 text-white">
                   <Icon name="Plus" size={16} className="mr-2" />
                   Создать тест
                 </Button>
