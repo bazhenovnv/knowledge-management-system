@@ -81,6 +81,14 @@ export const Navigation = ({
           <h1 className="font-bold text-gray-900 text-2xl">
             Центр развития и тестирования
           </h1>
+          {userName && (
+            <div className="items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 hidden md:flex">
+              <Icon name="User" size={16} className="text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">{userName}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
           <NotificationPanel
             notifications={notifications}
             unreadCount={unreadCount}
@@ -93,14 +101,6 @@ export const Navigation = ({
             onActionClick={handleActionClick}
           />
           <NotificationBadge count={unreadCount} />
-          {userName && (
-            <div className="items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 hidden md:flex">
-              <Icon name="User" size={16} className="text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">{userName}</span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
           {onLogout && (
             <Button
               variant="outline"
@@ -212,28 +212,28 @@ export const Navigation = ({
 
         <TabsTrigger
           value="dashboard"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 border border-black hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gray-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
+          <span className="hidden sm:inline text-lg">
             Панель
           </span>
         </TabsTrigger>
         <TabsTrigger
           value="knowledge"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gray-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
+          <span className="hidden sm:inline text-lg">
             База знаний
           </span>
         </TabsTrigger>
         <TabsTrigger
           value="tests"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-teal-600 data-[state=active]:text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-md hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gray-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="FileText" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
+          <span className="hidden sm:inline text-lg">
             Тесты
           </span>
           {newTestsCount > 0 && (
@@ -244,20 +244,20 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="analytics"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gray-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg text-[#000000]">
+          <span className="hidden sm:inline text-lg">
             Аналитика
           </span>
         </TabsTrigger>
         {(userRole === "admin" || userRole === "teacher") && (
           <TabsTrigger
             value="employees"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+            className="data-[state=active]:bg-gray-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
           >
             <Icon name="Users" size={16} className="mr-2" />
-            <span className="hidden sm:inline text-lg text-[#000000]">
+            <span className="hidden sm:inline text-lg">
               Сотрудники
             </span>
           </TabsTrigger>
