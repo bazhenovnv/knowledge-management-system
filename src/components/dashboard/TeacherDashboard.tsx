@@ -1,9 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Icon from "@/components/ui/icon";
 import { useState, useEffect } from "react";
 import { database } from "@/utils/database";
+import { toast } from "sonner";
 
 import { TopEmployees } from "@/components/employees/TopEmployees";
 
@@ -26,6 +43,7 @@ export const TeacherDashboard = ({
     averageScore: 0,
     activeStudents: 0
   });
+  const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
 
   // Загружаем статистику из базы данных
   useEffect(() => {
@@ -67,6 +85,48 @@ export const TeacherDashboard = ({
     
     return () => clearInterval(interval);
   }, []);
+
+  // Функция для удаления студента (только для преподавателей с правами администратора)
+  const handleDeleteStudent = (studentId: number) => {
+    const student = employees.find(emp => emp.id === studentId);
+    if (student) {
+      try {
+        const success = database.deleteEmployee(studentId);
+        
+        if (success) {
+          setDeleteStudentId(null);
+          toast.success(`Студент ${student.name} удален из системы`);
+          // Обновляем статистику
+          window.location.reload();
+        } else {
+          toast.error("Студент не найден в базе данных");
+        }
+      } catch (error) {
+        toast.error("Ошибка при удалении студента");
+        console.error("Ошибка удаления:", error);
+      }
+    }
+  };
+
+  // Функция для просмотра профиля студента
+  const handleViewProfile = (student: any) => {
+    toast.info(`Просмотр профиля: ${student.name}`);
+  };
+
+  // Функция для отправки задания
+  const handleAssignTask = (student: any) => {
+    toast.success(`Задание отправлено студенту ${student.name}`);
+  };
+
+  // Функция для просмотра результатов
+  const handleViewResults = (student: any) => {
+    const testResults = student.testResults || [];
+    if (testResults.length > 0) {
+      toast.info(`У ${student.name} пройдено тестов: ${testResults.length}`);
+    } else {
+      toast.info(`${student.name} еще не проходил тесты`);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -120,12 +180,63 @@ export const TeacherDashboard = ({
                       </div>
                     </div>
                   </div>
-                  <Badge
-                    variant="outline"
-                    className={`${getStatusColor(employee.status)} text-white`}
-                  >
-                    {getStatusText(employee.status)}
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge
+                      variant="outline"
+                      className={`${getStatusColor(employee.status)} text-white`}
+                    >
+                      {getStatusText(employee.status)}
+                    </Badge>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Icon name="MoreVertical" size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-52">
+                        <DropdownMenuItem onClick={() => handleViewProfile(employee)} className="cursor-pointer">
+                          <Icon name="User" size={16} className="mr-2" />
+                          Посмотреть профиль
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewResults(employee)} className="cursor-pointer">
+                          <Icon name="BarChart3" size={16} className="mr-2" />
+                          Результаты тестов
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleAssignTask(employee)} className="cursor-pointer">
+                          <Icon name="FileText" size={16} className="mr-2" />
+                          Назначить тест
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            navigator.clipboard.writeText(employee.email);
+                            toast.success("Email скопирован в буфер обмена");
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Icon name="Copy" size={16} className="mr-2" />
+                          Копировать email
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            const mailtoLink = `mailto:${employee.email}?subject=Сообщение от преподавателя`;
+                            window.open(mailtoLink);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          <Icon name="Mail" size={16} className="mr-2" />
+                          Написать письмо
+                        </DropdownMenuItem>
+                        <div className="border-t my-1"></div>
+                        <DropdownMenuItem 
+                          onClick={() => setDeleteStudentId(employee.id)}
+                          className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                        >
+                          <Icon name="UserX" size={16} className="mr-2" />
+                          Удалить студента
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               ))}
             </div>
@@ -135,6 +246,26 @@ export const TeacherDashboard = ({
 
       {/* Рейтинг сотрудников */}
       <TopEmployees />
+
+      {/* Диалог подтверждения удаления */}
+      <AlertDialog open={!!deleteStudentId} onOpenChange={() => setDeleteStudentId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Подтверждение удаления</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить этого студента из системы? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteStudentId(null)}>
+              Отмена
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleDeleteStudent(deleteStudentId!)}>
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Тесты */}
 
