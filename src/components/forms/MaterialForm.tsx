@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import Icon from "@/components/ui/icon";
 import { database, KnowledgeMaterial } from "@/utils/database";
 import { toast } from "sonner";
+import { MediaUpload } from "@/components/materials/MediaUpload";
 
 interface MaterialFormProps {
   isOpen: boolean;
@@ -50,7 +51,14 @@ export const MaterialForm = ({
     difficulty: 'Начальный',
     duration: '',
     tags: '',
-    isPublished: true
+    isPublished: true,
+    mediaFiles: [] as Array<{
+      id: string;
+      name: string;
+      type: "image" | "video";
+      url: string;
+      size: number;
+    }>
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -66,7 +74,8 @@ export const MaterialForm = ({
         difficulty: material.difficulty,
         duration: material.duration,
         tags: material.tags.join(', '),
-        isPublished: material.isPublished
+        isPublished: material.isPublished,
+        mediaFiles: material.mediaFiles || []
       });
     } else {
       // Сброс формы при создании нового материала
@@ -78,7 +87,8 @@ export const MaterialForm = ({
         difficulty: 'Начальный',
         duration: '',
         tags: '',
-        isPublished: true
+        isPublished: true,
+        mediaFiles: []
       });
     }
     setErrors({});
@@ -130,6 +140,7 @@ export const MaterialForm = ({
         duration: formData.duration.trim(),
         tags: tagsArray,
         isPublished: formData.isPublished,
+        mediaFiles: formData.mediaFiles,
         updatedAt: new Date().toISOString()
       };
 
@@ -172,6 +183,13 @@ export const MaterialForm = ({
         [field]: ''
       }));
     }
+  };
+
+  const handleMediaChange = (files: any[]) => {
+    setFormData(prev => ({
+      ...prev,
+      mediaFiles: files
+    }));
   };
 
   const isEditing = !!material;
@@ -317,6 +335,25 @@ export const MaterialForm = ({
               </CardContent>
             </Card>
           </div>
+
+          {/* Медиафайлы */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Icon name="Image" size={20} />
+                Медиафайлы
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MediaUpload
+                files={formData.mediaFiles}
+                onFilesChange={handleMediaChange}
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Добавьте изображения и видео для лучшего восприятия материала
+              </p>
+            </CardContent>
+          </Card>
 
           {/* Содержание материала */}
           <Card>

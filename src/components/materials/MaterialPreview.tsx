@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Icon from "@/components/ui/icon";
 import { KnowledgeMaterial, Test, getTests } from "@/utils/database";
 import { createTestFromMaterial, findBestTestForMaterial } from "@/utils/testGenerator";
@@ -72,24 +72,70 @@ export const MaterialPreview = ({ material, isOpen, onClose, userRole }: Materia
     if (file.type === 'image') {
       return (
         <div key={file.id} className="mb-4">
-          <img
-            src={file.url}
-            alt={file.name}
-            className="max-w-full h-auto rounded-lg shadow-md"
-          />
+          <Dialog>
+            <DialogTrigger asChild>
+              <div className="cursor-pointer relative group overflow-hidden rounded-lg">
+                <img
+                  src={file.url}
+                  alt={file.name}
+                  className="max-w-full h-auto rounded-lg shadow-md transition-transform hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity flex items-center justify-center">
+                  <Icon name="ZoomIn" size={24} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[95vh] p-0">
+              <div className="flex items-center justify-center p-4">
+                <img
+                  src={file.url}
+                  alt={file.name}
+                  className="max-w-full max-h-[85vh] object-contain"
+                />
+              </div>
+              <div className="p-4 border-t bg-gray-50">
+                <p className="font-medium text-center">{file.name}</p>
+              </div>
+            </DialogContent>
+          </Dialog>
           <p className="text-sm text-gray-600 mt-2 text-center">{file.name}</p>
         </div>
       );
     } else if (file.type === 'video') {
       return (
         <div key={file.id} className="mb-4">
-          <video
-            src={file.url}
-            controls
-            className="max-w-full h-auto rounded-lg shadow-md"
-          >
-            Ваш браузер не поддерживает видео.
-          </video>
+          <Dialog>
+            <DialogTrigger asChild>
+              <div className="cursor-pointer relative group overflow-hidden rounded-lg">
+                <video
+                  src={file.url}
+                  className="max-w-full h-auto rounded-lg shadow-md"
+                  muted
+                >
+                  Ваш браузер не поддерживает видео.
+                </video>
+                <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                  <Icon name="Play" size={32} className="text-white" />
+                </div>
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity" />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-6xl max-h-[95vh] p-0">
+              <div className="flex items-center justify-center p-4">
+                <video
+                  src={file.url}
+                  className="max-w-full max-h-[80vh] object-contain"
+                  controls
+                  autoPlay
+                >
+                  Ваш браузер не поддерживает видео.
+                </video>
+              </div>
+              <div className="p-4 border-t bg-gray-50">
+                <p className="font-medium text-center">{file.name}</p>
+              </div>
+            </DialogContent>
+          </Dialog>
           <p className="text-sm text-gray-600 mt-2 text-center">{file.name}</p>
         </div>
       );

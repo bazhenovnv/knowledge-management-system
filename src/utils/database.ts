@@ -77,6 +77,15 @@ export interface KnowledgeMaterial {
   tags: string[];
   createdBy: string;
   createdAt: Date;
+  isPublished: boolean;
+  updatedAt?: string;
+  mediaFiles?: Array<{
+    id: string;
+    name: string;
+    type: "image" | "video";
+    url: string;
+    size: number;
+  }>;
 }
 
 export interface Notification {

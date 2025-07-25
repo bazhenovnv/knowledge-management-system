@@ -19,6 +19,8 @@ interface MaterialFormProps {
   onSubmit: (material: any) => void;
   onCancel: () => void;
   onPreview: (material: any) => void;
+  initialData?: any;
+  isEditing?: boolean;
 }
 
 export const MaterialForm = ({
@@ -26,6 +28,8 @@ export const MaterialForm = ({
   onSubmit,
   onCancel,
   onPreview,
+  initialData,
+  isEditing = false,
 }: MaterialFormProps) => {
   const [formData, setFormData] = useState({
     title: "",
