@@ -380,44 +380,6 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Шаблоны уведомлений */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Быстрые шаблоны:</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {notificationTemplates.map((template) => (
-                <Button
-                  key={template.id}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="justify-start text-left h-auto p-3"
-                  onClick={() => applyTemplate(template)}
-                >
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{template.title}</div>
-                    <div className="text-xs text-gray-500 mt-1 line-clamp-2">
-                      {template.message.substring(0, 60)}...
-                    </div>
-                    <div className="flex items-center space-x-2 mt-2">
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs ${getPriorityColor(template.priority)} text-white`}
-                      >
-                        {template.priority === 'high' ? 'Высокий' : 
-                         template.priority === 'medium' ? 'Средний' : 'Низкий'}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {template.type === 'urgent' ? 'Срочно' :
-                         template.type === 'warning' ? 'Предупреждение' :
-                         template.type === 'reminder' ? 'Напоминание' : 'Информация'}
-                      </Badge>
-                    </div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </div>
-
           {/* Заголовок */}
           <div className="space-y-2">
             <Label htmlFor="title">Заголовок уведомления *</Label>
@@ -425,7 +387,7 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
               id="title"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              placeholder="Введите заголовок или выберите шаблон выше..."
+              placeholder="Введите заголовок уведомления..."
               required
             />
           </div>
@@ -437,13 +399,11 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
               id="message"
               value={formData.message}
               onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-              placeholder="Введите текст уведомления или выберите шаблон выше..."
+              placeholder="Введите текст уведомления..."
               rows={4}
               required
             />
-            <div className="text-xs text-gray-500">
-              💡 Совет: В шаблонах используйте [скобки] для обозначения мест, которые нужно заменить на актуальную информацию
-            </div>
+
           </div>
 
           {/* Приоритет и тип */}
