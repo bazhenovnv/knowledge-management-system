@@ -105,6 +105,47 @@ export interface Notification {
   deliveredTo: number[];
 }
 
+export interface Assignment {
+  id: string;
+  title: string;
+  description: string;
+  type: 'test' | 'material' | 'mixed';
+  priority: 'low' | 'medium' | 'high';
+  status: 'draft' | 'active' | 'completed' | 'cancelled';
+  assignedBy: string;
+  assignedByRole: 'admin' | 'teacher';
+  assignees: number[];
+  testIds?: string[];
+  materialIds?: string[];
+  dueDate?: Date;
+  completionRate: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface AssignmentProgress {
+  id: string;
+  assignmentId: string;
+  userId: number;
+  status: 'pending' | 'in_progress' | 'completed' | 'overdue';
+  startedAt?: Date;
+  completedAt?: Date;
+  progress: number;
+  testResults?: Array<{
+    testId: string;
+    resultId: string;
+    score: number;
+    completed: boolean;
+  }>;
+  materialProgress?: Array<{
+    materialId: string;
+    viewed: boolean;
+    timeSpent: number;
+    lastViewedAt?: Date;
+  }>;
+  notes?: string;
+}
+
 // Ключи для localStorage
 const STORAGE_KEYS = {
   EMPLOYEES: 'employees_db',
@@ -112,7 +153,9 @@ const STORAGE_KEYS = {
   TEST_RESULTS: 'test_results_db',
   MATERIALS: 'materials_db',
   KNOWLEDGE_BASE: 'knowledge_base_db',
-  NOTIFICATIONS: 'notifications_db'
+  NOTIFICATIONS: 'notifications_db',
+  ASSIGNMENTS: 'assignments_db',
+  ASSIGNMENT_PROGRESS: 'assignment_progress_db'
 };
 
 // Базовый класс для работы с базой данных
@@ -705,6 +748,233 @@ class DatabaseService {
       totalReadNotifications,
       readRate
     };
+  }
+
+  // ========================
+  // МЕТОДЫ ДЛЯ ЗАДАНИЙ
+  // ========================
+
+  // Получить все задания
+  getAssignments(): Assignment[] {
+    return this.getData<Assignment>(STORAGE_KEYS.ASSIGNMENTS);
+  }
+
+  // Создать задание
+  createAssignment(assignmentData: Omit<Assignment, 'id' | 'createdAt' | 'updatedAt' | 'completionRate'>): Assignment {
+    const assignments = this.getAssignments();
+    const newAssignment: Assignment = {
+      ...assignmentData,
+      id: `assignment_${Date.now()}`,
+      completionRate: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    assignments.push(newAssignment);
+    this.setData(STORAGE_KEYS.ASSIGNMENTS, assignments);
+
+    // Создаем прогресс для каждого назначенного пользователя
+    assignmentData.assignees.forEach(userId => {
+      this.createAssignmentProgress(newAssignment.id, userId);
+    });
+    
+    return newAssignment;
+  }
+
+  // Обновить задание
+  updateAssignment(id: string, updates: Partial<Assignment>): Assignment | null {
+    const assignments = this.getAssignments();
+    const index = assignments.findIndex(a => a.id === id);
+    
+    if (index === -1) return null;
+    
+    assignments[index] = {
+      ...assignments[index],
+      ...updates,
+      updatedAt: new Date(),
+    };
+    
+    this.setData(STORAGE_KEYS.ASSIGNMENTS, assignments);
+    return assignments[index];
+  }
+
+  // Удалить задание
+  deleteAssignment(id: string): boolean {
+    const assignments = this.getAssignments();
+    const filteredAssignments = assignments.filter(a => a.id !== id);
+    
+    if (filteredAssignments.length === assignments.length) return false;
+    
+    // Также удаляем связанный прогресс
+    const progress = this.getAssignmentProgress();
+    const filteredProgress = progress.filter(p => p.assignmentId !== id);
+    this.setData(STORAGE_KEYS.ASSIGNMENT_PROGRESS, filteredProgress);
+    
+    this.setData(STORAGE_KEYS.ASSIGNMENTS, filteredAssignments);
+    return true;
+  }
+
+  // Получить задания для конкретного пользователя
+  getAssignmentsForUser(userId: number): Assignment[] {
+    const assignments = this.getAssignments();
+    return assignments.filter(a => a.assignees.includes(userId));
+  }
+
+  // Получить задания, созданные конкретным пользователем
+  getAssignmentsByCreator(createdBy: string): Assignment[] {
+    const assignments = this.getAssignments();
+    return assignments.filter(a => a.assignedBy === createdBy);
+  }
+
+  // ========================
+  // МЕТОДЫ ДЛЯ ПРОГРЕССА ЗАДАНИЙ
+  // ========================
+
+  // Получить весь прогресс заданий
+  getAssignmentProgress(): AssignmentProgress[] {
+    return this.getData<AssignmentProgress>(STORAGE_KEYS.ASSIGNMENT_PROGRESS);
+  }
+
+  // Создать прогресс для задания
+  createAssignmentProgress(assignmentId: string, userId: number): AssignmentProgress {
+    const progress = this.getAssignmentProgress();
+    const newProgress: AssignmentProgress = {
+      id: `progress_${assignmentId}_${userId}`,
+      assignmentId,
+      userId,
+      status: 'pending',
+      progress: 0,
+    };
+    
+    progress.push(newProgress);
+    this.setData(STORAGE_KEYS.ASSIGNMENT_PROGRESS, progress);
+    return newProgress;
+  }
+
+  // Обновить прогресс задания
+  updateAssignmentProgress(assignmentId: string, userId: number, updates: Partial<AssignmentProgress>): AssignmentProgress | null {
+    const progress = this.getAssignmentProgress();
+    const index = progress.findIndex(p => p.assignmentId === assignmentId && p.userId === userId);
+    
+    if (index === -1) return null;
+    
+    progress[index] = {
+      ...progress[index],
+      ...updates,
+    };
+    
+    this.setData(STORAGE_KEYS.ASSIGNMENT_PROGRESS, progress);
+    
+    // Обновляем общий процент выполнения задания
+    this.updateAssignmentCompletionRate(assignmentId);
+    
+    return progress[index];
+  }
+
+  // Получить прогресс конкретного пользователя по заданию
+  getUserAssignmentProgress(assignmentId: string, userId: number): AssignmentProgress | null {
+    const progress = this.getAssignmentProgress();
+    return progress.find(p => p.assignmentId === assignmentId && p.userId === userId) || null;
+  }
+
+  // Получить весь прогресс пользователя
+  getUserProgress(userId: number): AssignmentProgress[] {
+    const progress = this.getAssignmentProgress();
+    return progress.filter(p => p.userId === userId);
+  }
+
+  // Обновить общий процент выполнения задания
+  private updateAssignmentCompletionRate(assignmentId: string): void {
+    const assignment = this.getAssignments().find(a => a.id === assignmentId);
+    if (!assignment) return;
+
+    const progress = this.getAssignmentProgress().filter(p => p.assignmentId === assignmentId);
+    if (progress.length === 0) return;
+
+    const totalProgress = progress.reduce((sum, p) => sum + p.progress, 0);
+    const completionRate = Math.round(totalProgress / progress.length);
+
+    this.updateAssignment(assignmentId, { completionRate });
+  }
+
+  // Отметить тест как завершенный в задании
+  markTestCompleted(assignmentId: string, userId: number, testId: string, resultId: string, score: number): void {
+    const progress = this.getUserAssignmentProgress(assignmentId, userId);
+    if (!progress) return;
+
+    const testResults = progress.testResults || [];
+    const existingResult = testResults.find(tr => tr.testId === testId);
+
+    if (existingResult) {
+      existingResult.resultId = resultId;
+      existingResult.score = score;
+      existingResult.completed = true;
+    } else {
+      testResults.push({
+        testId,
+        resultId,
+        score,
+        completed: true,
+      });
+    }
+
+    // Рассчитываем общий прогресс
+    const assignment = this.getAssignments().find(a => a.id === assignmentId);
+    if (!assignment) return;
+
+    const totalTasks = (assignment.testIds?.length || 0) + (assignment.materialIds?.length || 0);
+    const completedTasks = testResults.filter(tr => tr.completed).length + 
+                          (progress.materialProgress?.filter(mp => mp.viewed).length || 0);
+
+    const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const newStatus = newProgress === 100 ? 'completed' : newProgress > 0 ? 'in_progress' : 'pending';
+
+    this.updateAssignmentProgress(assignmentId, userId, {
+      testResults,
+      progress: newProgress,
+      status: newStatus,
+      ...(newProgress === 100 && { completedAt: new Date() })
+    });
+  }
+
+  // Отметить материал как просмотренный
+  markMaterialViewed(assignmentId: string, userId: number, materialId: string, timeSpent: number = 0): void {
+    const progress = this.getUserAssignmentProgress(assignmentId, userId);
+    if (!progress) return;
+
+    const materialProgress = progress.materialProgress || [];
+    const existingProgress = materialProgress.find(mp => mp.materialId === materialId);
+
+    if (existingProgress) {
+      existingProgress.viewed = true;
+      existingProgress.timeSpent += timeSpent;
+      existingProgress.lastViewedAt = new Date();
+    } else {
+      materialProgress.push({
+        materialId,
+        viewed: true,
+        timeSpent,
+        lastViewedAt: new Date(),
+      });
+    }
+
+    // Рассчитываем общий прогресс
+    const assignment = this.getAssignments().find(a => a.id === assignmentId);
+    if (!assignment) return;
+
+    const totalTasks = (assignment.testIds?.length || 0) + (assignment.materialIds?.length || 0);
+    const completedTasks = (progress.testResults?.filter(tr => tr.completed).length || 0) + 
+                          materialProgress.filter(mp => mp.viewed).length;
+
+    const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const newStatus = newProgress === 100 ? 'completed' : newProgress > 0 ? 'in_progress' : 'pending';
+
+    this.updateAssignmentProgress(assignmentId, userId, {
+      materialProgress,
+      progress: newProgress,
+      status: newStatus,
+      ...(newProgress === 100 && { completedAt: new Date() })
+    });
   }
 }
 

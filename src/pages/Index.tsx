@@ -15,6 +15,8 @@ import { database } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
 import TestManagement from "@/components/tests/TestManagement";
+import AssignmentManager from "@/components/assignments/AssignmentManager";
+import MyAssignments from "@/components/assignments/MyAssignments";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -134,16 +136,32 @@ const Index = () => {
           </TabsContent>
 
           {(userRole === "admin" || userRole === "teacher") && (
-            <TabsContent value="employees" className="space-y-6">
-              {userRole === "admin" ? (
-                <AdvancedEmployeeManagement 
-                  employees={employees} 
-                  onUpdateEmployees={setEmployees}
-                />
-              ) : (
-                <EmployeesTab userRole={userRole} />
-              )}
-            </TabsContent>
+            <>
+              <TabsContent value="assignments" className="space-y-6">
+                {userRole === "admin" || userRole === "teacher" ? (
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <AssignmentManager 
+                      currentUserRole={userRole}
+                      currentUserId={userName || 'admin'}
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <MyAssignments userId={1} />
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="employees" className="space-y-6">
+                {userRole === "admin" ? (
+                  <AdvancedEmployeeManagement 
+                    employees={employees} 
+                    onUpdateEmployees={setEmployees}
+                  />
+                ) : (
+                  <EmployeesTab userRole={userRole} />
+                )}
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </div>

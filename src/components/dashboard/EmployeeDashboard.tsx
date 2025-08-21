@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { database } from "@/utils/database";
 
 import { TopEmployees } from "@/components/employees/TopEmployees";
+import MyAssignments from "@/components/assignments/MyAssignments";
 
 interface EmployeeDashboardProps {
   onLogout: () => void;
@@ -196,47 +197,10 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
         </Card>
       </div>
       
-      {/* Текущие задания */}
+      {/* Мои задания */}
       <Card className="bg-gradient-to-br from-green-50 to-teal-50 border-green-200 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Icon name="ClipboardList" size={24} className="mr-2 text-green-600" />
-            Текущие задания
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-orange-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-2">
-                <Icon name="Shield" size={20} className="text-orange-600" />
-                <Badge variant="secondary">Новый</Badge>
-              </div>
-              <div className="font-medium mb-1">Изучить материал по безопасности</div>
-              <div className="text-sm text-gray-600 mb-2">Срок: 25 января</div>
-              <div className="text-xs text-gray-500">Приоритет: Высокий</div>
-            </div>
-            
-            <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-2">
-                <Icon name="Code" size={20} className="text-blue-600" />
-                <Badge variant="outline">В процессе</Badge>
-              </div>
-              <div className="font-medium mb-1">Обучение React</div>
-              <div className="text-sm text-gray-600 mb-2">Прогресс: 60%</div>
-              <Progress value={60} className="mb-2" />
-              <div className="text-xs text-gray-500">Осталось: 2 дня</div>
-            </div>
-            
-            <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-2">
-                <Icon name="Users" size={20} className="text-green-600" />
-                <Badge className="bg-green-100 text-green-800">Завершено</Badge>
-              </div>
-              <div className="font-medium mb-1">Корпоративная культура</div>
-              <div className="text-sm text-gray-600 mb-2">Завершено</div>
-              <div className="text-xs text-gray-500">Результат: 95%</div>
-            </div>
-          </div>
+        <CardContent className="p-6">
+          <MyAssignments userId={stats.currentUserData?.id || 1} />
         </CardContent>
       </Card>
       

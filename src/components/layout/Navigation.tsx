@@ -178,17 +178,30 @@ export const Navigation = ({
                     Аналитика
                   </Button>
                   {(userRole === "admin" || userRole === "teacher") && (
-                    <Button
-                      variant={activeTab === "employees" ? "default" : "ghost"}
-                      className="w-full justify-start"
-                      onClick={() => {
-                        setActiveTab("employees");
-                        setSidebarOpen(false);
-                      }}
-                    >
-                      <Icon name="Users" size={16} className="mr-2" />
-                      Сотрудники
-                    </Button>
+                    <>
+                      <Button
+                        variant={activeTab === "assignments" ? "default" : "ghost"}
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveTab("assignments");
+                          setSidebarOpen(false);
+                        }}
+                      >
+                        <Icon name="ClipboardList" size={16} className="mr-2" />
+                        Задания
+                      </Button>
+                      <Button
+                        variant={activeTab === "employees" ? "default" : "ghost"}
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveTab("employees");
+                          setSidebarOpen(false);
+                        }}
+                      >
+                        <Icon name="Users" size={16} className="mr-2" />
+                        Сотрудники
+                      </Button>
+                    </>
                   )}
                   <Button
                     variant="ghost"
@@ -208,7 +221,7 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-5' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
+      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
 
         <TabsTrigger
           value="dashboard"
@@ -252,15 +265,26 @@ export const Navigation = ({
           </span>
         </TabsTrigger>
         {(userRole === "admin" || userRole === "teacher") && (
-          <TabsTrigger
-            value="employees"
-            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
-          >
-            <Icon name="Users" size={16} className="mr-2" />
-            <span className="hidden sm:inline text-lg">
-              Сотрудники
-            </span>
-          </TabsTrigger>
+          <>
+            <TabsTrigger
+              value="assignments"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+            >
+              <Icon name="ClipboardList" size={16} className="mr-2" />
+              <span className="hidden sm:inline text-lg">
+                Задания
+              </span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="employees"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+            >
+              <Icon name="Users" size={16} className="mr-2" />
+              <span className="hidden sm:inline text-lg">
+                Сотрудники
+              </span>
+            </TabsTrigger>
+          </>
         )}
       </TabsList>
     </>
