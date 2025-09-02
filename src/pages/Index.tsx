@@ -17,6 +17,7 @@ import AliceAssistant from "@/components/ai/AliceAssistant";
 import TestManagement from "@/components/tests/TestManagement";
 import AssignmentManager from "@/components/assignments/AssignmentManager";
 import MyAssignments from "@/components/assignments/MyAssignments";
+import UserSettings from "@/components/settings/UserSettings";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -163,6 +164,13 @@ const Index = () => {
               </TabsContent>
             </>
           )}
+
+          <TabsContent value="settings" className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm">
+              <UserSettings userId={database.getCurrentUser()?.id || 1} />
+            </div>
+          </TabsContent>
+
         </Tabs>
       </div>
 

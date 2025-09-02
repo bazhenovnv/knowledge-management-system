@@ -238,6 +238,17 @@ class DatabaseService {
     return employees.find(emp => emp.email === email) || null;
   }
 
+  // Получить пользователей (алиас для getEmployees для совместимости)
+  getUsers(): Employee[] {
+    return this.getEmployees();
+  }
+
+  // Получить текущего пользователя (первый пользователь из списка для демонстрации)
+  getCurrentUser(): Employee | null {
+    const employees = this.getEmployees();
+    return employees.length > 0 ? employees[0] : null;
+  }
+
   // ========================
   // МЕТОДЫ ДЛЯ ТЕСТОВ
   // ========================
