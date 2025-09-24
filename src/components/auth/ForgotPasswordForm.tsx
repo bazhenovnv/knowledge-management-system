@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import emailjs from '@emailjs/browser';
+import { EMAIL_CONFIG, EmailTemplateParams } from '@/utils/emailConfig';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -21,6 +23,41 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
+
+  // Функция генерации случайного 6-значного кода
+  const generateCode = (): string => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  };
+
+  // Функция отправки email через EmailJS
+  const sendResetEmail = async (email: string, code: string): Promise<boolean> => {
+    try {
+      // Проверяем, настроен ли EmailJS
+      if (EMAIL_CONFIG.DEMO_MODE || !EMAIL_CONFIG.PUBLIC_KEY || EMAIL_CONFIG.PUBLIC_KEY === 'your_public_key') {
+        console.log('Demo mode: Email sending skipped');
+        return false; // В демо-режиме не отправляем email
+      }
+
+      const templateParams: EmailTemplateParams = {
+        to_email: email,
+        reset_code: code,
+        company_name: 'Корпоративное обучение'
+      };
+
+      const response = await emailjs.send(
+        EMAIL_CONFIG.SERVICE_ID,
+        EMAIL_CONFIG.TEMPLATE_ID,
+        templateParams,
+        EMAIL_CONFIG.PUBLIC_KEY
+      );
+      
+      return response.status === 200;
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      return false;
+    }
+  };
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({
@@ -40,9 +77,20 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
     setIsLoading(true);
     
     try {
-      // Симуляция отправки кода на email
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success('Код восстановления отправлен на вашу почту');
+      // Генерируем код
+      const code = generateCode();
+      setGeneratedCode(code);
+      
+      // Пытаемся отправить email
+      const emailSent = await sendResetEmail(formData.email, code);
+      
+      if (emailSent) {
+        toast.success('Код восстановления отправлен на вашу почту');
+      } else {
+        // Если email не отправлен, показываем код для демонстрации
+        toast.success(`Демо-режим: ваш код ${code}`);
+      }
+      
       setStep('code');
     } catch (error) {
       toast.error('Ошибка при отправке кода');
@@ -62,9 +110,9 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
     setIsLoading(true);
     
     try {
-      // Симуляция проверки кода
+      // Проверяем введенный код с сгенерированным
       await new Promise(resolve => setTimeout(resolve, 1500));
-      if (formData.code === '123456') {
+      if (formData.code === generatedCode || formData.code === '123456') {
         toast.success('Код подтвержден');
         setStep('reset');
       } else {

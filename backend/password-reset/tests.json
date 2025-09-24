@@ -1,0 +1,62 @@
+{
+  "tests": [
+    {
+      "name": "Send reset code",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "send_code",
+        "email": "test@example.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string",
+        "email": "test@example.com"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Verify reset code",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "verify_code",
+        "email": "test@example.com",
+        "code": "123456"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Invalid email format",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "send_code",
+        "email": "invalid-email"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Неверный формат email"
+      },
+      "bodyMatcher": "exact"
+    },
+    {
+      "name": "Missing action",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "test@example.com"
+      },
+      "expectedStatus": 400,
+      "expectedBody": {
+        "error": "Неизвестное действие"
+      },
+      "bodyMatcher": "exact"
+    }
+  ]
+}
