@@ -107,9 +107,10 @@ const EmployeeFilters: React.FC<EmployeeFiltersProps> = ({
           <div className="space-y-2">
             <Label>Сортировка</Label>
             <Select value={`${sortBy}-${sortOrder}`} onValueChange={(value) => {
-              const [field, order] = value.split('-');
-              setSortBy(field as SortField);
-              setSortOrder(order as SortOrder);
+              const parts = value ? value.split('-') : ['name', 'asc'];
+              const [field, order] = parts;
+              setSortBy((field || 'name') as SortField);
+              setSortOrder((order || 'asc') as SortOrder);
             }}>
               <SelectTrigger>
                 <SelectValue />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ErrorBoundary } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,24 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
 import NotificationForm from '@/components/notifications/NotificationForm';
+
+// Безопасная функция для получения инициалов
+const getInitials = (name: string | null | undefined): string => {
+  if (!name || typeof name !== 'string') {
+    return '??';
+  }
+  
+  try {
+    return name.split(' ')
+      .filter(n => n && n.length > 0)
+      .map(n => n.charAt(0))
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || '??';
+  } catch {
+    return '??';
+  }
+};
 
 const DatabaseEmployeeManagement: React.FC = () => {
   const [employees, setEmployees] = useState<DatabaseEmployee[]>([]);
@@ -39,10 +57,12 @@ const DatabaseEmployeeManagement: React.FC = () => {
 
   // Фильтрация сотрудников
   const filteredEmployees = employees.filter(employee => {
+    if (!employee) return false; // Добавим защиту от null/undefined элементов
+    
     const matchesSearch = !searchQuery || 
-      employee.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.department.toLowerCase().includes(searchQuery.toLowerCase());
+      (employee.full_name && employee.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (employee.email && employee.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (employee.department && employee.department.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesDepartment = selectedDepartment === 'all' || employee.department === selectedDepartment;
     const matchesRole = selectedRole === 'all' || employee.role === selectedRole;
@@ -51,8 +71,8 @@ const DatabaseEmployeeManagement: React.FC = () => {
   });
 
   // Получение уникальных отделов и ролей
-  const departments = [...new Set(employees.map(emp => emp.department))].filter(Boolean);
-  const roles = [...new Set(employees.map(emp => emp.role))].filter(Boolean);
+  const departments = [...new Set(employees.map(emp => emp.department).filter(Boolean))];
+  const roles = [...new Set(employees.map(emp => emp.role).filter(Boolean))];
 
   // Удаление сотрудника
   const handleDeleteEmployee = async () => {
@@ -197,17 +217,17 @@ const DatabaseEmployeeManagement: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
                       <span className="text-lg font-medium text-blue-600">
-                        {employee.full_name.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}
+                        {getInitials(employee.full_name)}
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium text-lg">{employee.full_name}</div>
+                      <div className="font-medium text-lg">{employee.full_name || 'Не указано'}</div>
                       <div className="text-sm text-gray-500">
-                        {employee.position} • {employee.department}
+                        {employee.position || 'Не указано'} • {employee.department || 'Не указано'}
                       </div>
                       <div className="text-xs text-gray-400 flex items-center space-x-2">
                         <Icon name="Mail" size={12} />
-                        <span>{employee.email}</span>
+                        <span>{employee.email || 'Не указано'}</span>
                         {employee.phone && (
                           <>
                             <span>•</span>
