@@ -10,7 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Icon from '@/components/ui/icon';
 import { useToast } from "@/components/ui/use-toast";
-import { API_URLS } from "@/utils/apiUrls";
+import { useApiClient } from "@/utils/apiClient";
+import { useEnhancedToast } from "@/components/ui/enhanced-toast";
 
 interface TableInfo {
   table_name: string;
@@ -34,6 +35,8 @@ export function DatabaseSetup() {
   const [selectedTable, setSelectedTable] = useState<string>("");
   const [tableColumns, setTableColumns] = useState<ColumnInfo[]>([]);
   const { toast } = useToast();
+  const apiClient = useApiClient();
+  const enhancedToast = useEnhancedToast();
 
   const loadTables = async () => {
     setIsLoading(true);

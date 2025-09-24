@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 import { database, type Employee } from '@/utils/database';
 import { getStatusColor, getStatusText } from '@/utils/statusUtils';
 import { DEPARTMENTS } from '@/constants/departments';
@@ -41,6 +41,7 @@ const AdvancedEmployeeManagement: React.FC<AdvancedEmployeeManagementProps> = ({
   employees,
   onUpdateEmployees
 }) => {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedRole, setSelectedRole] = useState('all');
