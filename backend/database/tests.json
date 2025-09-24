@@ -1,0 +1,42 @@
+{
+  "tests": [
+    {
+      "name": "Получить статистику базы данных",
+      "method": "GET",
+      "queryStringParameters": {
+        "action": "stats"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "stats": "object"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Получить список сотрудников", 
+      "method": "GET",
+      "queryStringParameters": {
+        "action": "list",
+        "table": "employees"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "data": "array",
+        "count": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Заполнить базу тестовыми данными",
+      "method": "POST", 
+      "queryStringParameters": {
+        "action": "seed"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
