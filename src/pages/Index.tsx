@@ -68,8 +68,8 @@ const Index = () => {
   };
 
   const filteredEmployees = employees.filter(emp => 
-    emp.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchQuery.toLowerCase())
+    (emp.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (emp.email || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Don't render if no current employee (should be handled by ProtectedRoute)
