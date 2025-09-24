@@ -56,7 +56,7 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">Вход в систему</CardTitle>
         <CardDescription>
-          Войдите в свой аккаунт для управления сотрудниками
+          Введите свои данные для входа
         </CardDescription>
       </CardHeader>
       
