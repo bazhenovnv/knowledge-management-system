@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import Index from "./pages/Index";
+import MinimalIndex from "./pages/MinimalIndex";
 import Bitrix24 from "./pages/Bitrix24";
 import DatabaseTestPage from "./pages/DatabaseTestPage";
 import NotFound from "./pages/NotFound";
@@ -22,7 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={
             <ProtectedRoute>
-              <Index />
+              <MinimalIndex />
             </ProtectedRoute>
           } />
           <Route path="/bitrix24" element={
