@@ -241,7 +241,7 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-7' : 'grid-cols-5'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
+      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
 
         <TabsTrigger
           value="dashboard"
@@ -306,15 +306,7 @@ export const Navigation = ({
             </TabsTrigger>
           </>
         )}
-        <TabsTrigger
-          value="settings"
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
-        >
-          <Icon name="Settings" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg">
-            Настройки
-          </span>
-        </TabsTrigger>
+
       </TabsList>
     </>
   );
