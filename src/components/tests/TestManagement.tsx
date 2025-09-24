@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DialogTrigger } from "@/components/ui/dialog";
+
 import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
@@ -300,19 +300,17 @@ const TestManagement: React.FC<TestManagementProps> = ({
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Тесты</h2>
         {canManageTests && (
-          <DialogTrigger asChild>
-            <Button 
-              onClick={() => {
-                setIsCreating(true);
-                setEditingTest(null);
-                resetForm();
-              }} 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-            >
-              <Icon name="Plus" size={16} className="mr-2" />
-              Создать тест
-            </Button>
-          </DialogTrigger>
+          <Button 
+            onClick={() => {
+              setIsCreating(true);
+              setEditingTest(null);
+              resetForm();
+            }} 
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+          >
+            <Icon name="Plus" size={16} className="mr-2" />
+            Создать тест
+          </Button>
         )}
       </div>
 
