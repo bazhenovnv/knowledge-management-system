@@ -137,6 +137,18 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
             )}
           </Button>
           
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="link"
+              className="p-0 h-auto text-sm text-gray-600 hover:text-gray-800"
+              onClick={() => toast.info('Функция восстановления пароля будет добавлена')}
+              disabled={isLoading}
+            >
+              Забыли пароль?
+            </Button>
+          </div>
+          
           <div className="text-center text-sm">
             <span className="text-gray-600">Нет аккаунта? </span>
             <Button
