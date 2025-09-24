@@ -31,10 +31,13 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
             />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Управление Сотрудниками
+            Корпоративное обучение
           </h1>
+          <p className="text-lg text-gray-700 mb-4">
+            Система управления знаниями сотрудников
+          </p>
           <p className="text-gray-600">
-            {isLoginMode ? 'Войдите в систему для продолжения' : 'Создайте новый аккаунт'}
+            Введите свои данные для входа
           </p>
         </div>
 
