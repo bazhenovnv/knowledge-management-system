@@ -50,12 +50,18 @@ const Index = () => {
       setActiveTab("knowledge");
     };
 
+    const handleNavigateToEmployees = () => {
+      setActiveTab("employees");
+    };
+
     window.addEventListener('navigateToTest', handleNavigateToTest);
     window.addEventListener('navigateToKnowledge', handleNavigateToKnowledge);
+    window.addEventListener('navigateToEmployees', handleNavigateToEmployees);
 
     return () => {
       window.removeEventListener('navigateToTest', handleNavigateToTest);
       window.removeEventListener('navigateToKnowledge', handleNavigateToKnowledge);
+      window.removeEventListener('navigateToEmployees', handleNavigateToEmployees);
     };
   }, []);
 
@@ -181,22 +187,21 @@ const Index = () => {
                 )}
               </TabsContent>
               <TabsContent value="employees" className="space-y-6">
-                {userRole === "admin" ? (
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <DatabaseEmployeeManagement />
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    {(() => {
-                      try {
-                        return <EmployeesTab userRole={userRole} />;
-                      } catch (error) {
-                        console.error('EmployeesTab error:', error);
-                        return <div className="text-red-500">Ошибка загрузки раздела "Сотрудники": {String(error)}</div>;
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  {(() => {
+                    try {
+                      // Для админов показываем полное управление сотрудниками из БД
+                      if (userRole === "admin") {
+                        return <DatabaseEmployeeManagement />;
                       }
-                    })()}
-                  </div>
-                )}
+                      // Для преподавателей показываем базовую работу с сотрудниками
+                      return <EmployeesTab userRole={userRole} />;
+                    } catch (error) {
+                      console.error('Employees section error:', error);
+                      return <div className="text-red-500">Ошибка загрузки раздела "Сотрудники": {String(error)}</div>;
+                    }
+                  })()}
+                </div>
               </TabsContent>
             </>
           )}
