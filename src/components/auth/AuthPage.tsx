@@ -36,9 +36,6 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
           <p className="text-lg text-gray-700 mb-4">
             Система управления знаниями сотрудников
           </p>
-          <p className="text-gray-600">
-            Введите свои данные для входа
-          </p>
         </div>
 
         {isLoginMode ? (
