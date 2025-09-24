@@ -11,9 +11,10 @@ import authService, { LoginData } from '@/utils/authService';
 interface LoginFormProps {
   onSuccess: () => void;
   onRegisterClick: () => void;
+  onForgotPasswordClick?: () => void;
 }
 
-export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps) {
+export default function LoginForm({ onSuccess, onRegisterClick, onForgotPasswordClick }: LoginFormProps) {
   const [formData, setFormData] = useState<LoginData>({
     email: '',
     password: '',
@@ -142,7 +143,7 @@ export default function LoginForm({ onSuccess, onRegisterClick }: LoginFormProps
               type="button"
               variant="link"
               className="p-0 h-auto text-sm text-gray-600 hover:text-gray-800"
-              onClick={() => toast.info('Функция восстановления пароля будет добавлена')}
+              onClick={() => onForgotPasswordClick ? onForgotPasswordClick() : toast.info('Функция восстановления пароля будет добавлена')}
               disabled={isLoading}
             >
               Забыли пароль?

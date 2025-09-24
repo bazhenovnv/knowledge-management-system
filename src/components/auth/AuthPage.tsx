@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
+import ForgotPasswordForm from './ForgotPasswordForm';
 
 interface AuthPageProps {
   onAuthSuccess: () => void;
 }
 
 export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot-password'>('login');
 
   const handleLoginSuccess = () => {
     onAuthSuccess();
@@ -15,7 +16,7 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
 
   const handleRegisterSuccess = () => {
     // После успешной регистрации переключаемся на форму входа
-    setIsLoginMode(true);
+    setAuthMode('login');
   };
 
   return (
@@ -38,15 +39,24 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
           </p>
         </div>
 
-        {isLoginMode ? (
+        {authMode === 'login' && (
           <LoginForm
             onSuccess={handleLoginSuccess}
-            onRegisterClick={() => setIsLoginMode(false)}
+            onRegisterClick={() => setAuthMode('register')}
+            onForgotPasswordClick={() => setAuthMode('forgot-password')}
           />
-        ) : (
+        )}
+        
+        {authMode === 'register' && (
           <RegisterForm
             onSuccess={handleRegisterSuccess}
-            onLoginClick={() => setIsLoginMode(true)}
+            onLoginClick={() => setAuthMode('login')}
+          />
+        )}
+        
+        {authMode === 'forgot-password' && (
+          <ForgotPasswordForm
+            onBackToLogin={() => setAuthMode('login')}
           />
         )}
       </div>
