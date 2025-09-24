@@ -23,8 +23,12 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
       <div className="w-full max-w-md">
         {/* Логотип и заголовок */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
-            <span className="text-white text-2xl font-bold">👥</span>
+          <div className="mb-4">
+            <img 
+              src="https://cdn.poehali.dev/files/559b1a38-bc91-4187-8a3f-b47c1947c45c.png" 
+              alt="Логотип компании" 
+              className="h-16 w-auto mx-auto"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Управление Сотрудниками
