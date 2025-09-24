@@ -75,16 +75,28 @@ const MyAssignments: React.FC<MyAssignmentsProps> = ({ userId }) => {
   };
 
   const openTest = (testId: string) => {
-    // Здесь должна быть логика открытия теста
-    console.log('Открываем тест:', testId);
+    // Создаем событие для навигации к тестам
+    const event = new CustomEvent('navigateToTest', { 
+      detail: { testId } 
+    });
+    window.dispatchEvent(event);
+    
+    // Показываем уведомление
+    toast.success('Переход к тесту...');
   };
 
   const openMaterial = (materialId: string, assignmentId: string) => {
     // Отмечаем материал как просмотренный
     database.markMaterialViewed(assignmentId, userId, materialId, 5); // 5 минут как примерное время
     
-    // Здесь должна быть логика открытия материала
-    console.log('Открываем материал:', materialId);
+    // Создаем событие для навигации к базе знаний
+    const event = new CustomEvent('navigateToKnowledge', { 
+      detail: { materialId } 
+    });
+    window.dispatchEvent(event);
+    
+    // Показываем уведомление
+    toast.success('Переход к материалу...');
     loadData();
   };
 

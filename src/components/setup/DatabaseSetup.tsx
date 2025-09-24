@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useApiClient } from "@/utils/apiClient";
 import { useEnhancedToast } from "@/components/ui/enhanced-toast";
 import DatabaseTest from "@/components/DatabaseTest";
+import { API_URLS } from "@/utils/apiUrls";
 
 interface TableInfo {
   table_name: string;

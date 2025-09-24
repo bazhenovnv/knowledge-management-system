@@ -10,7 +10,7 @@ import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { EmployeesTab } from "@/components/employees/EmployeesTab";
-import AdvancedEmployeeManagement from "@/components/employees/AdvancedEmployeeManagement";
+
 import DatabaseEmployeeManagement from "@/components/employees/DatabaseEmployeeManagement";
 import { database } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
@@ -38,6 +38,25 @@ const Index = () => {
       setEmployees(employeesFromDB);
     };
     initializeAndLoadData();
+  }, []);
+
+  // Обработчики навигации из заданий
+  useEffect(() => {
+    const handleNavigateToTest = () => {
+      setActiveTab("tests");
+    };
+
+    const handleNavigateToKnowledge = () => {
+      setActiveTab("knowledge");
+    };
+
+    window.addEventListener('navigateToTest', handleNavigateToTest);
+    window.addEventListener('navigateToKnowledge', handleNavigateToKnowledge);
+
+    return () => {
+      window.removeEventListener('navigateToTest', handleNavigateToTest);
+      window.removeEventListener('navigateToKnowledge', handleNavigateToKnowledge);
+    };
   }, []);
 
   const {
