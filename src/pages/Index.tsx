@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { useAuth } from "@/hooks/useAuth";
-import { AuthForm } from "@/components/auth/AuthForm";
 import { Navigation } from "@/components/layout/Navigation";
 import { EmployeeDashboard } from "@/components/dashboard/EmployeeDashboard";
 import { TeacherDashboard } from "@/components/dashboard/TeacherDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
+import UserNavbar from "@/components/auth/UserNavbar";
+import authService from "@/utils/authService";
 
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
@@ -27,32 +27,25 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
 
-  // Инициализируем базу данных и загружаем сотрудников
+  // Get current user from auth service
+  const currentEmployee = authService.getCurrentEmployee();
+  const userRole = currentEmployee?.role || 'employee';
+
+  // Initialize database and load data
   useEffect(() => {
     const initializeAndLoadData = () => {
-      // Инициализируем базу данных с начальными данными
       database.initializeDatabase();
-      
-      // Загружаем сотрудников
       const employeesFromDB = database.getEmployees();
       setEmployees(employeesFromDB);
     };
     initializeAndLoadData();
   }, []);
 
-  // Обработчики навигации из заданий
+  // Navigation handlers from assignments
   useEffect(() => {
-    const handleNavigateToTest = () => {
-      setActiveTab("tests");
-    };
-
-    const handleNavigateToKnowledge = () => {
-      setActiveTab("knowledge");
-    };
-
-    const handleNavigateToEmployees = () => {
-      setActiveTab("employees");
-    };
+    const handleNavigateToTest = () => setActiveTab("tests");
+    const handleNavigateToKnowledge = () => setActiveTab("knowledge");
+    const handleNavigateToEmployees = () => setActiveTab("employees");
 
     window.addEventListener('navigateToTest', handleNavigateToTest);
     window.addEventListener('navigateToKnowledge', handleNavigateToKnowledge);
@@ -65,163 +58,133 @@ const Index = () => {
     };
   }, []);
 
-  const {
-    isLoggedIn,
-    userRole,
-    userName,
-    loginForm,
-    registerForm,
-    showRegister,
-    setLoginForm,
-    setRegisterForm,
-    setShowRegister,
-    handleLogin,
-    handleLogout,
-    handleRegister,
-    handlePasswordReset,
-  } = useAuth();
-
-  const renderDashboard = () => {
-    switch (userRole) {
-      case "employee":
-        return <EmployeeDashboard onLogout={handleLogout} />;
-      case "teacher":
-        return (
-          <TeacherDashboard
-            onLogout={handleLogout}
-            employees={employees}
-            getStatusColor={getStatusColor}
-            getStatusText={getStatusText}
-          />
-        );
-      case "admin":
-        return (
-          <AdminDashboard
-            onLogout={handleLogout}
-            employees={employees}
-            getStatusColor={getStatusColor}
-            getStatusText={getStatusText}
-          />
-        );
-      default:
-        return <EmployeeDashboard onLogout={handleLogout} />;
-    }
+  const handleLogout = () => {
+    // Force page reload to trigger auth check
+    window.location.reload();
   };
 
-  if (!isLoggedIn) {
-    return (
-      <AuthForm
-        showRegister={showRegister}
-        loginForm={loginForm}
-        registerForm={registerForm}
-        onLoginFormChange={setLoginForm}
-        onRegisterFormChange={setRegisterForm}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        onToggleRegister={() => setShowRegister(!showRegister)}
-        onPasswordReset={handlePasswordReset}
-      />
-    );
+  const handleUpdateEmployees = (updatedEmployees: any[]) => {
+    setEmployees(updatedEmployees);
+  };
+
+  const filteredEmployees = employees.filter(emp => 
+    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Don't render if no current employee (should be handled by ProtectedRoute)
+  if (!currentEmployee) {
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <Navigation
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            onLogout={handleLogout}
-            userRole={userRole}
-            userName={userName}
-          />
-
-          <TabsContent value="dashboard" className="space-y-6">
-            {renderDashboard()}
-          </TabsContent>
-
-          <TabsContent value="knowledge" className="space-y-6">
-            <KnowledgeTab
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              userRole={userRole}
-              onSwitchToTests={() => setActiveTab("tests")}
-            />
-          </TabsContent>
-
-
-
-          <TabsContent value="analytics" className="space-y-6">
-            <AnalyticsTab />
-          </TabsContent>
-
-          <TabsContent value="tests" className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              {(() => {
-                try {
-                  return <TestManagement userRole={userRole} userId={userName} />;
-                } catch (error) {
-                  console.error('TestManagement error:', error);
-                  return <div className="text-red-500">Ошибка загрузки раздела "Тесты": {String(error)}</div>;
-                }
-              })()}
-            </div>
-          </TabsContent>
-
-          {(userRole === "admin" || userRole === "teacher") && (
-            <>
-              <TabsContent value="assignments" className="space-y-6">
-                {userRole === "admin" || userRole === "teacher" ? (
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <AssignmentManager 
-                      currentUserRole={userRole}
-                      currentUserId={userName || 'admin'}
-                    />
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-lg shadow-sm p-6">
-                    <MyAssignments userId={1} />
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="employees" className="space-y-6">
-                <div className="bg-white rounded-lg shadow-sm p-6">
-                  {(() => {
-                    try {
-                      // Для админов показываем полное управление сотрудниками из БД
-                      if (userRole === "admin") {
-                        return <DatabaseEmployeeManagement />;
-                      }
-                      // Для преподавателей показываем базовую работу с сотрудниками
-                      return <EmployeesTab userRole={userRole} />;
-                    } catch (error) {
-                      console.error('Employees section error:', error);
-                      return <div className="text-red-500">Ошибка загрузки раздела "Сотрудники": {String(error)}</div>;
-                    }
-                  })()}
-                </div>
-              </TabsContent>
-            </>
-          )}
-
-          <TabsContent value="settings" className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm">
-              <UserSettings userId={database.getCurrentUser()?.id || 1} />
-            </div>
-            {userRole === "admin" && (
-              <div className="bg-white rounded-lg shadow-sm">
-                <DatabaseSetup />
-              </div>
-            )}
-          </TabsContent>
-
-        </Tabs>
+    <div className="min-h-screen bg-gray-50">
+      {/* Top Navigation Bar */}
+      <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl font-semibold text-gray-900">
+            Система управления знаниями
+          </h1>
+        </div>
+        
+        <UserNavbar employee={currentEmployee} onLogout={handleLogout} />
       </div>
 
-      {/* AI Помощник Алиса */}
-      <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
+      <div className="flex h-[calc(100vh-73px)]">
+        {/* Sidebar Navigation */}
+        <Navigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          userRole={userRole}
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+        />
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-hidden">
+          <main className="h-full overflow-y-auto">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+              {/* Dashboard Tab */}
+              <TabsContent value="dashboard" className="h-full m-0">
+                {userRole === 'admin' ? (
+                  <AdminDashboard />
+                ) : userRole === 'manager' ? (
+                  <TeacherDashboard />
+                ) : (
+                  <EmployeeDashboard />
+                )}
+              </TabsContent>
+
+              {/* Knowledge Tab */}
+              <TabsContent value="knowledge" className="h-full m-0">
+                <KnowledgeTab />
+              </TabsContent>
+
+              {/* Employees Tab - Database Version */}
+              <TabsContent value="employees" className="h-full m-0">
+                <div className="h-full p-6">
+                  <DatabaseEmployeeManagement />
+                </div>
+              </TabsContent>
+
+              {/* Tests Tab */}
+              <TabsContent value="tests" className="h-full m-0">
+                <div className="h-full p-6">
+                  <TestManagement 
+                    userRole={userRole} 
+                    userName={currentEmployee.full_name}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Assignments Tab */}
+              <TabsContent value="assignments" className="h-full m-0">
+                <div className="h-full p-6">
+                  {userRole === 'admin' || userRole === 'manager' ? (
+                    <AssignmentManager />
+                  ) : (
+                    <MyAssignments />
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* Analytics Tab */}
+              <TabsContent value="analytics" className="h-full m-0">
+                <AnalyticsTab />
+              </TabsContent>
+
+              {/* Settings Tab */}
+              <TabsContent value="settings" className="h-full m-0">
+                <div className="h-full p-6">
+                  <UserSettings 
+                    currentUser={{
+                      name: currentEmployee.full_name,
+                      role: userRole,
+                      email: currentEmployee.email,
+                      phone: currentEmployee.phone || '',
+                      department: currentEmployee.department || '',
+                      avatar: currentEmployee.avatar_url || '',
+                      theme: currentEmployee.theme || 'light'
+                    }}
+                  />
+                </div>
+              </TabsContent>
+
+              {/* Database Setup Tab - Admin Only */}
+              {userRole === 'admin' && (
+                <TabsContent value="database" className="h-full m-0">
+                  <div className="h-full p-6">
+                    <DatabaseSetup />
+                  </div>
+                </TabsContent>
+              )}
+            </Tabs>
+          </main>
+        </div>
+      </div>
+
+      {/* Alice AI Assistant */}
+      <AliceAssistant />
     </div>
   );
 };

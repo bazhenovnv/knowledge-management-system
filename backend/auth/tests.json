@@ -1,0 +1,103 @@
+{
+  "tests": [
+    {
+      "name": "Register new employee",
+      "method": "POST",
+      "path": "/?action=register",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "action": "register",
+        "email": "test@example.com",
+        "password": "testpassword123",
+        "full_name": "Test User",
+        "phone": "+1234567890",
+        "department": "IT",
+        "position": "Developer",
+        "role": "employee"
+      },
+      "expectedStatus": 201,
+      "expectedBody": {
+        "success": true,
+        "message": "string",
+        "employee": {
+          "id": "number",
+          "email": "string",
+          "full_name": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Login with valid credentials",
+      "method": "POST",
+      "path": "/?action=login",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "action": "login",
+        "email": "admin@company.com",
+        "password": "admin123",
+        "remember_me": false
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string",
+        "employee": {
+          "id": "number",
+          "email": "string",
+          "full_name": "string",
+          "role": "string"
+        },
+        "session": {
+          "token": "string",
+          "expires_at": "string",
+          "session_id": "number"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Check valid session token",
+      "method": "GET",
+      "path": "/?action=check",
+      "headers": {
+        "X-Auth-Token": "valid_session_token_here"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "authenticated": true,
+        "employee": {
+          "id": "number",
+          "email": "string",
+          "full_name": "string",
+          "role": "string"
+        }
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Logout current session",
+      "method": "POST",
+      "path": "/?action=logout",
+      "headers": {
+        "Content-Type": "application/json",
+        "X-Auth-Token": "valid_session_token_here"
+      },
+      "body": {
+        "action": "logout",
+        "all_sessions": false
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
