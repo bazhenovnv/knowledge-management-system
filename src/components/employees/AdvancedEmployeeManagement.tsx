@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import Icon from '@/components/ui/icon';
+import { toast } from 'sonner';
 import NotificationForm from '@/components/notifications/NotificationForm';
 import EmployeeStats from './EmployeeStats';
 import EmployeeFilters from './EmployeeFilters';
@@ -11,6 +12,7 @@ import EmployeeForm from './EmployeeForm';
 import BulkActionsDialog from './BulkActionsDialog';
 import { useEmployeeManagement } from './useEmployeeManagement';
 import { AdvancedEmployeeManagementProps } from './types';
+import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
 
 const AdvancedEmployeeManagement: React.FC<AdvancedEmployeeManagementProps> = ({
   employees,

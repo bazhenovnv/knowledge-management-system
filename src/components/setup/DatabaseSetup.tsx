@@ -12,6 +12,7 @@ import Icon from '@/components/ui/icon';
 import { useToast } from "@/components/ui/use-toast";
 import { useApiClient } from "@/utils/apiClient";
 import { useEnhancedToast } from "@/components/ui/enhanced-toast";
+import DatabaseTest from "@/components/DatabaseTest";
 
 interface TableInfo {
   table_name: string;
@@ -209,10 +210,11 @@ export function DatabaseSetup() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="structure" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="structure">Структура БД</TabsTrigger>
             <TabsTrigger value="query">SQL Запросы</TabsTrigger>
             <TabsTrigger value="migrations">Миграции</TabsTrigger>
+            <TabsTrigger value="test">Тестирование</TabsTrigger>
           </TabsList>
 
           <TabsContent value="structure" className="space-y-4">
@@ -357,6 +359,10 @@ export function DatabaseSetup() {
               )}
               Выполнить миграцию
             </Button>
+          </TabsContent>
+
+          <TabsContent value="test" className="space-y-4">
+            <DatabaseTest />
           </TabsContent>
         </Tabs>
       </CardContent>

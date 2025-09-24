@@ -101,6 +101,15 @@ export const Navigation = ({
             onActionClick={handleActionClick}
           />
           <NotificationBadge count={unreadCount} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActiveTab("settings")}
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+            title="Настройки"
+          >
+            <Icon name="Settings" size={16} />
+          </Button>
           {onLogout && (
             <Button
               variant="outline"

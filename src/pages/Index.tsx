@@ -11,6 +11,7 @@ import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { EmployeesTab } from "@/components/employees/EmployeesTab";
 import AdvancedEmployeeManagement from "@/components/employees/AdvancedEmployeeManagement";
+import DatabaseEmployeeManagement from "@/components/employees/DatabaseEmployeeManagement";
 import { database } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
@@ -155,10 +156,9 @@ const Index = () => {
               </TabsContent>
               <TabsContent value="employees" className="space-y-6">
                 {userRole === "admin" ? (
-                  <AdvancedEmployeeManagement 
-                    employees={employees} 
-                    onUpdateEmployees={setEmployees}
-                  />
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    <DatabaseEmployeeManagement />
+                  </div>
                 ) : (
                   <EmployeesTab userRole={userRole} />
                 )}
