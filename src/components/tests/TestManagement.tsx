@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { database } from "@/utils/database";
@@ -25,7 +25,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
   userRole,
   userId,
 }) => {
-  const { toast } = useToast();
+
   const { markTestAsViewed } = useViewedTests();
   const [tests, setTests] = useState<Test[]>([]);
 
@@ -109,16 +109,9 @@ const TestManagement: React.FC<TestManagementProps> = ({
       setEditingTest(null);
       setIsEditDialogOpen(false);
       resetForm();
-      toast({
-        title: "Успешно",
-        description: "Тест обновлен в базе данных!"
-      });
+      toast.success("Тест обновлен в базе данных!");
     } else {
-      toast({
-        title: "Ошибка",
-        description: "Ошибка при обновлении теста в базе данных",
-        variant: "destructive"
-      });
+      toast.error("Ошибка при обновлении теста в базе данных");
     }
   };
 
@@ -130,16 +123,9 @@ const TestManagement: React.FC<TestManagementProps> = ({
       if (success) {
         setTests(tests.filter(t => t.id !== testId));
         setDeletingTestId(null);
-        toast({
-          title: "Успешно",
-          description: `Тест "${testToDelete.title}" удален из базы данных`
-        });
+        toast.success(`Тест "${testToDelete.title}" удален из базы данных`);
       } else {
-        toast({
-          title: "Ошибка",
-          description: "Ошибка при удалении теста из базы данных",
-          variant: "destructive"
-        });
+        toast.error("Ошибка при удалении теста из базы данных");
       }
     }
   };
@@ -149,15 +135,9 @@ const TestManagement: React.FC<TestManagementProps> = ({
     setTakingTest(test);
     markTestAsViewed(test.id);
     if (userRole === "student") {
-      toast({
-        title: "Информация",
-        description: `Начинаем тест: ${test.title}`
-      });
+      toast(`Начинаем тест: ${test.title}`);
     } else {
-      toast({
-        title: "Информация",
-        description: `Просмотр теста: ${test.title}`
-      });
+      toast(`Просмотр теста: ${test.title}`);
     }
   };
 
@@ -184,10 +164,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
       return test;
     }));
     
-    toast({
-      title: "Успешно",
-      description: `Результат сохранен в базе данных: ${result.score}%`
-    });
+    toast.success(`Результат сохранен в базе данных: ${result.score}%`);
   };
 
   // Функция закрытия теста
@@ -198,20 +175,12 @@ const TestManagement: React.FC<TestManagementProps> = ({
   // Функция создания теста
   const handleCreateTest = () => {
     if (!newTest.title || !newTest.description || !newTest.category || !newTest.difficulty) {
-      toast({
-        title: "Ошибка",
-        description: "Заполните все обязательные поля",
-        variant: "destructive"
-      });
+      toast.error("Заполните все обязательные поля");
       return;
     }
 
     if (newTest.questions.length === 0) {
-      toast({
-        title: "Ошибка", 
-        description: "Добавьте хотя бы один вопрос",
-        variant: "destructive"
-      });
+      toast.error("Добавьте хотя бы один вопрос");
       return;
     }
 
@@ -235,10 +204,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
     setTests([...tests, savedTest]);
     resetForm();
     setIsCreating(false);
-    toast({
-      title: "Успешно",
-      description: "Тест создан и сохранен в базе данных!"
-    });
+    toast.success("Тест создан и сохранен в базе данных!");
   };
 
   const filteredTests = tests.filter((test) => {

@@ -153,7 +153,14 @@ const Index = () => {
 
           <TabsContent value="tests" className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm p-6">
-              <TestManagement userRole={userRole} />
+              {(() => {
+                try {
+                  return <TestManagement userRole={userRole} userId={userName} />;
+                } catch (error) {
+                  console.error('TestManagement error:', error);
+                  return <div className="text-red-500">Ошибка загрузки раздела "Тесты": {String(error)}</div>;
+                }
+              })()}
             </div>
           </TabsContent>
 
@@ -179,7 +186,16 @@ const Index = () => {
                     <DatabaseEmployeeManagement />
                   </div>
                 ) : (
-                  <EmployeesTab userRole={userRole} />
+                  <div className="bg-white rounded-lg shadow-sm p-6">
+                    {(() => {
+                      try {
+                        return <EmployeesTab userRole={userRole} />;
+                      } catch (error) {
+                        console.error('EmployeesTab error:', error);
+                        return <div className="text-red-500">Ошибка загрузки раздела "Сотрудники": {String(error)}</div>;
+                      }
+                    })()}
+                  </div>
                 )}
               </TabsContent>
             </>

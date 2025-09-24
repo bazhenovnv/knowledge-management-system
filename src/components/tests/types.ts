@@ -45,6 +45,6 @@ export interface TestFormData {
 }
 
 export interface TestManagementProps {
-  userRole: "admin" | "teacher" | "student";
+  userRole: "admin" | "teacher" | "employee";
   userId?: string;
 }
