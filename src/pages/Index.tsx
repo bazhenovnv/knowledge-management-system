@@ -169,6 +169,9 @@ const Index = () => {
             <div className="bg-white rounded-lg shadow-sm">
               <UserSettings userId={database.getCurrentUser()?.id || 1} />
             </div>
+            <div className="bg-white rounded-lg shadow-sm">
+              <DatabaseSetup />
+            </div>
           </TabsContent>
 
         </Tabs>
