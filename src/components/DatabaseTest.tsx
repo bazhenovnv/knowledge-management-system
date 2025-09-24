@@ -96,23 +96,23 @@ const DatabaseTest: React.FC = () => {
             {stats && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{stats.active_employees}</div>
+                  <div className="text-2xl font-bold text-green-600">{stats.active_employees || 0}</div>
                   <div className="text-sm text-gray-500">Активные сотрудники</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-600">{stats.inactive_employees}</div>
+                  <div className="text-2xl font-bold text-gray-600">{stats.inactive_employees || 0}</div>
                   <div className="text-sm text-gray-500">Неактивные</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{stats.active_courses}</div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.active_courses || 0}</div>
                   <div className="text-sm text-gray-500">Активные курсы</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{stats.total_enrollments}</div>
+                  <div className="text-2xl font-bold text-purple-600">{stats.total_enrollments || 0}</div>
                   <div className="text-sm text-gray-500">Записи на курсы</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{stats.total_attendance}</div>
+                  <div className="text-2xl font-bold text-orange-600">{stats.total_attendance || 0}</div>
                   <div className="text-sm text-gray-500">Посещаемость</div>
                 </div>
               </div>
@@ -137,15 +137,15 @@ const DatabaseTest: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-full">
                       <span className="text-sm font-medium text-blue-600">
-                        {employee.full_name.charAt(0)}
+                        {employee.full_name?.charAt(0) || '?'}
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium">{employee.full_name}</div>
+                      <div className="font-medium">{employee.full_name || 'Без имени'}</div>
                       <div className="text-sm text-gray-500">
-                        {employee.position} • {employee.department}
+                        {employee.position || 'Без должности'} • {employee.department || 'Без отдела'}
                       </div>
-                      <div className="text-xs text-gray-400">{employee.email}</div>
+                      <div className="text-xs text-gray-400">{employee.email || 'Без email'}</div>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -153,7 +153,7 @@ const DatabaseTest: React.FC = () => {
                       variant={employee.role === 'admin' ? 'destructive' : 
                                employee.role === 'teacher' ? 'default' : 'secondary'}
                     >
-                      {employee.role}
+                      {employee.role || 'employee'}
                     </Badge>
                     <Badge variant={employee.is_active ? 'default' : 'secondary'}>
                       {employee.is_active ? 'Активен' : 'Неактивен'}
