@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Icon from '@/components/ui/icon';
 import { useToast } from "@/components/ui/use-toast";
+import { API_URLS } from "@/utils/apiUrls";
 
 interface TableInfo {
   table_name: string;
@@ -109,7 +110,7 @@ export function DatabaseSetup() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/d2daf71d-ad1e-4d8c-8fa3-7e5412c6727d', {
+      const response = await fetch(API_URLS.DATABASE_QUERY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -156,7 +157,7 @@ export function DatabaseSetup() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/952351fb-9c3a-41c4-829d-53e0e293f957', {
+      const response = await fetch(API_URLS.DATABASE_MIGRATE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

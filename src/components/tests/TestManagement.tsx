@@ -38,7 +38,7 @@ import {
   Users,
   CheckCircle,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { database } from "@/utils/database";
@@ -90,6 +90,7 @@ const TestManagement: React.FC<TestManagementProps> = ({
   userRole,
   userId,
 }) => {
+  const { toast } = useToast();
   const { markTestAsViewed, isTestNew } = useViewedTests();
   const [tests, setTests] = useState<Test[]>([]);
 
@@ -400,30 +401,6 @@ const TestManagement: React.FC<TestManagementProps> = ({
     });
     setIsAddingQuestion(false);
     setEditingQuestionIndex(null);
-  };
-  
-  const createTest = () => {
-    if (newTest.title.trim() === "" || newTest.questions.length === 0) return;
-    
-    const test: Test = {
-      id: Date.now().toString(),
-      title: newTest.title,
-      description: newTest.description,
-      category: newTest.category,
-      difficulty: newTest.difficulty as "easy" | "medium" | "hard",
-      timeLimit: newTest.timeLimit,
-      questions: newTest.questions,
-      department: newTest.department,
-      createdBy: userId || "Преподаватель",
-      createdAt: new Date(),
-      status: "draft",
-      totalAttempts: 0,
-      averageScore: 0
-    };
-    
-    setTests([...tests, test]);
-    resetForm();
-    setIsCreating(false);
   };
 
   return (

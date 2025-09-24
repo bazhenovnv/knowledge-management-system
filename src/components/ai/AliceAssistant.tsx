@@ -22,6 +22,14 @@ import {
 } from "lucide-react";
 import Icon from "@/components/ui/icon";
 
+// Типизация для Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 interface AliceAssistantProps {
   onNavigate?: (tab: string) => void;
   userRole?: "admin" | "teacher" | "student";
