@@ -7,6 +7,8 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import emailjs from '@emailjs/browser';
 import { EMAIL_CONFIG, EmailTemplateParams } from '@/utils/emailConfig';
+import { passwordResetService, getDemoUserInfo, DEMO_USERS } from '@/utils/passwordResetService';
+import DemoUsersInfo from './DemoUsersInfo';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -24,6 +26,7 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [generatedCode, setGeneratedCode] = useState('');
+  const [resetToken, setResetToken] = useState('');
 
   // Функция генерации случайного 6-значного кода
   const generateCode = (): string => {
@@ -77,21 +80,27 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
     setIsLoading(true);
     
     try {
-      // Генерируем код
-      const code = generateCode();
-      setGeneratedCode(code);
+      // Используем новый сервис для отправки кода
+      const result = await passwordResetService.sendResetCode(formData.email);
       
-      // Пытаемся отправить email
-      const emailSent = await sendResetEmail(formData.email, code);
-      
-      if (emailSent) {
-        toast.success('Код восстановления отправлен на вашу почту');
+      if (result.success) {
+        if (result.demo_code) {
+          // Сохраняем код для проверки
+          setGeneratedCode(result.demo_code);
+          toast.success(`Демо-режим: ваш код ${result.demo_code}`, {
+            duration: 10000,
+            description: 'Код также отправлен на email (если настроена интеграция)'
+          });
+          
+          // Пытаемся отправить email если настроена интеграция
+          await sendResetEmail(formData.email, result.demo_code);
+        } else {
+          toast.success(result.message);
+        }
+        setStep('code');
       } else {
-        // Если email не отправлен, показываем код для демонстрации
-        toast.success(`Демо-режим: ваш код ${code}`);
+        toast.error(result.error || 'Ошибка при отправке кода');
       }
-      
-      setStep('code');
     } catch (error) {
       toast.error('Ошибка при отправке кода');
     } finally {
@@ -110,13 +119,19 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
     setIsLoading(true);
     
     try {
-      // Проверяем введенный код с сгенерированным
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      if (formData.code === generatedCode || formData.code === '123456') {
-        toast.success('Код подтвержден');
+      // Используем новый сервис для проверки кода
+      const result = await passwordResetService.verifyResetCode(formData.email, formData.code);
+      
+      if (result.success && result.reset_token) {
+        setResetToken(result.reset_token);
+        toast.success(result.message);
         setStep('reset');
       } else {
-        toast.error('Неверный код подтверждения');
+        if (result.attempts_left !== undefined) {
+          toast.error(`${result.error}. Осталось попыток: ${result.attempts_left}`);
+        } else {
+          toast.error(result.error || 'Неверный код подтверждения');
+        }
       }
     } catch (error) {
       toast.error('Ошибка при проверке кода');
@@ -146,10 +161,19 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
     setIsLoading(true);
     
     try {
-      // Симуляция сброса пароля
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success('Пароль успешно изменен!');
-      onBackToLogin();
+      // Используем новый сервис для сброса пароля
+      const result = await passwordResetService.resetPassword(
+        formData.email, 
+        resetToken, 
+        formData.newPassword
+      );
+      
+      if (result.success) {
+        // Успех уже показан в сервисе через toast
+        onBackToLogin();
+      } else {
+        toast.error(result.error || 'Ошибка при изменении пароля');
+      }
     } catch (error) {
       toast.error('Ошибка при изменении пароля');
     } finally {
@@ -179,6 +203,8 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
             disabled={isLoading}
           />
         </div>
+        
+        <DemoUsersInfo compact />
       </CardContent>
       
       <CardFooter className="flex flex-col space-y-4">
