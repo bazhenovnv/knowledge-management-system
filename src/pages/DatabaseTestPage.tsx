@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DatabaseTest from '@/components/DatabaseTest';
-import AuthTest from '@/components/auth/AuthTest';
 
 const DatabaseTestPage: React.FC = () => {
   return (
@@ -18,17 +17,16 @@ const DatabaseTestPage: React.FC = () => {
           </Link>
         </div>
         
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Тестирование системы
+              Тестирование базы данных
             </h1>
             <p className="text-lg text-gray-600">
-              Проверка подключения к PostgreSQL, авторизации и работоспособности системы
+              Проверка подключения к PostgreSQL и работоспособности системы
             </p>
           </div>
           
-          <AuthTest />
           <DatabaseTest />
         </div>
       </div>

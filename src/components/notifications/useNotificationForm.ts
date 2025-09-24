@@ -108,9 +108,9 @@ export const useNotificationForm = ({
   };
 
   // Фильтрация сотрудников
-  const filteredEmployees = (employees || []).filter(emp => {
+  const filteredEmployees = employees.filter(emp => {
     const matchesSearch = !searchQuery || 
-      emp.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
       emp.position.toLowerCase().includes(searchQuery.toLowerCase());
@@ -155,7 +155,7 @@ export const useNotificationForm = ({
 
   // Выбрать сотрудников по отделу
   const handleSelectByDepartment = (department: string) => {
-    const departmentEmployees = (employees || []).filter(emp => emp.department === department);
+    const departmentEmployees = employees.filter(emp => emp.department === department);
     const departmentIds = departmentEmployees.map(emp => emp.id);
     const allSelected = departmentIds.every(id => formData.recipients.includes(id));
     
@@ -174,7 +174,7 @@ export const useNotificationForm = ({
 
   // Выбрать сотрудников по роли
   const handleSelectByRole = (role: string) => {
-    const roleEmployees = (employees || []).filter(emp => emp.position === role);
+    const roleEmployees = employees.filter(emp => emp.position === role);
     const roleIds = roleEmployees.map(emp => emp.id);
     const allSelected = roleIds.every(id => formData.recipients.includes(id));
     
@@ -288,9 +288,9 @@ export const useNotificationForm = ({
         });
       }
 
-      const recipientNames = (employees || [])
+      const recipientNames = employees
         .filter(emp => formData.recipients.includes(emp.id))
-        .map(emp => emp.full_name)
+        .map(emp => emp.name)
         .join(', ');
 
       if (formData.scheduledFor) {
