@@ -41,28 +41,67 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        # Попробуем подключиться к БД
+        # Обрабатываем разные действия
+        params = event.get('queryStringParameters') or {}
+        action = params.get('action', 'test')
+        
         try:
             import psycopg2
             from psycopg2.extras import RealDictCursor
             
             conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
             cursor = conn.cursor()
-            
-            # Простой SELECT запрос
             schema = 't_p47619579_knowledge_management'
-            cursor.execute(f"SELECT COUNT(*) as employee_count FROM {schema}.employees")
-            result = cursor.fetchone()
+            
+            if action == 'list' and params.get('table') == 'employees':
+                cursor.execute(f"SELECT * FROM {schema}.employees ORDER BY id")
+                employees = cursor.fetchall()
+                response_data = {
+                    'data': [dict(emp) for emp in employees],
+                    'count': len(employees)
+                }
+                
+            elif action == 'stats':
+                # Получаем статистику
+                cursor.execute(f"SELECT COUNT(*) as active FROM {schema}.employees WHERE is_active = true")
+                active_emp = cursor.fetchone()['active']
+                
+                cursor.execute(f"SELECT COUNT(*) as inactive FROM {schema}.employees WHERE is_active = false")
+                inactive_emp = cursor.fetchone()['inactive']
+                
+                cursor.execute(f"SELECT COUNT(*) as active FROM {schema}.courses WHERE status = 'active'")
+                active_courses = cursor.fetchone()['active']
+                
+                cursor.execute(f"SELECT COUNT(*) FROM {schema}.course_enrollments")
+                enrollments = cursor.fetchone()['count']
+                
+                cursor.execute(f"SELECT COUNT(*) FROM {schema}.attendance")
+                attendance = cursor.fetchone()['count']
+                
+                response_data = {
+                    'stats': {
+                        'active_employees': active_emp,
+                        'inactive_employees': inactive_emp,
+                        'active_courses': active_courses,
+                        'total_enrollments': enrollments,
+                        'total_attendance': attendance
+                    }
+                }
+                
+            else:
+                # Базовый тест подключения
+                cursor.execute(f"SELECT COUNT(*) as employee_count FROM {schema}.employees")
+                result = cursor.fetchone()
+                
+                response_data = {
+                    'success': True,
+                    'message': 'Подключение к БД работает',
+                    'employee_count': result['employee_count'] if result else 0,
+                    'schema': schema
+                }
             
             cursor.close()
             conn.close()
-            
-            response_data = {
-                'success': True,
-                'message': 'Подключение к БД работает',
-                'employee_count': result['employee_count'] if result else 0,
-                'schema': schema
-            }
             
         except Exception as db_error:
             response_data = {
