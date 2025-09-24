@@ -1,35 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
 import NotificationForm from '@/components/notifications/NotificationForm';
 
-// Безопасная функция для получения инициалов
-const getInitials = (name: string | null | undefined): string => {
-  if (!name || typeof name !== 'string') {
-    return '??';
-  }
-  
-  try {
-    return name.split(' ')
-      .filter(n => n && n.length > 0)
-      .map(n => n.charAt(0))
-      .join('')
-      .slice(0, 2)
-      .toUpperCase() || '??';
-  } catch {
-    return '??';
-  }
-};
+// Импорты новых компонентов
+import { EmployeeHeader } from './EmployeeHeader';
+import { DatabaseEmployeeFilters } from './DatabaseEmployeeFilters';
+import { DatabaseEmployeeCard } from './DatabaseEmployeeCard';
+import { DatabaseEmployeeDialogs } from './DatabaseEmployeeDialogs';
 
 const DatabaseEmployeeManagement: React.FC = () => {
   const [employees, setEmployees] = useState<DatabaseEmployee[]>([]);
@@ -73,6 +54,10 @@ const DatabaseEmployeeManagement: React.FC = () => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  useEffect(() => {
+    loadEmployees();
+  }, []);
 
   // Загрузка сотрудников из БД
   const loadEmployees = async () => {
@@ -196,6 +181,33 @@ const DatabaseEmployeeManagement: React.FC = () => {
     }
   };
 
+  // Удаление сотрудника
+  const handleDeleteEmployee = async () => {
+    if (!selectedEmployee) return;
+    
+    try {
+      await databaseService.deleteEmployee(selectedEmployee.id);
+      toast.success(`Сотрудник ${selectedEmployee.full_name} удален`);
+      await loadEmployees();
+      setIsDeleteDialogOpen(false);
+      setSelectedEmployee(null);
+    } catch (error) {
+      toast.error('Ошибка удаления сотрудника');
+      console.error('Error deleting employee:', error);
+    }
+  };
+
+  // Отправка уведомления
+  const handleSendNotification = (employee: DatabaseEmployee) => {
+    setSelectedEmployeeForNotification(employee);
+    setIsNotificationFormOpen(true);
+  };
+
+  const handleCloseNotificationForm = () => {
+    setIsNotificationFormOpen(false);
+    setSelectedEmployeeForNotification(null);
+  };
+
   // Отправка приветственного email
   const sendWelcomeEmail = async (email: string, login: string, password: string) => {
     try {
@@ -218,9 +230,6 @@ const DatabaseEmployeeManagement: React.FC = () => {
         description: 'Данные для входа отправлены сотруднику',
         duration: 5000,
       });
-      
-      // В реальной системе здесь был бы вызов API отправки email
-      // await fetch('/api/send-email', { method: 'POST', body: JSON.stringify({...}) })
       
     } catch (error) {
       console.error('Ошибка отправки email:', error);
@@ -250,9 +259,6 @@ const DatabaseEmployeeManagement: React.FC = () => {
         duration: 5000,
       });
       
-      // В реальной системе здесь был бы вызов API отправки email
-      // await fetch('/api/send-email', { method: 'POST', body: JSON.stringify({...}) })
-      
     } catch (error) {
       console.error('Ошибка отправки email:', error);
       toast.error('Ошибка отправки email');
@@ -272,10 +278,6 @@ const DatabaseEmployeeManagement: React.FC = () => {
     });
   };
 
-  useEffect(() => {
-    loadEmployees();
-  }, []);
-
   // Фильтрация сотрудников
   const filteredEmployees = employees.filter(employee => {
     if (!employee) return false; // Добавим защиту от null/undefined элементов
@@ -291,37 +293,6 @@ const DatabaseEmployeeManagement: React.FC = () => {
     return matchesSearch && matchesDepartment && matchesRole && employee.is_active;
   });
 
-  // Получение уникальных отделов и ролей
-  const departments = [...new Set(employees.map(emp => emp.department).filter(Boolean))];
-  const roles = [...new Set(employees.map(emp => emp.role).filter(Boolean))];
-
-  // Удаление сотрудника
-  const handleDeleteEmployee = async () => {
-    if (!selectedEmployee) return;
-    
-    try {
-      await databaseService.deleteEmployee(selectedEmployee.id);
-      toast.success(`Сотрудник ${selectedEmployee.full_name} удален`);
-      await loadEmployees(); // Перезагружаем список
-      setIsDeleteDialogOpen(false);
-      setSelectedEmployee(null);
-    } catch (error) {
-      toast.error('Ошибка удаления сотрудника');
-      console.error('Error deleting employee:', error);
-    }
-  };
-
-  // Отправка уведомления
-  const handleSendNotification = (employee: DatabaseEmployee) => {
-    setSelectedEmployeeForNotification(employee);
-    setIsNotificationFormOpen(true);
-  };
-
-  const handleCloseNotificationForm = () => {
-    setIsNotificationFormOpen(false);
-    setSelectedEmployeeForNotification(null);
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -336,92 +307,24 @@ const DatabaseEmployeeManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Заголовок и статистика */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Управление сотрудниками</h2>
-          <p className="text-gray-600">Данные из PostgreSQL базы данных</p>
-        </div>
-        <div className="flex items-center space-x-4">
-          <Badge variant="outline" className="flex items-center space-x-1">
-            <Icon name="Database" size={14} />
-            <span>{employees.length} всего</span>
-          </Badge>
-          <Badge variant="default" className="flex items-center space-x-1">
-            <Icon name="Users" size={14} />
-            <span>{filteredEmployees.length} активных</span>
-          </Badge>
-          <Button onClick={loadEmployees} variant="outline" size="sm">
-            <Icon name="RefreshCw" size={16} className="mr-1" />
-            Обновить
-          </Button>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Icon name="UserPlus" size={16} className="mr-2" />
-                Добавить сотрудника
-              </Button>
-            </DialogTrigger>
-          </Dialog>
-        </div>
-      </div>
+      <EmployeeHeader 
+        employees={employees}
+        filteredEmployees={filteredEmployees}
+        onRefresh={loadEmployees}
+        isAddDialogOpen={isAddDialogOpen}
+        setIsAddDialogOpen={setIsAddDialogOpen}
+      />
 
       {/* Фильтры */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Icon name="Filter" size={20} />
-            <span>Фильтры</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Поиск</label>
-              <div className="relative">
-                <Icon name="Search" size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Имя, email, отдел..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-full p-2 border rounded-md"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Отдел</label>
-              <select
-                value={selectedDepartment}
-                onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="all">Все отделы</option>
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Роль</label>
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="all">Все роли</option>
-                {roles.map(role => (
-                  <option key={role} value={role}>
-                    {role === 'admin' ? 'Администратор' : 
-                     role === 'teacher' ? 'Преподаватель' : 'Сотрудник'}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <DatabaseEmployeeFilters
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedDepartment={selectedDepartment}
+        setSelectedDepartment={setSelectedDepartment}
+        selectedRole={selectedRole}
+        setSelectedRole={setSelectedRole}
+        employees={employees}
+      />
 
       {/* Список сотрудников */}
       <Card>
@@ -439,90 +342,20 @@ const DatabaseEmployeeManagement: React.FC = () => {
               </div>
             ) : (
               filteredEmployees.map((employee) => (
-                <div
+                <DatabaseEmployeeCard
                   key={employee.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full">
-                      <span className="text-lg font-medium text-blue-600">
-                        {getInitials(employee.full_name)}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="font-medium text-lg">{employee.full_name || 'Не указано'}</div>
-                      <div className="text-sm text-gray-500">
-                        {employee.position || 'Не указано'} • {employee.department || 'Не указано'}
-                      </div>
-                      <div className="text-xs text-gray-400 flex items-center space-x-2">
-                        <Icon name="Mail" size={12} />
-                        <span>{employee.email || 'Не указано'}</span>
-                        {employee.phone && (
-                          <>
-                            <span>•</span>
-                            <Icon name="Phone" size={12} />
-                            <span>{employee.phone}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <Badge 
-                      variant={employee.role === 'admin' ? 'destructive' : 
-                               employee.role === 'teacher' ? 'default' : 'secondary'}
-                    >
-                      {employee.role === 'admin' ? 'Администратор' : 
-                       employee.role === 'teacher' ? 'Преподаватель' : 'Сотрудник'}
-                    </Badge>
-                    
-                    <div className="flex items-center space-x-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditEmployee(employee)}
-                        className="text-blue-600 hover:text-blue-700"
-                        title="Редактировать"
-                      >
-                        <Icon name="Edit" size={14} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedEmployee(employee);
-                          setIsPasswordDialogOpen(true);
-                        }}
-                        className="text-green-600 hover:text-green-700"
-                        title="Изменить пароль"
-                      >
-                        <Icon name="Key" size={14} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSendNotification(employee)}
-                        className="text-purple-600 hover:text-purple-700"
-                        title="Отправить уведомление"
-                      >
-                        <Icon name="Send" size={14} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedEmployee(employee);
-                          setIsDeleteDialogOpen(true);
-                        }}
-                        className="text-red-600 hover:text-red-700"
-                        title="Удалить"
-                      >
-                        <Icon name="Trash2" size={14} />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                  employee={employee}
+                  onEdit={handleEditEmployee}
+                  onChangePassword={(emp) => {
+                    setSelectedEmployee(emp);
+                    setIsPasswordDialogOpen(true);
+                  }}
+                  onSendNotification={handleSendNotification}
+                  onDelete={(emp) => {
+                    setSelectedEmployee(emp);
+                    setIsDeleteDialogOpen(true);
+                  }}
+                />
               ))
             )}
           </div>
@@ -548,224 +381,25 @@ const DatabaseEmployeeManagement: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Диалог добавления сотрудника */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Добавить нового сотрудника</DialogTitle>
-            <DialogDescription>
-              Заполните данные сотрудника. Логин и пароль будут отправлены на указанный email.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="full_name">Полное имя *</Label>
-              <Input
-                id="full_name"
-                value={newEmployeeForm.full_name}
-                onChange={(e) => setNewEmployeeForm(prev => ({...prev, full_name: e.target.value}))}
-                placeholder="Иванов Иван Иванович"
-              />
-            </div>
-            <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                value={newEmployeeForm.email}
-                onChange={(e) => setNewEmployeeForm(prev => ({...prev, email: e.target.value}))}
-                placeholder="ivan@company.com"
-              />
-            </div>
-            <div>
-              <Label htmlFor="phone">Телефон</Label>
-              <Input
-                id="phone"
-                value={newEmployeeForm.phone}
-                onChange={(e) => setNewEmployeeForm(prev => ({...prev, phone: e.target.value}))}
-                placeholder="+7 (999) 123-45-67"
-              />
-            </div>
-            <div>
-              <Label htmlFor="position">Должность</Label>
-              <Input
-                id="position"
-                value={newEmployeeForm.position}
-                onChange={(e) => setNewEmployeeForm(prev => ({...prev, position: e.target.value}))}
-                placeholder="Менеджер"
-              />
-            </div>
-            <div>
-              <Label htmlFor="department">Отдел</Label>
-              <Input
-                id="department"
-                value={newEmployeeForm.department}
-                onChange={(e) => setNewEmployeeForm(prev => ({...prev, department: e.target.value}))}
-                placeholder="IT отдел"
-              />
-            </div>
-            <div>
-              <Label htmlFor="role">Роль</Label>
-              <Select value={newEmployeeForm.role} onValueChange={(value: 'admin' | 'teacher' | 'employee') => setNewEmployeeForm(prev => ({...prev, role: value}))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employee">Сотрудник</SelectItem>
-                  <SelectItem value="teacher">Преподаватель</SelectItem>
-                  <SelectItem value="admin">Администратор</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="password">Пароль *</Label>
-              <Input
-                id="password"
-                type="password"
-                value={newEmployeeForm.password}
-                onChange={(e) => setNewEmployeeForm(prev => ({...prev, password: e.target.value}))}
-                placeholder="Минимум 6 символов"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleAddEmployee}>
-              Добавить и отправить данные
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Диалог редактирования сотрудника */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Редактировать сотрудника</DialogTitle>
-            <DialogDescription>
-              Измените данные сотрудника.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit_full_name">Полное имя</Label>
-              <Input
-                id="edit_full_name"
-                value={editForm.full_name}
-                onChange={(e) => setEditForm(prev => ({...prev, full_name: e.target.value}))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_email">Email</Label>
-              <Input
-                id="edit_email"
-                type="email"
-                value={editForm.email}
-                onChange={(e) => setEditForm(prev => ({...prev, email: e.target.value}))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_phone">Телефон</Label>
-              <Input
-                id="edit_phone"
-                value={editForm.phone}
-                onChange={(e) => setEditForm(prev => ({...prev, phone: e.target.value}))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_position">Должность</Label>
-              <Input
-                id="edit_position"
-                value={editForm.position}
-                onChange={(e) => setEditForm(prev => ({...prev, position: e.target.value}))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_department">Отдел</Label>
-              <Input
-                id="edit_department"
-                value={editForm.department}
-                onChange={(e) => setEditForm(prev => ({...prev, department: e.target.value}))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit_role">Роль</Label>
-              <Select value={editForm.role} onValueChange={(value: 'admin' | 'teacher' | 'employee') => setEditForm(prev => ({...prev, role: value}))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employee">Сотрудник</SelectItem>
-                  <SelectItem value="teacher">Преподаватель</SelectItem>
-                  <SelectItem value="admin">Администратор</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="is_active"
-                checked={editForm.is_active}
-                onChange={(e) => setEditForm(prev => ({...prev, is_active: e.target.checked}))}
-                className="w-4 h-4"
-              />
-              <Label htmlFor="is_active">Активный сотрудник</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleSaveEditEmployee}>
-              Сохранить изменения
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Диалог изменения пароля */}
-      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Изменить пароль</DialogTitle>
-            <DialogDescription>
-              Новый пароль будет отправлен сотруднику на email: {selectedEmployee?.email}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="new_password">Новый пароль</Label>
-              <Input
-                id="new_password"
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm(prev => ({...prev, newPassword: e.target.value}))}
-                placeholder="Минимум 6 символов"
-              />
-            </div>
-            <div>
-              <Label htmlFor="confirm_password">Подтвердите пароль</Label>
-              <Input
-                id="confirm_password"
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm(prev => ({...prev, confirmPassword: e.target.value}))}
-                placeholder="Повторите пароль"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
-              Отмена
-            </Button>
-            <Button onClick={handleChangePassword}>
-              Изменить пароль
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Все диалоги управления сотрудниками */}
+      <DatabaseEmployeeDialogs
+        isAddDialogOpen={isAddDialogOpen}
+        setIsAddDialogOpen={setIsAddDialogOpen}
+        isEditDialogOpen={isEditDialogOpen}
+        setIsEditDialogOpen={setIsEditDialogOpen}
+        isPasswordDialogOpen={isPasswordDialogOpen}
+        setIsPasswordDialogOpen={setIsPasswordDialogOpen}
+        newEmployeeForm={newEmployeeForm}
+        setNewEmployeeForm={setNewEmployeeForm}
+        editForm={editForm}
+        setEditForm={setEditForm}
+        passwordForm={passwordForm}
+        setPasswordForm={setPasswordForm}
+        selectedEmployee={selectedEmployee}
+        onAddEmployee={handleAddEmployee}
+        onSaveEditEmployee={handleSaveEditEmployee}
+        onChangePassword={handleChangePassword}
+      />
 
       {/* Форма уведомлений */}
       {isNotificationFormOpen && selectedEmployeeForNotification && (
