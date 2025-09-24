@@ -158,6 +158,29 @@ class DatabaseService {
     return !response.error;
   }
 
+  async updateEmployeePassword(id: number, newPassword: string): Promise<boolean> {
+    const response = await this.makeRequest(`?action=update_password&table=employees&id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ password: newPassword })
+    });
+
+    return !response.error;
+  }
+
+  async addEmployee(employeeData: {
+    full_name: string;
+    email: string;
+    phone?: string;
+    position: string;
+    department: string;
+    role: 'admin' | 'teacher' | 'employee';
+    password: string;
+    is_active: boolean;
+    created_at: string;
+  }): Promise<DatabaseEmployee | null> {
+    return this.createEmployee(employeeData);
+  }
+
   // ========================
   // МЕТОДЫ ДЛЯ КУРСОВ
   // ========================

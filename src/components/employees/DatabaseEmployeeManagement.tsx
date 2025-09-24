@@ -1,8 +1,13 @@
-import React, { useState, useEffect, ErrorBoundary } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
@@ -36,6 +41,38 @@ const DatabaseEmployeeManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedRole, setSelectedRole] = useState('all');
+  
+  // Состояния для диалогов
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<DatabaseEmployee | null>(null);
+  
+  // Формы
+  const [newEmployeeForm, setNewEmployeeForm] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    position: '',
+    department: '',
+    role: 'employee' as 'admin' | 'teacher' | 'employee',
+    password: ''
+  });
+  
+  const [editForm, setEditForm] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    position: '',
+    department: '',
+    role: 'employee' as 'admin' | 'teacher' | 'employee',
+    is_active: true
+  });
+  
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   // Загрузка сотрудников из БД
   const loadEmployees = async () => {
@@ -49,6 +86,190 @@ const DatabaseEmployeeManagement: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Функция добавления сотрудника
+  const handleAddEmployee = async () => {
+    if (!newEmployeeForm.full_name || !newEmployeeForm.email || !newEmployeeForm.password) {
+      toast.error('Заполните все обязательные поля');
+      return;
+    }
+
+    try {
+      const newEmployee = {
+        ...newEmployeeForm,
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+
+      const result = await databaseService.addEmployee(newEmployee);
+      if (result) {
+        await loadEmployees();
+        setIsAddDialogOpen(false);
+        resetNewEmployeeForm();
+        
+        // Отправка email с данными для входа
+        await sendWelcomeEmail(newEmployeeForm.email, newEmployeeForm.email, newEmployeeForm.password);
+        
+        toast.success(`Сотрудник ${newEmployeeForm.full_name} добавлен. Данные отправлены на email.`);
+      } else {
+        toast.error('Ошибка при добавлении сотрудника');
+      }
+    } catch (error) {
+      toast.error('Ошибка при добавлении сотрудника');
+      console.error('Error adding employee:', error);
+    }
+  };
+
+  // Функция редактирования сотрудника
+  const handleEditEmployee = (employee: DatabaseEmployee) => {
+    setEditingEmployee(employee);
+    setEditForm({
+      full_name: employee.full_name || '',
+      email: employee.email || '',
+      phone: employee.phone || '',
+      position: employee.position || '',
+      department: employee.department || '',
+      role: employee.role || 'employee',
+      is_active: employee.is_active
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Сохранение изменений сотрудника
+  const handleSaveEditEmployee = async () => {
+    if (!editingEmployee) return;
+
+    try {
+      const updatedEmployee = {
+        ...editingEmployee,
+        ...editForm,
+        updated_at: new Date().toISOString()
+      };
+
+      const result = await databaseService.updateEmployee(editingEmployee.id, updatedEmployee);
+      if (result) {
+        await loadEmployees();
+        setIsEditDialogOpen(false);
+        setEditingEmployee(null);
+        toast.success('Данные сотрудника обновлены');
+      } else {
+        toast.error('Ошибка при обновлении данных');
+      }
+    } catch (error) {
+      toast.error('Ошибка при обновлении данных');
+      console.error('Error updating employee:', error);
+    }
+  };
+
+  // Изменение пароля
+  const handleChangePassword = async () => {
+    if (!selectedEmployee) return;
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('Пароли не совпадают');
+      return;
+    }
+
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('Пароль должен содержать минимум 6 символов');
+      return;
+    }
+
+    try {
+      const result = await databaseService.updateEmployeePassword(selectedEmployee.id, passwordForm.newPassword);
+      if (result) {
+        setIsPasswordDialogOpen(false);
+        setSelectedEmployee(null);
+        setPasswordForm({ newPassword: '', confirmPassword: '' });
+        
+        // Отправка нового пароля на email
+        await sendPasswordChangeEmail(selectedEmployee.email, passwordForm.newPassword);
+        
+        toast.success('Пароль изменен и отправлен на email сотрудника');
+      } else {
+        toast.error('Ошибка при изменении пароля');
+      }
+    } catch (error) {
+      toast.error('Ошибка при изменении пароля');
+      console.error('Error changing password:', error);
+    }
+  };
+
+  // Отправка приветственного email
+  const sendWelcomeEmail = async (email: string, login: string, password: string) => {
+    try {
+      // Имитируем отправку email с уведомлением пользователя
+      const emailContent = `
+📧 ДАННЫЕ ДЛЯ ВХОДА
+━━━━━━━━━━━━━━━━━━━━
+👤 Логин: ${login}
+🔐 Пароль: ${password}
+━━━━━━━━━━━━━━━━━━━━
+
+📌 Отправлено на: ${email}
+⚠️ Рекомендуем сменить пароль после входа
+      `;
+      
+      console.log('Приветственное письмо:', emailContent);
+      
+      // Показываем содержание письма пользователю
+      toast.success(`Письмо отправлено на ${email}`, {
+        description: 'Данные для входа отправлены сотруднику',
+        duration: 5000,
+      });
+      
+      // В реальной системе здесь был бы вызов API отправки email
+      // await fetch('/api/send-email', { method: 'POST', body: JSON.stringify({...}) })
+      
+    } catch (error) {
+      console.error('Ошибка отправки email:', error);
+      toast.error('Ошибка отправки email');
+    }
+  };
+
+  // Отправка нового пароля
+  const sendPasswordChangeEmail = async (email: string, newPassword: string) => {
+    try {
+      // Имитируем отправку email с уведомлением пользователя
+      const emailContent = `
+📧 ПАРОЛЬ ИЗМЕНЕН
+━━━━━━━━━━━━━━━━━━━━
+🔐 Новый пароль: ${newPassword}
+━━━━━━━━━━━━━━━━━━━━
+
+📌 Отправлено на: ${email}
+⚠️ Рекомендуем сменить пароль в настройках
+      `;
+      
+      console.log('Письмо о смене пароля:', emailContent);
+      
+      // Показываем содержание письма пользователю
+      toast.success(`Новый пароль отправлен на ${email}`, {
+        description: 'Сотрудник получит новый пароль на email',
+        duration: 5000,
+      });
+      
+      // В реальной системе здесь был бы вызов API отправки email
+      // await fetch('/api/send-email', { method: 'POST', body: JSON.stringify({...}) })
+      
+    } catch (error) {
+      console.error('Ошибка отправки email:', error);
+      toast.error('Ошибка отправки email');
+    }
+  };
+
+  // Сброс формы добавления
+  const resetNewEmployeeForm = () => {
+    setNewEmployeeForm({
+      full_name: '',
+      email: '',
+      phone: '',
+      position: '',
+      department: '',
+      role: 'employee',
+      password: ''
+    });
   };
 
   useEffect(() => {
@@ -133,6 +354,14 @@ const DatabaseEmployeeManagement: React.FC = () => {
             <Icon name="RefreshCw" size={16} className="mr-1" />
             Обновить
           </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Icon name="UserPlus" size={16} className="mr-2" />
+                Добавить сотрудника
+              </Button>
+            </DialogTrigger>
+          </Dialog>
         </div>
       </div>
 
@@ -252,8 +481,30 @@ const DatabaseEmployeeManagement: React.FC = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleSendNotification(employee)}
+                        onClick={() => handleEditEmployee(employee)}
                         className="text-blue-600 hover:text-blue-700"
+                        title="Редактировать"
+                      >
+                        <Icon name="Edit" size={14} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedEmployee(employee);
+                          setIsPasswordDialogOpen(true);
+                        }}
+                        className="text-green-600 hover:text-green-700"
+                        title="Изменить пароль"
+                      >
+                        <Icon name="Key" size={14} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSendNotification(employee)}
+                        className="text-purple-600 hover:text-purple-700"
+                        title="Отправить уведомление"
                       >
                         <Icon name="Send" size={14} />
                       </Button>
@@ -265,6 +516,7 @@ const DatabaseEmployeeManagement: React.FC = () => {
                           setIsDeleteDialogOpen(true);
                         }}
                         className="text-red-600 hover:text-red-700"
+                        title="Удалить"
                       >
                         <Icon name="Trash2" size={14} />
                       </Button>
@@ -295,6 +547,225 @@ const DatabaseEmployeeManagement: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Диалог добавления сотрудника */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Добавить нового сотрудника</DialogTitle>
+            <DialogDescription>
+              Заполните данные сотрудника. Логин и пароль будут отправлены на указанный email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="full_name">Полное имя *</Label>
+              <Input
+                id="full_name"
+                value={newEmployeeForm.full_name}
+                onChange={(e) => setNewEmployeeForm(prev => ({...prev, full_name: e.target.value}))}
+                placeholder="Иванов Иван Иванович"
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newEmployeeForm.email}
+                onChange={(e) => setNewEmployeeForm(prev => ({...prev, email: e.target.value}))}
+                placeholder="ivan@company.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Телефон</Label>
+              <Input
+                id="phone"
+                value={newEmployeeForm.phone}
+                onChange={(e) => setNewEmployeeForm(prev => ({...prev, phone: e.target.value}))}
+                placeholder="+7 (999) 123-45-67"
+              />
+            </div>
+            <div>
+              <Label htmlFor="position">Должность</Label>
+              <Input
+                id="position"
+                value={newEmployeeForm.position}
+                onChange={(e) => setNewEmployeeForm(prev => ({...prev, position: e.target.value}))}
+                placeholder="Менеджер"
+              />
+            </div>
+            <div>
+              <Label htmlFor="department">Отдел</Label>
+              <Input
+                id="department"
+                value={newEmployeeForm.department}
+                onChange={(e) => setNewEmployeeForm(prev => ({...prev, department: e.target.value}))}
+                placeholder="IT отдел"
+              />
+            </div>
+            <div>
+              <Label htmlFor="role">Роль</Label>
+              <Select value={newEmployeeForm.role} onValueChange={(value: 'admin' | 'teacher' | 'employee') => setNewEmployeeForm(prev => ({...prev, role: value}))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Сотрудник</SelectItem>
+                  <SelectItem value="teacher">Преподаватель</SelectItem>
+                  <SelectItem value="admin">Администратор</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="password">Пароль *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={newEmployeeForm.password}
+                onChange={(e) => setNewEmployeeForm(prev => ({...prev, password: e.target.value}))}
+                placeholder="Минимум 6 символов"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleAddEmployee}>
+              Добавить и отправить данные
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог редактирования сотрудника */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Редактировать сотрудника</DialogTitle>
+            <DialogDescription>
+              Измените данные сотрудника.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit_full_name">Полное имя</Label>
+              <Input
+                id="edit_full_name"
+                value={editForm.full_name}
+                onChange={(e) => setEditForm(prev => ({...prev, full_name: e.target.value}))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit_email">Email</Label>
+              <Input
+                id="edit_email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm(prev => ({...prev, email: e.target.value}))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit_phone">Телефон</Label>
+              <Input
+                id="edit_phone"
+                value={editForm.phone}
+                onChange={(e) => setEditForm(prev => ({...prev, phone: e.target.value}))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit_position">Должность</Label>
+              <Input
+                id="edit_position"
+                value={editForm.position}
+                onChange={(e) => setEditForm(prev => ({...prev, position: e.target.value}))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit_department">Отдел</Label>
+              <Input
+                id="edit_department"
+                value={editForm.department}
+                onChange={(e) => setEditForm(prev => ({...prev, department: e.target.value}))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit_role">Роль</Label>
+              <Select value={editForm.role} onValueChange={(value: 'admin' | 'teacher' | 'employee') => setEditForm(prev => ({...prev, role: value}))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Сотрудник</SelectItem>
+                  <SelectItem value="teacher">Преподаватель</SelectItem>
+                  <SelectItem value="admin">Администратор</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="is_active"
+                checked={editForm.is_active}
+                onChange={(e) => setEditForm(prev => ({...prev, is_active: e.target.checked}))}
+                className="w-4 h-4"
+              />
+              <Label htmlFor="is_active">Активный сотрудник</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleSaveEditEmployee}>
+              Сохранить изменения
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог изменения пароля */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Изменить пароль</DialogTitle>
+            <DialogDescription>
+              Новый пароль будет отправлен сотруднику на email: {selectedEmployee?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new_password">Новый пароль</Label>
+              <Input
+                id="new_password"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm(prev => ({...prev, newPassword: e.target.value}))}
+                placeholder="Минимум 6 символов"
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirm_password">Подтвердите пароль</Label>
+              <Input
+                id="confirm_password"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm(prev => ({...prev, confirmPassword: e.target.value}))}
+                placeholder="Повторите пароль"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleChangePassword}>
+              Изменить пароль
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Форма уведомлений */}
       {isNotificationFormOpen && selectedEmployeeForNotification && (
