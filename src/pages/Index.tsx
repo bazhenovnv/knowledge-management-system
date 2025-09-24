@@ -68,7 +68,7 @@ const Index = () => {
   };
 
   const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    emp.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

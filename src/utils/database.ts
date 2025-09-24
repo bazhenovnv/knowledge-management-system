@@ -2,7 +2,7 @@
 
 export interface Employee {
   id: number;
-  name: string;
+  full_name: string;
   email: string;
   department: string;
   position: string;
@@ -624,18 +624,7 @@ class DatabaseService {
     }
   }
 
-  // Обновление материала базы знаний
-  updateKnowledgeMaterial(updatedMaterial: KnowledgeMaterial): boolean {
-    const materials = this.getKnowledgeMaterials();
-    const index = materials.findIndex(m => m.id === updatedMaterial.id || m.title === updatedMaterial.title);
-    
-    if (index !== -1) {
-      materials[index] = { ...materials[index], ...updatedMaterial };
-      this.setData(STORAGE_KEYS.KNOWLEDGE_MATERIALS, materials);
-      return true;
-    }
-    return false;
-  }
+
 
   // ========================
   // МЕТОДЫ ДЛЯ УВЕДОМЛЕНИЙ
