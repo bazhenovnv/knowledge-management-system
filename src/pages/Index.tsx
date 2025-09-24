@@ -18,6 +18,7 @@ import TestManagement from "@/components/tests/TestManagement";
 import AssignmentManager from "@/components/assignments/AssignmentManager";
 import MyAssignments from "@/components/assignments/MyAssignments";
 import UserSettings from "@/components/settings/UserSettings";
+import { DatabaseSetup } from "@/components/setup/DatabaseSetup";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
