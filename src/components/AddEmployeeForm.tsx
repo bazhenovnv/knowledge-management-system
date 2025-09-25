@@ -164,9 +164,13 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Отдел - выпадающий список */}
             <div>
               <Label htmlFor="department">Отдел *</Label>
-              <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
+              <Select 
+                value={formData.department} 
+                onValueChange={(value) => handleInputChange('department', value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите отдел" />
                 </SelectTrigger>
