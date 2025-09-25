@@ -43,7 +43,7 @@ class DatabaseService {
 
   constructor() {
     // В реальном проекте URL должен быть в переменных окружения
-    this.baseUrl = 'https://functions.poehali.dev/33d17b88-460c-472b-ab1f-1c6c61bfdae5';
+    this.baseUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
   }
 
   private async makeRequest<T>(
