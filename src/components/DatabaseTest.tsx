@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import AddEmployeeForm from './AddEmployeeForm';
 
 const DatabaseTest: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [employees, setEmployees] = useState<DatabaseEmployee[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connected' | 'error'>('idle');
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const testConnection = async () => {
     setIsLoading(true);
@@ -41,6 +43,13 @@ const DatabaseTest: React.FC = () => {
     }
   };
 
+  const handleEmployeeAdded = (newEmployee: DatabaseEmployee) => {
+    setEmployees(prev => [newEmployee, ...prev]);
+    setShowAddForm(false);
+    // Обновляем статистику
+    testConnection();
+  };
+
   useEffect(() => {
     // Автоматически тестируем подключение при загрузке компонента
     testConnection();
@@ -64,6 +73,13 @@ const DatabaseTest: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {showAddForm && (
+        <AddEmployeeForm 
+          onEmployeeAdded={handleEmployeeAdded}
+          onCancel={() => setShowAddForm(false)}
+        />
+      )}
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -80,18 +96,29 @@ const DatabaseTest: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <Button 
-              onClick={testConnection} 
-              disabled={isLoading}
-              className="flex items-center space-x-2"
-            >
-              {isLoading ? (
-                <Icon name="Loader2" size={16} className="animate-spin" />
-              ) : (
-                <Icon name="RefreshCw" size={16} />
-              )}
-              <span>{isLoading ? 'Проверка...' : 'Проверить подключение'}</span>
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Button 
+                onClick={testConnection} 
+                disabled={isLoading}
+                className="flex items-center space-x-2"
+              >
+                {isLoading ? (
+                  <Icon name="Loader2" size={16} className="animate-spin" />
+                ) : (
+                  <Icon name="RefreshCw" size={16} />
+                )}
+                <span>{isLoading ? 'Проверка...' : 'Проверить подключение'}</span>
+              </Button>
+              
+              <Button 
+                onClick={() => setShowAddForm(!showAddForm)}
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                <Icon name="UserPlus" size={16} />
+                <span>{showAddForm ? 'Скрыть форму' : 'Добавить сотрудника'}</span>
+              </Button>
+            </div>
             
             {stats && (
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
