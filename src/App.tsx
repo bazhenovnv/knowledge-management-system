@@ -9,6 +9,8 @@ import Bitrix24 from "./pages/Bitrix24";
 import DatabaseTestPage from "./pages/DatabaseTestPage";
 import NotFound from "./pages/NotFound";
 import TestLogin from "./components/TestLogin";
+import TestRegister from "./components/TestRegister";
+import AuthTestPage from "./pages/AuthTestPage";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/bitrix24" element={<Bitrix24 />} />
           <Route path="/db-test" element={<DatabaseTestPage />} />
           <Route path="/test-login" element={<TestLogin />} />
+          <Route path="/test-register" element={<TestRegister />} />
+          <Route path="/auth-test" element={<AuthTestPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -9,8 +9,8 @@
       },
       "body": {
         "action": "register",
-        "email": "test@example.com",
-        "password": "testpassword123",
+        "email": "testuser2025@company.com",
+        "password": "newuser123",
         "full_name": "Test User",
         "phone": "+1234567890",
         "department": "IT",

@@ -13,6 +13,23 @@ interface RegisterFormProps {
   onLoginClick: () => void;
 }
 
+const departments = [
+  'IT', 'Обучение', 'Партнерка', 'Отдел разработки', 'QA/Тестирование', 'DevOps',
+  'Отдел продаж', 'Маркетинг', 'SEO/SMM', 'HR', 'Управление', 'Бухгалтерия',
+  'Финансы', 'Дизайн', 'Аналитика', 'Безопасность', 'Поддержка клиентов',
+  'Логистика', 'Закупки', 'Юридический', 'Производство', 'Качество',
+  'Исследования', 'Техническая документация', 'Проектное управление', 'Консалтинг'
+];
+
+const positions = [
+  'Junior разработчик', 'Middle разработчик', 'Senior разработчик', 'Team Lead',
+  'Менеджер проекта', 'Product Manager', 'Системный аналитик', 'Дизайнер',
+  'QA инженер', 'DevOps инженер', 'Специалист', 'Старший специалист',
+  'Эксперт', 'Консультант', 'Координатор', 'Ассистент', 'Стажер',
+  'Руководитель отдела', 'Заместитель директора', 'Директор',
+  'Бухгалтер', 'Экономист', 'HR-менеджер', 'Маркетолог', 'SMM-менеджер'
+];
+
 export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormProps) {
   const [formData, setFormData] = useState<RegisterData>({
     email: '',
@@ -142,26 +159,42 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
 
           <div className="space-y-2">
             <Label htmlFor="department">Отдел</Label>
-            <Input
-              id="department"
-              type="text"
-              placeholder="IT, Маркетинг, Продажи..."
-              value={formData.department}
-              onChange={(e) => handleInputChange('department', e.target.value)}
+            <Select 
+              value={formData.department} 
+              onValueChange={(value) => handleInputChange('department', value)}
               disabled={isLoading}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите отдел" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map((dept) => (
+                  <SelectItem key={dept} value={dept}>
+                    {dept}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="position">Должность</Label>
-            <Input
-              id="position"
-              type="text"
-              placeholder="Разработчик, Менеджер..."
-              value={formData.position}
-              onChange={(e) => handleInputChange('position', e.target.value)}
+            <Select 
+              value={formData.position} 
+              onValueChange={(value) => handleInputChange('position', value)}
               disabled={isLoading}
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Выберите должность" />
+              </SelectTrigger>
+              <SelectContent>
+                {positions.map((position) => (
+                  <SelectItem key={position} value={position}>
+                    {position}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -176,7 +209,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="employee">Сотрудник</SelectItem>
-                <SelectItem value="manager">Менеджер</SelectItem>
+                <SelectItem value="teacher">Преподаватель</SelectItem>
                 <SelectItem value="admin">Администратор</SelectItem>
               </SelectContent>
             </Select>
