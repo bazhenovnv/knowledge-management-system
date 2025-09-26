@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import TestLogin from "./components/TestLogin";
 import TestRegister from "./components/TestRegister";
 import AuthTestPage from "./pages/AuthTestPage";
+import AddEmployeeTestPage from "./pages/AddEmployeeTestPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/test-login" element={<TestLogin />} />
           <Route path="/test-register" element={<TestRegister />} />
           <Route path="/auth-test" element={<AuthTestPage />} />
+          <Route path="/add-employee-test" element={<AddEmployeeTestPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

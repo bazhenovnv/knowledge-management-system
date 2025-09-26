@@ -1,9 +1,17 @@
 import json
 import os
 import psycopg2
+import hashlib
+import secrets
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+
+def hash_password(password: str) -> str:
+    """Hash password using PBKDF2 with salt"""
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    return f"{salt}:{password_hash.hex()}"
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -130,7 +138,8 @@ def get_table_data(cursor, table: str) -> Dict[str, Any]:
 def get_item_by_id(cursor, table: str, item_id: str) -> Dict[str, Any]:
     """Получить запись по ID"""
     try:
-        cursor.execute(f"SELECT * FROM {table} WHERE id = %s", (item_id,))
+        schema = 't_p47619579_knowledge_management'
+        cursor.execute(f"SELECT * FROM {schema}.{table} WHERE id = %s", (item_id,))
         row = cursor.fetchone()
         if row:
             return {'data': dict(row)}
@@ -145,23 +154,24 @@ def create_item(cursor, conn, table: str, data: Dict[str, Any]) -> Dict[str, Any
     try:
         if table == 'employees':
             cursor.execute("""
-                INSERT INTO employees (email, password_hash, full_name, phone, 
-                                     department, position, role, hire_date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, full_name, email, department, position, role, created_at
+                INSERT INTO t_p47619579_knowledge_management.employees (email, password_hash, full_name, phone, 
+                                     department, position, role, hire_date, is_active)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, full_name, email, department, position, role, phone, hire_date, is_active, created_at
             """, (
                 data.get('email'),
-                data.get('password_hash', 'default_hash'),
+                hash_password(data.get('password', 'temp123')),
                 data.get('name', data.get('full_name')),
                 data.get('phone'),
                 data.get('department'),
                 data.get('position'),
                 data.get('role', 'employee'),
-                data.get('hire_date')
+                data.get('hire_date'),
+                True
             ))
         elif table == 'courses':
             cursor.execute("""
-                INSERT INTO courses (title, description, instructor_id, start_date, 
+                INSERT INTO t_p47619579_knowledge_management.courses (title, description, instructor_id, start_date, 
                                    end_date, duration_hours, max_participants, status)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, title, description, instructor_id, created_at
@@ -189,7 +199,7 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
     try:
         if table == 'employees':
             cursor.execute("""
-                UPDATE employees 
+                UPDATE t_p47619579_knowledge_management.employees 
                 SET full_name = %s, phone = %s, department = %s, 
                     position = %s, role = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
@@ -219,7 +229,7 @@ def delete_item(cursor, conn, table: str, item_id: str) -> Dict[str, Any]:
     try:
         if table == 'employees':
             cursor.execute("""
-                UPDATE employees 
+                UPDATE t_p47619579_knowledge_management.employees 
                 SET is_active = false, updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
             """, (item_id,))

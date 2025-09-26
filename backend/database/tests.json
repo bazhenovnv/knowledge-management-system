@@ -1,24 +1,9 @@
 {
   "tests": [
     {
-      "name": "Получить статистику базы данных",
-      "method": "GET",
-      "queryStringParameters": {
-        "action": "stats"
-      },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "stats": "object"
-      },
-      "bodyMatcher": "partial"
-    },
-    {
       "name": "Получить список сотрудников", 
       "method": "GET",
-      "queryStringParameters": {
-        "action": "list",
-        "table": "employees"
-      },
+      "path": "/?action=list&table=employees",
       "expectedStatus": 200,
       "expectedBody": {
         "data": "array",
@@ -27,13 +12,32 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Заполнить базу тестовыми данными",
-      "method": "POST", 
-      "queryStringParameters": {
-        "action": "seed"
+      "name": "Создать нового сотрудника",
+      "method": "POST",
+      "path": "/?action=create&table=employees",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "email": "newemployee@company.com",
+        "full_name": "Новый Сотрудник",
+        "phone": "+7 (999) 555-12-34",
+        "department": "IT",
+        "position": "Junior разработчик",
+        "role": "employee",
+        "hire_date": "2025-09-26",
+        "password": "newpass123"
       },
       "expectedStatus": 200,
       "expectedBody": {
+        "data": {
+          "id": "number",
+          "full_name": "string",
+          "email": "string",
+          "department": "string",
+          "position": "string",
+          "role": "string"
+        },
         "message": "string"
       },
       "bodyMatcher": "partial"

@@ -113,12 +113,13 @@ class DatabaseService {
     position: string;
     role?: 'admin' | 'teacher' | 'employee';
     hire_date?: string;
+    password?: string;
   }): Promise<DatabaseEmployee | null> {
     const response = await this.makeRequest<DatabaseEmployee>('?action=create&table=employees', {
       method: 'POST',
       body: JSON.stringify({
         ...employeeData,
-        password_hash: 'default_hash' // В реальном проекте должен быть настоящий хеш
+        password: employeeData.password || 'temp123' // Временный пароль
       })
     });
 
