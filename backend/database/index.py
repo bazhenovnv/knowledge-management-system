@@ -200,16 +200,18 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
         if table == 'employees':
             cursor.execute("""
                 UPDATE t_p47619579_knowledge_management.employees 
-                SET full_name = %s, phone = %s, department = %s, 
-                    position = %s, role = %s, updated_at = CURRENT_TIMESTAMP
+                SET full_name = %s, email = %s, phone = %s, department = %s, 
+                    position = %s, role = %s, hire_date = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
-                RETURNING id, full_name, email, department, position, role, updated_at
+                RETURNING id, full_name, email, department, position, role, phone, hire_date, is_active, created_at, updated_at
             """, (
                 data.get('name', data.get('full_name')),
+                data.get('email'),
                 data.get('phone'),
                 data.get('department'),
                 data.get('position'),
                 data.get('role'),
+                data.get('hire_date'),
                 item_id
             ))
         

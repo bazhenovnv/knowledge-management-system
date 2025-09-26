@@ -41,6 +41,33 @@
         "message": "string"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Обновить данные сотрудника",
+      "method": "PUT",
+      "path": "/?action=update&table=employees&id=1",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "full_name": "Баженов Николай Владимирович",
+        "email": "admin@company.com",
+        "phone": "+7 (938) 523-17-81",
+        "department": "IT",
+        "position": "Главный администратор",
+        "role": "admin",
+        "hire_date": "2023-01-01"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "data": {
+          "id": "number",
+          "full_name": "string",
+          "email": "string"
+        },
+        "message": "string"
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }
