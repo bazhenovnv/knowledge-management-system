@@ -1,0 +1,20 @@
+{
+  "tests": [{
+    "name": "Update admin password",
+    "method": "POST",
+    "path": "/",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": {
+      "email": "admin@company.com",
+      "password": "admin123"
+    },
+    "expectedStatus": 200,
+    "expectedBody": {
+      "success": true,
+      "message": "string"
+    },
+    "bodyMatcher": "partial"
+  }]
+}

@@ -25,6 +25,22 @@ def generate_token() -> str:
     """Generate secure random token for user session"""
     return secrets.token_urlsafe(32)
 
+def hash_password(password: str) -> str:
+    """Hash password using PBKDF2 with salt"""
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    return f"{salt}:{password_hash.hex()}"
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password against hash"""
+    try:
+        salt, stored_hash = hashed.split(':', 1)
+        password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+        return stored_hash == password_hash.hex()
+    except ValueError:
+        # Fallback to simple SHA256 for existing passwords
+        return hashlib.sha256(password.encode()).hexdigest() == hashed
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
     Business: Unified authentication API for registration, login, check, and logout
@@ -85,7 +101,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             register_data = RegisterRequest(**body_data)
             
             # Check if email already exists
-            cursor.execute("SELECT id FROM employees WHERE email = %s", (register_data.email,))
+            cursor.execute("SELECT id FROM t_p47619579_knowledge_management.employees WHERE email = %s", (register_data.email,))
             if cursor.fetchone():
                 cursor.close()
                 conn.close()
@@ -97,10 +113,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             # Hash password and create employee
-            password_hash = hashlib.sha256(register_data.password.encode()).hexdigest()
+            password_hash = hash_password(register_data.password)
             
             cursor.execute("""
-                INSERT INTO employees (email, password_hash, full_name, phone, department, position, role, is_active)
+                INSERT INTO t_p47619579_knowledge_management.employees (email, password_hash, full_name, phone, department, position, role, is_active)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, email, full_name, phone, department, position, role, is_active, created_at
             """, (
@@ -152,16 +168,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             login_data = LoginRequest(**body_data)
             
-            password_hash = hashlib.sha256(login_data.password.encode()).hexdigest()
-            
+            # Get employee data first to verify password
             cursor.execute("""
                 SELECT id, email, password_hash, full_name, phone, department, position, role, is_active, avatar_url, theme
-                FROM employees 
-                WHERE email = %s AND password_hash = %s AND is_active = true
-            """, (login_data.email, password_hash))
+                FROM t_p47619579_knowledge_management.employees 
+                WHERE email = %s AND is_active = true
+            """, (login_data.email,))
             
             employee_data = cursor.fetchone()
-            if not employee_data:
+            if not employee_data or not verify_password(login_data.password, employee_data[2]):
                 cursor.close()
                 conn.close()
                 return {
@@ -183,7 +198,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             source_ip = identity.get('sourceIp', '127.0.0.1')
             
             cursor.execute("""
-                INSERT INTO user_sessions (employee_id, token, expires_at, user_agent, ip_address)
+                INSERT INTO t_p47619579_knowledge_management.user_sessions (employee_id, token, expires_at, user_agent, ip_address)
                 VALUES (%s, %s, %s, %s, %s)
                 RETURNING id, created_at
             """, (employee_id, session_token, expires_at, user_agent, source_ip))
@@ -229,8 +244,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             cursor.execute("""
                 SELECT s.id as session_id, s.employee_id, s.expires_at, e.id, e.email, e.full_name,
                        e.phone, e.department, e.position, e.role, e.is_active, e.avatar_url, e.theme
-                FROM user_sessions s
-                JOIN employees e ON s.employee_id = e.id
+                FROM t_p47619579_knowledge_management.user_sessions s
+                JOIN t_p47619579_knowledge_management.employees e ON s.employee_id = e.id
                 WHERE s.token = %s AND s.expires_at > %s AND e.is_active = true
             """, (auth_token, datetime.utcnow()))
             
@@ -245,7 +260,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            cursor.execute("UPDATE user_sessions SET updated_at = CURRENT_TIMESTAMP WHERE id = %s", (session_data[0],))
+            cursor.execute("UPDATE t_p47619579_knowledge_management.user_sessions SET updated_at = CURRENT_TIMESTAMP WHERE id = %s", (session_data[0],))
             conn.commit()
             cursor.close()
             conn.close()
@@ -285,16 +300,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             if all_sessions:
-                cursor.execute("SELECT employee_id FROM user_sessions WHERE token = %s", (auth_token,))
+                cursor.execute("SELECT employee_id FROM t_p47619579_knowledge_management.user_sessions WHERE token = %s", (auth_token,))
                 result = cursor.fetchone()
                 if result:
                     employee_id = result[0]
-                    cursor.execute("DELETE FROM user_sessions WHERE employee_id = %s", (employee_id,))
+                    cursor.execute("DELETE FROM t_p47619579_knowledge_management.user_sessions WHERE employee_id = %s", (employee_id,))
                     deleted_count = cursor.rowcount
                 else:
                     deleted_count = 0
             else:
-                cursor.execute("DELETE FROM user_sessions WHERE token = %s", (auth_token,))
+                cursor.execute("DELETE FROM t_p47619579_knowledge_management.user_sessions WHERE token = %s", (auth_token,))
                 deleted_count = cursor.rowcount
             
             conn.commit()
