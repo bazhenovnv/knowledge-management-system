@@ -9,7 +9,6 @@ import Bitrix24 from "./pages/Bitrix24";
 import DatabaseTestPage from "./pages/DatabaseTestPage";
 import NotFound from "./pages/NotFound";
 import TestLogin from "./components/TestLogin";
-import TestLogin from "./components/TestLogin";
 
 const queryClient = new QueryClient();
 
