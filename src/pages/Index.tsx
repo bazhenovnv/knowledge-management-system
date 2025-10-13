@@ -10,8 +10,7 @@ import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
 import { EmployeesTab } from "@/components/employees/EmployeesTab";
-
-import DatabaseEmployeeManagement from "@/components/employees/DatabaseEmployeeManagement";
+import EmployeeList from "@/components/EmployeeList";
 import { database } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
@@ -190,11 +189,11 @@ const Index = () => {
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   {(() => {
                     try {
-                      // Для админов показываем полное управление сотрудниками из БД
-                      if (userRole === "admin") {
-                        return <DatabaseEmployeeManagement />;
+                      // Для админов и преподавателей показываем полное управление сотрудниками
+                      if (userRole === "admin" || userRole === "teacher") {
+                        return <EmployeeList />;
                       }
-                      // Для преподавателей показываем базовую работу с сотрудниками
+                      // Для обычных сотрудников показываем базовую работу
                       return <EmployeesTab userRole={userRole} />;
                     } catch (error) {
                       console.error('Employees section error:', error);
