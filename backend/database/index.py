@@ -57,6 +57,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             elif action == 'get':
                 item_id = params.get('id')
                 result = get_item_by_id(cursor, table, item_id)
+            elif action == 'get_test_full':
+                test_id = params.get('id')
+                result = get_test_with_questions(cursor, test_id)
+            elif action == 'get_test_results':
+                test_id = params.get('test_id')
+                employee_id = params.get('employee_id')
+                result = get_test_results(cursor, test_id, employee_id)
             elif action == 'stats':
                 result = get_database_stats(cursor)
             else:
@@ -66,6 +73,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             if action == 'create':
                 result = create_item(cursor, conn, table, body_data)
+            elif action == 'create_test_full':
+                result = create_test_with_questions(cursor, conn, body_data)
+            elif action == 'submit_test':
+                result = submit_test_results(cursor, conn, body_data)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -127,6 +138,19 @@ def get_table_data(cursor, table: str) -> Dict[str, Any]:
                 LEFT JOIN {schema}.employees e ON c.instructor_id = e.id
                 WHERE c.status = 'active'
                 ORDER BY c.created_at DESC
+            """)
+        elif table == 'tests':
+            cursor.execute(f"""
+                SELECT t.*, 
+                       e.full_name as creator_name,
+                       c.title as course_title,
+                       (SELECT COUNT(*) FROM {schema}.test_questions WHERE test_id = t.id) as questions_count,
+                       (SELECT COUNT(*) FROM {schema}.test_results WHERE test_id = t.id) as results_count
+                FROM {schema}.tests t
+                LEFT JOIN {schema}.employees e ON t.creator_id = e.id
+                LEFT JOIN {schema}.courses c ON t.course_id = c.id
+                WHERE t.is_active = true
+                ORDER BY t.created_at DESC
             """)
         else:
             cursor.execute(f"SELECT * FROM {schema}.{table} ORDER BY created_at DESC")
@@ -449,3 +473,221 @@ def seed_database(cursor, conn) -> Dict[str, Any]:
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка заполнения базы данных: {str(e)}'}
+
+
+def get_test_with_questions(cursor, test_id: str) -> Dict[str, Any]:
+    """Получить тест со всеми вопросами и ответами"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        # Получаем тест
+        cursor.execute(f"""
+            SELECT t.*, e.full_name as creator_name, c.title as course_title
+            FROM {schema}.tests t
+            LEFT JOIN {schema}.employees e ON t.creator_id = e.id
+            LEFT JOIN {schema}.courses c ON t.course_id = c.id
+            WHERE t.id = %s
+        """, (test_id,))
+        
+        test = cursor.fetchone()
+        if not test:
+            return {'error': 'Тест не найден'}
+        
+        test_data = dict(test)
+        
+        # Получаем вопросы
+        cursor.execute(f"""
+            SELECT * FROM {schema}.test_questions
+            WHERE test_id = %s
+            ORDER BY order_num, id
+        """, (test_id,))
+        
+        questions = cursor.fetchall()
+        test_data['questions'] = []
+        
+        # Для каждого вопроса получаем ответы
+        for question in questions:
+            question_data = dict(question)
+            
+            cursor.execute(f"""
+                SELECT * FROM {schema}.test_answers
+                WHERE question_id = %s
+                ORDER BY order_num, id
+            """, (question['id'],))
+            
+            answers = cursor.fetchall()
+            question_data['answers'] = [dict(answer) for answer in answers]
+            test_data['questions'].append(question_data)
+        
+        return {'data': test_data}
+        
+    except Exception as e:
+        return {'error': f'Ошибка получения теста: {str(e)}'}
+
+
+def get_test_results(cursor, test_id: str, employee_id: str = None) -> Dict[str, Any]:
+    """Получить результаты прохождения тестов"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        if employee_id:
+            # Результаты конкретного сотрудника
+            cursor.execute(f"""
+                SELECT tr.*, e.full_name as employee_name, t.title as test_title
+                FROM {schema}.test_results tr
+                LEFT JOIN {schema}.employees e ON tr.employee_id = e.id
+                LEFT JOIN {schema}.tests t ON tr.test_id = t.id
+                WHERE tr.test_id = %s AND tr.employee_id = %s
+                ORDER BY tr.created_at DESC
+            """, (test_id, employee_id))
+        else:
+            # Все результаты теста
+            cursor.execute(f"""
+                SELECT tr.*, e.full_name as employee_name
+                FROM {schema}.test_results tr
+                LEFT JOIN {schema}.employees e ON tr.employee_id = e.id
+                WHERE tr.test_id = %s
+                ORDER BY tr.created_at DESC
+            """, (test_id,))
+        
+        results = cursor.fetchall()
+        return {'data': [dict(r) for r in results], 'count': len(results)}
+        
+    except Exception as e:
+        return {'error': f'Ошибка получения результатов: {str(e)}'}
+
+
+def create_test_with_questions(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создать тест с вопросами и ответами"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        # Создаем тест
+        cursor.execute(f"""
+            INSERT INTO {schema}.tests (title, description, course_id, creator_id, 
+                                       time_limit, passing_score, max_attempts, is_active)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, title, created_at
+        """, (
+            data.get('title'),
+            data.get('description'),
+            data.get('course_id'),
+            data.get('creator_id'),
+            data.get('time_limit'),
+            data.get('passing_score', 70),
+            data.get('max_attempts', 1),
+            data.get('is_active', True)
+        ))
+        
+        test_row = cursor.fetchone()
+        test_id = test_row['id']
+        
+        # Создаем вопросы
+        questions = data.get('questions', [])
+        for idx, question in enumerate(questions):
+            cursor.execute(f"""
+                INSERT INTO {schema}.test_questions (test_id, question_text, question_type, 
+                                                    points, order_num)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                test_id,
+                question.get('question_text'),
+                question.get('question_type', 'single_choice'),
+                question.get('points', 1),
+                idx + 1
+            ))
+            
+            question_row = cursor.fetchone()
+            question_id = question_row['id']
+            
+            # Создаем варианты ответов
+            answers = question.get('answers', [])
+            for ans_idx, answer in enumerate(answers):
+                cursor.execute(f"""
+                    INSERT INTO {schema}.test_answers (question_id, answer_text, 
+                                                      is_correct, order_num)
+                    VALUES (%s, %s, %s, %s)
+                """, (
+                    question_id,
+                    answer.get('answer_text'),
+                    answer.get('is_correct', False),
+                    ans_idx + 1
+                ))
+        
+        conn.commit()
+        return {
+            'data': dict(test_row),
+            'message': f'Тест "{test_row["title"]}" создан успешно'
+        }
+        
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка создания теста: {str(e)}'}
+
+
+def submit_test_results(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Сохранить результаты прохождения теста"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        # Подсчитываем баллы
+        score = data.get('score', 0)
+        max_score = data.get('max_score', 0)
+        percentage = int((score / max_score * 100) if max_score > 0 else 0)
+        
+        # Получаем минимальный проходной балл
+        cursor.execute(f"""
+            SELECT passing_score FROM {schema}.tests WHERE id = %s
+        """, (data.get('test_id'),))
+        
+        test_row = cursor.fetchone()
+        passing_score = test_row['passing_score'] if test_row else 70
+        passed = percentage >= passing_score
+        
+        # Сохраняем результат
+        cursor.execute(f"""
+            INSERT INTO {schema}.test_results (test_id, employee_id, score, max_score, 
+                                              percentage, passed, attempt_number, 
+                                              completed_at, time_spent)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP, %s)
+            RETURNING id, percentage, passed
+        """, (
+            data.get('test_id'),
+            data.get('employee_id'),
+            score,
+            max_score,
+            percentage,
+            passed,
+            data.get('attempt_number', 1),
+            data.get('time_spent', 0)
+        ))
+        
+        result_row = cursor.fetchone()
+        result_id = result_row['id']
+        
+        # Сохраняем ответы пользователя
+        user_answers = data.get('user_answers', [])
+        for answer in user_answers:
+            cursor.execute(f"""
+                INSERT INTO {schema}.test_user_answers (result_id, question_id, answer_id, 
+                                                       answer_text, is_correct, points_earned)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (
+                result_id,
+                answer.get('question_id'),
+                answer.get('answer_id'),
+                answer.get('answer_text'),
+                answer.get('is_correct', False),
+                answer.get('points_earned', 0)
+            ))
+        
+        conn.commit()
+        return {
+            'data': dict(result_row),
+            'message': f'Результат теста сохранен. Набрано {percentage}%'
+        }
+        
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка сохранения результатов: {str(e)}'}

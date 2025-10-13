@@ -14,7 +14,7 @@ import EmployeeList from "@/components/EmployeeList";
 import { database } from "@/utils/database";
 import { getStatusColor, getStatusText } from "@/utils/statusUtils";
 import AliceAssistant from "@/components/ai/AliceAssistant";
-import TestManagement from "@/components/tests/TestManagement";
+import DatabaseTestManagement from "@/components/tests/DatabaseTestManagement";
 import AssignmentManager from "@/components/assignments/AssignmentManager";
 import MyAssignments from "@/components/assignments/MyAssignments";
 import UserSettings from "@/components/settings/UserSettings";
@@ -160,7 +160,11 @@ const Index = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               {(() => {
                 try {
-                  return <TestManagement userRole={userRole} userId={userName} />;
+                  const currentUser = database.getCurrentUser();
+                  return <DatabaseTestManagement 
+                    userRole={userRole} 
+                    userId={currentUser?.id || 1} 
+                  />;
                 } catch (error) {
                   console.error('TestManagement error:', error);
                   return <div className="text-red-500">Ошибка загрузки раздела "Тесты": {String(error)}</div>;
