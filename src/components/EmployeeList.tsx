@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
 import EditEmployeeForm from './EditEmployeeForm';
+import AddEmployeeForm from './AddEmployeeForm';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,7 @@ const EmployeeList: React.FC = () => {
   const [filteredEmployees, setFilteredEmployees] = useState<DatabaseEmployee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingEmployee, setEditingEmployee] = useState<DatabaseEmployee | null>(null);
+  const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [employeeToDelete, setEmployeeToDelete] = useState<DatabaseEmployee | null>(null);
 
@@ -95,6 +97,12 @@ const EmployeeList: React.FC = () => {
     toast.success('Данные сотрудника обновлены');
   };
 
+  const handleEmployeeAdded = (newEmployee: DatabaseEmployee) => {
+    setEmployees(prev => [...prev, newEmployee]);
+    setIsAddingEmployee(false);
+    toast.success('Новый сотрудник добавлен');
+  };
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
@@ -111,6 +119,26 @@ const EmployeeList: React.FC = () => {
     }
   };
 
+  if (isAddingEmployee) {
+    return (
+      <div>
+        <Button 
+          onClick={() => setIsAddingEmployee(false)}
+          variant="outline"
+          className="mb-4"
+        >
+          <Icon name="ArrowLeft" size={16} className="mr-2" />
+          Назад к списку
+        </Button>
+        
+        <AddEmployeeForm
+          onEmployeeAdded={handleEmployeeAdded}
+          onCancel={() => setIsAddingEmployee(false)}
+        />
+      </div>
+    );
+  }
+
   if (editingEmployee) {
     return (
       <div>
@@ -119,7 +147,8 @@ const EmployeeList: React.FC = () => {
           variant="outline"
           className="mb-4"
         >
-          ← Назад к списку
+          <Icon name="ArrowLeft" size={16} className="mr-2" />
+          Назад к списку
         </Button>
         
         <EditEmployeeForm
@@ -151,10 +180,16 @@ const EmployeeList: React.FC = () => {
               <Icon name="Users" size={24} />
               Список сотрудников ({employees.length})
             </div>
-            <Button onClick={loadEmployees} variant="outline" size="sm">
-              <Icon name="RefreshCw" size={16} className="mr-2" />
-              Обновить
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsAddingEmployee(true)} size="sm">
+                <Icon name="UserPlus" size={16} className="mr-2" />
+                Добавить
+              </Button>
+              <Button onClick={loadEmployees} variant="outline" size="sm">
+                <Icon name="RefreshCw" size={16} className="mr-2" />
+                Обновить
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         
