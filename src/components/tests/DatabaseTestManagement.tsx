@@ -3,10 +3,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { testsService, DatabaseTest } from '@/utils/testsService';
 import DatabaseTestTaking from './DatabaseTestTaking';
+import TestResultsView from './TestResultsView';
 
 interface DatabaseTestManagementProps {
   userId: number;
@@ -18,6 +20,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [takingTestId, setTakingTestId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('tests');
 
   useEffect(() => {
     loadTests();
@@ -103,25 +106,37 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   }
 
   return (
-    <div className="space-y-6">
-      {/* Заголовок и статистика */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Тесты из базы данных</CardTitle>
-              <CardDescription>
-                Система тестирования знаний сотрудников
-              </CardDescription>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsTrigger value="tests">
+          <Icon name="FileText" size={16} className="mr-2" />
+          Тесты
+        </TabsTrigger>
+        <TabsTrigger value="results">
+          <Icon name="BarChart" size={16} className="mr-2" />
+          Результаты
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="tests" className="space-y-6">
+        {/* Заголовок и статистика */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Тесты из базы данных</CardTitle>
+                <CardDescription>
+                  Система тестирования знаний сотрудников
+                </CardDescription>
+              </div>
+              {(userRole === 'admin' || userRole === 'teacher') && (
+                <Button onClick={() => toast.info('Создание тестов скоро будет доступно')}>
+                  <Icon name="Plus" size={16} className="mr-2" />
+                  Создать тест
+                </Button>
+              )}
             </div>
-            {(userRole === 'admin' || userRole === 'teacher') && (
-              <Button onClick={() => toast.info('Создание тестов скоро будет доступно')}>
-                <Icon name="Plus" size={16} className="mr-2" />
-                Создать тест
-              </Button>
-            )}
-          </div>
-        </CardHeader>
+          </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
@@ -300,7 +315,12 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
           )}
         </CardContent>
       </Card>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="results" className="space-y-6">
+        <TestResultsView userId={userId} userRole={userRole} />
+      </TabsContent>
+    </Tabs>
   );
 };
 
