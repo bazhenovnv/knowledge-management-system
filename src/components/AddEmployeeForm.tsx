@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
-import { DEPARTMENTS, POSITIONS } from '@/constants/departments';
+import { useDepartments } from '@/hooks/useDepartments';
 
 interface AddEmployeeFormProps {
   onEmployeeAdded: (employee: DatabaseEmployee) => void;
@@ -16,6 +16,7 @@ interface AddEmployeeFormProps {
 }
 
 const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCancel }) => {
+  const departments = useDepartments();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: '',

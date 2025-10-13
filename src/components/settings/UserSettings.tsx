@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Icon from "@/components/ui/icon";
 import { database } from "@/utils/database";
+import DepartmentSettings from "./DepartmentSettings";
 
 interface User {
   id: number;
@@ -173,11 +174,12 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       )}
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Профиль</TabsTrigger>
           <TabsTrigger value="password">Пароль</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="appearance">Тема</TabsTrigger>
+          {user.role === 'admin' && <TabsTrigger value="departments">Отделы</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="profile">
@@ -357,6 +359,12 @@ export default function UserSettings({ userId }: UserSettingsProps) {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {user.role === 'admin' && (
+          <TabsContent value="departments">
+            <DepartmentSettings userRole={user.role} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

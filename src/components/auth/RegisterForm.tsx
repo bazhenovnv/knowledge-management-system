@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import authService, { RegisterData } from '@/utils/authService';
-import { DEPARTMENTS, POSITIONS } from '@/constants/departments';
+import { useDepartments, usePositions } from '@/hooks/useDepartments';
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -17,6 +17,8 @@ interface RegisterFormProps {
 
 
 export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormProps) {
+  const departments = useDepartments();
+  const positions = usePositions();
   const [formData, setFormData] = useState<RegisterData>({
     email: '',
     password: '',

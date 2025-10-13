@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { database, type Employee } from "@/utils/database";
-import { DEPARTMENTS } from "@/constants/departments";
+import { useDepartments } from "@/hooks/useDepartments";
 import { toast } from "sonner";
 import NotificationForm from "@/components/notifications/NotificationForm";
 
@@ -18,6 +18,7 @@ import { getTestScore } from './employeeUtils';
 import { EmployeesTabProps, NewEmployeeFormData, EditingEmployeeData } from './employeeTabTypes';
 
 export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
+  const customDepartments = useDepartments();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -69,7 +70,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
 
   // Получение уникальных отделов из существующих сотрудников + константы
   const existingDepartments = Array.from(new Set(employees.map(emp => emp.department)));
-  const departments = Array.from(new Set([...DEPARTMENTS, ...existingDepartments]));
+  const departments = Array.from(new Set([...customDepartments, ...existingDepartments]));
 
   // Функция добавления сотрудника
   const handleAddEmployee = () => {
