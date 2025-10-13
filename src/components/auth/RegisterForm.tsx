@@ -7,28 +7,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import authService, { RegisterData } from '@/utils/authService';
+import { DEPARTMENTS, POSITIONS } from '@/constants/departments';
 
 interface RegisterFormProps {
   onSuccess: () => void;
   onLoginClick: () => void;
 }
 
-const departments = [
-  'IT', 'Обучение', 'Партнерка', 'Отдел разработки', 'QA/Тестирование', 'DevOps',
-  'Отдел продаж', 'Маркетинг', 'SEO/SMM', 'HR', 'Управление', 'Бухгалтерия',
-  'Финансы', 'Дизайн', 'Аналитика', 'Безопасность', 'Поддержка клиентов',
-  'Логистика', 'Закупки', 'Юридический', 'Производство', 'Качество',
-  'Исследования', 'Техническая документация', 'Проектное управление', 'Консалтинг'
-];
 
-const positions = [
-  'Junior разработчик', 'Middle разработчик', 'Senior разработчик', 'Team Lead',
-  'Менеджер проекта', 'Product Manager', 'Системный аналитик', 'Дизайнер',
-  'QA инженер', 'DevOps инженер', 'Специалист', 'Старший специалист',
-  'Эксперт', 'Консультант', 'Координатор', 'Ассистент', 'Стажер',
-  'Руководитель отдела', 'Заместитель директора', 'Директор',
-  'Бухгалтер', 'Экономист', 'HR-менеджер', 'Маркетолог', 'SMM-менеджер'
-];
 
 export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormProps) {
   const [formData, setFormData] = useState<RegisterData>({
@@ -168,7 +154,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                 <SelectValue placeholder="Выберите отдел" />
               </SelectTrigger>
               <SelectContent>
-                {departments.map((dept) => (
+                {DEPARTMENTS.map((dept) => (
                   <SelectItem key={dept} value={dept}>
                     {dept}
                   </SelectItem>
@@ -188,7 +174,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                 <SelectValue placeholder="Выберите должность" />
               </SelectTrigger>
               <SelectContent>
-                {positions.map((position) => (
+                {POSITIONS.map((position) => (
                   <SelectItem key={position} value={position}>
                     {position}
                   </SelectItem>

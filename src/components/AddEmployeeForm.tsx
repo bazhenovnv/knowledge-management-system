@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import { DEPARTMENTS, POSITIONS } from '@/constants/departments';
 
 interface AddEmployeeFormProps {
   onEmployeeAdded: (employee: DatabaseEmployee) => void;
@@ -83,34 +84,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const departments = [
-    'IT',
-    'Обучение',
-    'Партнерка',
-    'Отдел разработки',
-    'Отдел продаж',
-    'Техническая поддержка',
-    'HR',
-    'Маркетинг',
-    'Финансы',
-    'Управление',
-    'Бухгалтерия',
-    'Аналитика',
-    'Дизайн',
-    'QA/Тестирование',
-    'DevOps',
-    'Контент-менеджмент',
-    'SEO/SMM',
-    'Клиентский сервис',
-    'Закупки',
-    'Логистика',
-    'Безопасность',
-    'Юридический отдел',
-    'Операционный отдел',
-    'Планирование',
-    'Исследования и разработки',
-    'Другое'
-  ];
+
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -184,7 +158,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
                   <SelectValue placeholder="Выберите отдел" />
                 </SelectTrigger>
                 <SelectContent>
-                  {departments.map((dept) => (
+                  {DEPARTMENTS.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
                     </SelectItem>
