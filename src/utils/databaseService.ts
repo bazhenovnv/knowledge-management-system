@@ -153,12 +153,20 @@ class DatabaseService {
 
   async deleteEmployee(id: number): Promise<boolean> {
     // Мягкое удаление - деактивация сотрудника
-    const response = await this.makeRequest(`?action=update&table=employees&id=${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ is_active: false })
-    });
+    try {
+      const response = await this.makeRequest(`?action=update&table=employees&id=${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ is_active: false })
+      });
 
-    return !response.error;
+      console.log('Delete employee response:', response);
+      
+      // Проверяем успех операции (либо есть data, либо нет error)
+      return !response.error || !!response.message;
+    } catch (error) {
+      console.error('Delete employee error:', error);
+      return false;
+    }
   }
 
   async restoreEmployee(id: number): Promise<boolean> {

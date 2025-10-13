@@ -217,22 +217,60 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
     """Обновить запись"""
     try:
         if table == 'employees':
-            cursor.execute("""
+            # Проверяем, какие поля переданы для обновления
+            update_fields = []
+            update_values = []
+            
+            # Обрабатываем все возможные поля
+            if 'full_name' in data or 'name' in data:
+                update_fields.append('full_name = %s')
+                update_values.append(data.get('full_name', data.get('name')))
+            
+            if 'email' in data:
+                update_fields.append('email = %s')
+                update_values.append(data.get('email'))
+            
+            if 'phone' in data:
+                update_fields.append('phone = %s')
+                update_values.append(data.get('phone'))
+            
+            if 'department' in data:
+                update_fields.append('department = %s')
+                update_values.append(data.get('department'))
+            
+            if 'position' in data:
+                update_fields.append('position = %s')
+                update_values.append(data.get('position'))
+            
+            if 'role' in data:
+                update_fields.append('role = %s')
+                update_values.append(data.get('role'))
+            
+            if 'hire_date' in data:
+                update_fields.append('hire_date = %s')
+                update_values.append(data.get('hire_date'))
+            
+            if 'is_active' in data:
+                update_fields.append('is_active = %s')
+                update_values.append(data.get('is_active'))
+            
+            # Всегда обновляем updated_at
+            update_fields.append('updated_at = CURRENT_TIMESTAMP')
+            
+            if not update_fields:
+                return {'error': 'Нет полей для обновления'}
+            
+            # Добавляем item_id в конец значений
+            update_values.append(item_id)
+            
+            query = f"""
                 UPDATE t_p47619579_knowledge_management.employees 
-                SET full_name = %s, email = %s, phone = %s, department = %s, 
-                    position = %s, role = %s, hire_date = %s, updated_at = CURRENT_TIMESTAMP
+                SET {', '.join(update_fields)}
                 WHERE id = %s
                 RETURNING id, full_name, email, department, position, role, phone, hire_date, is_active, created_at, updated_at
-            """, (
-                data.get('name', data.get('full_name')),
-                data.get('email'),
-                data.get('phone'),
-                data.get('department'),
-                data.get('position'),
-                data.get('role'),
-                data.get('hire_date'),
-                item_id
-            ))
+            """
+            
+            cursor.execute(query, tuple(update_values))
         
         row = cursor.fetchone()
         if row:
