@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
 import EditEmployeeForm from './EditEmployeeForm';
 import AddEmployeeForm from './AddEmployeeForm';
+import * as XLSX from 'xlsx';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +19,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const EmployeeList: React.FC = () => {
   const [employees, setEmployees] = useState<DatabaseEmployee[]>([]);
@@ -119,6 +126,89 @@ const EmployeeList: React.FC = () => {
     }
   };
 
+  const exportToExcel = () => {
+    try {
+      const exportData = employees.map(emp => ({
+        'ID': emp.id,
+        'ФИО': emp.full_name,
+        'Email': emp.email,
+        'Телефон': emp.phone || '-',
+        'Отдел': emp.department,
+        'Должность': emp.position,
+        'Роль': getRoleText(emp.role),
+        'Дата найма': emp.hire_date ? new Date(emp.hire_date).toLocaleDateString('ru-RU') : '-',
+        'Создан': new Date(emp.created_at).toLocaleDateString('ru-RU')
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Сотрудники');
+      
+      // Настройка ширины колонок
+      const colWidths = [
+        { wch: 5 },  // ID
+        { wch: 35 }, // ФИО
+        { wch: 30 }, // Email
+        { wch: 18 }, // Телефон
+        { wch: 25 }, // Отдел
+        { wch: 30 }, // Должность
+        { wch: 15 }, // Роль
+        { wch: 12 }, // Дата найма
+        { wch: 12 }  // Создан
+      ];
+      ws['!cols'] = colWidths;
+
+      const fileName = `Сотрудники_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      
+      toast.success(`Экспортировано ${employees.length} сотрудников в Excel`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Ошибка при экспорте данных');
+    }
+  };
+
+  const exportToCSV = () => {
+    try {
+      const headers = ['ID', 'ФИО', 'Email', 'Телефон', 'Отдел', 'Должность', 'Роль', 'Дата найма', 'Создан'];
+      
+      const csvData = employees.map(emp => [
+        emp.id,
+        emp.full_name,
+        emp.email,
+        emp.phone || '-',
+        emp.department,
+        emp.position,
+        getRoleText(emp.role),
+        emp.hire_date ? new Date(emp.hire_date).toLocaleDateString('ru-RU') : '-',
+        new Date(emp.created_at).toLocaleDateString('ru-RU')
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Сотрудники_${new Date().toLocaleDateString('ru-RU').replace(/\./g, '-')}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(`Экспортировано ${employees.length} сотрудников в CSV`);
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Ошибка при экспорте данных');
+    }
+  };
+
   if (isAddingEmployee) {
     return (
       <div>
@@ -185,6 +275,26 @@ const EmployeeList: React.FC = () => {
                 <Icon name="UserPlus" size={16} className="mr-2" />
                 Добавить
               </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Icon name="Download" size={16} className="mr-2" />
+                    Экспорт
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={exportToExcel}>
+                    <Icon name="FileSpreadsheet" size={16} className="mr-2" />
+                    Экспорт в Excel (.xlsx)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportToCSV}>
+                    <Icon name="FileText" size={16} className="mr-2" />
+                    Экспорт в CSV
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <Button onClick={loadEmployees} variant="outline" size="sm">
                 <Icon name="RefreshCw" size={16} className="mr-2" />
                 Обновить
