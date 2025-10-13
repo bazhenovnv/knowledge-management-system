@@ -149,13 +149,17 @@ class TestsService {
       }>;
     }>;
   }): Promise<DatabaseTest | null> {
+    console.log('testsService.createTest called with:', testData);
+    
     const response = await this.makeRequest<DatabaseTest>('?action=create_test_full', {
       method: 'POST',
       body: JSON.stringify(testData)
     });
 
+    console.log('testsService.createTest response:', response);
+
     if (response.error || !response.data) {
-      console.error('Error creating test:', response.error);
+      console.error('Error creating test:', response.error || response);
       return null;
     }
 

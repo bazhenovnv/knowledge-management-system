@@ -608,6 +608,8 @@ def create_test_with_questions(cursor, conn, data: Dict[str, Any]) -> Dict[str, 
     try:
         schema = 't_p47619579_knowledge_management'
         
+        print(f"Creating test with data: {data}")
+        
         # Создаем тест
         cursor.execute(f"""
             INSERT INTO {schema}.tests (title, description, course_id, creator_id, 
@@ -625,12 +627,18 @@ def create_test_with_questions(cursor, conn, data: Dict[str, Any]) -> Dict[str, 
             data.get('is_active', True)
         ))
         
+        print("Test inserted, getting test_id...")
+        
         test_row = cursor.fetchone()
         test_id = test_row['id']
         
         # Создаем вопросы
         questions = data.get('questions', [])
+        print(f"Creating {len(questions)} questions...")
+        
         for idx, question in enumerate(questions):
+            print(f"Question {idx + 1}: {question.get('question_text')[:50]}...")
+            
             cursor.execute(f"""
                 INSERT INTO {schema}.test_questions (test_id, question_text, question_type, 
                                                     points, order_num)
@@ -649,6 +657,8 @@ def create_test_with_questions(cursor, conn, data: Dict[str, Any]) -> Dict[str, 
             
             # Создаем варианты ответов
             answers = question.get('answers', [])
+            print(f"Creating {len(answers)} answers for question {idx + 1}...")
+            
             for ans_idx, answer in enumerate(answers):
                 cursor.execute(f"""
                     INSERT INTO {schema}.test_answers (question_id, answer_text, 
@@ -662,6 +672,8 @@ def create_test_with_questions(cursor, conn, data: Dict[str, Any]) -> Dict[str, 
                 ))
         
         conn.commit()
+        print(f"Test created successfully: {test_row['title']}")
+        
         return {
             'data': dict(test_row),
             'message': f'Тест "{test_row["title"]}" создан успешно'
@@ -669,6 +681,9 @@ def create_test_with_questions(cursor, conn, data: Dict[str, Any]) -> Dict[str, 
         
     except Exception as e:
         conn.rollback()
+        print(f"Error creating test: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return {'error': f'Ошибка создания теста: {str(e)}'}
 
 

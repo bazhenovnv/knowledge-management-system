@@ -163,36 +163,49 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
         passing_score: parseInt(passingScore),
         max_attempts: 3,
         questions: questions.map(q => {
-          const answers = q.question_type === 'text' 
-            ? []
-            : q.options
-                .filter(o => o.trim())
-                .map((option, idx) => ({
-                  answer_text: option.trim(),
-                  is_correct: q.correct_answers.includes(idx.toString())
-                }));
+          if (q.question_type === 'text') {
+            return {
+              question_text: q.question_text.trim(),
+              question_type: 'text' as const,
+              points: q.points,
+              answers: []
+            };
+          }
+
+          const answers = q.options
+            .map((option, originalIdx) => ({
+              answer_text: option.trim(),
+              is_correct: q.correct_answers.includes(originalIdx.toString()),
+              originalIdx
+            }))
+            .filter(a => a.answer_text)
+            .map(({ answer_text, is_correct }) => ({
+              answer_text,
+              is_correct
+            }));
 
           return {
             question_text: q.question_text.trim(),
-            question_type: q.question_type === 'single' ? 'single_choice' as const : 
-                          q.question_type === 'multiple' ? 'multiple_choice' as const : 
-                          'text' as const,
+            question_type: q.question_type === 'single' ? 'single_choice' as const : 'multiple_choice' as const,
             points: q.points,
             answers
           };
         })
       };
 
+      console.log('Sending test data:', testData);
       const result = await testsService.createTest(testData);
+      console.log('Create test result:', result);
 
       if (result) {
         toast.success('Тест успешно создан!');
         onSuccess();
       } else {
-        toast.error('Ошибка при создании теста');
+        toast.error('Ошибка при создании теста - проверьте консоль');
       }
     } catch (error) {
-      toast.error('Ошибка при создании теста');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      toast.error(`Ошибка: ${errorMessage}`);
       console.error('Error creating test:', error);
     } finally {
       setIsSubmitting(false);
