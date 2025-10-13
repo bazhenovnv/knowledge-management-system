@@ -112,7 +112,7 @@ def get_table_data(cursor, table: str) -> Dict[str, Any]:
         schema = 't_p47619579_knowledge_management'
         if table == 'employees':
             cursor.execute(f"""
-                SELECT id, full_name as name, email, department, position, role, 
+                SELECT id, full_name, email, department, position, role, phone, hire_date,
                        is_active, created_at, updated_at
                 FROM {schema}.employees
                 WHERE is_active = true
