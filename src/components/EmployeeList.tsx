@@ -225,43 +225,49 @@ const EmployeeList: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredEmployees.map((employee) => (
-              <div 
-                key={employee.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{employee.full_name}</h3>
-                      <Badge className={getRoleBadgeColor(employee.role)}>
-                        {getRoleText(employee.role)}
-                      </Badge>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Icon name="Mail" size={14} />
-                        {employee.email}
+              {filteredEmployees.map((employee) => {
+                // Фильтруем сотрудников с пустыми обязательными полями
+                if (!employee.full_name || !employee.department || !employee.position) {
+                  return null;
+                }
+                
+                return (
+                <div 
+                  key={employee.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-lg">{employee.full_name}</h3>
+                        <Badge className={getRoleBadgeColor(employee.role)}>
+                          {getRoleText(employee.role)}
+                        </Badge>
                       </div>
                       
-                      {employee.phone && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
-                          <Icon name="Phone" size={14} />
-                          {employee.phone}
+                          <Icon name="Mail" size={14} />
+                          {employee.email}
                         </div>
-                      )}
-                      
-                      <div className="flex items-center gap-1">
-                        <Icon name="Building2" size={14} />
-                        {employee.department}
+                        
+                        {employee.phone && (
+                          <div className="flex items-center gap-1">
+                            <Icon name="Phone" size={14} />
+                            {employee.phone}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-1">
+                          <Icon name="Building2" size={14} />
+                          {employee.department}
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <Icon name="Briefcase" size={14} />
+                          {employee.position}
+                        </div>
                       </div>
-                      
-                      <div className="flex items-center gap-1">
-                        <Icon name="Briefcase" size={14} />
-                        {employee.position}
-                      </div>
-                    </div>
                     
                     {employee.hire_date && (
                       <div className="mt-2 text-xs text-gray-500">
@@ -288,10 +294,11 @@ const EmployeeList: React.FC = () => {
                       <Icon name="Trash2" size={14} className="mr-1" />
                       Удалить
                     </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+              })}
           </div>
         )}
       </CardContent>

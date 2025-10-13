@@ -60,8 +60,16 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
 
     try {
       // Валидация
-      if (!formData.full_name || !formData.email || !formData.department || !formData.position) {
-        toast.error('Заполните все обязательные поля');
+      if (!formData.full_name?.trim() || !formData.email?.trim() || !formData.department?.trim() || !formData.position?.trim()) {
+        toast.error('Заполните все обязательные поля (имя, email, отдел, должность)');
+        setIsLoading(false);
+        return;
+      }
+
+      // Проверка минимальной длины имени
+      if (formData.full_name.trim().length < 3) {
+        toast.error('Имя должно содержать минимум 3 символа');
+        setIsLoading(false);
         return;
       }
 
@@ -69,6 +77,7 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         toast.error('Введите корректный email адрес');
+        setIsLoading(false);
         return;
       }
 
