@@ -2,19 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
 import EditEmployeeForm from './EditEmployeeForm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const EmployeeList: React.FC = () => {
   const [employees, setEmployees] = useState<DatabaseEmployee[]>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<DatabaseEmployee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingEmployee, setEditingEmployee] = useState<DatabaseEmployee | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [employeeToDelete, setEmployeeToDelete] = useState<DatabaseEmployee | null>(null);
 
   useEffect(() => {
     loadEmployees();
   }, []);
+
+  useEffect(() => {
+    filterEmployees();
+  }, [employees, searchTerm]);
 
   const loadEmployees = async () => {
     setIsLoading(true);
@@ -26,6 +44,44 @@ const EmployeeList: React.FC = () => {
       toast.error('Ошибка при загрузке списка сотрудников');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const filterEmployees = () => {
+    if (!searchTerm.trim()) {
+      setFilteredEmployees(employees);
+      return;
+    }
+
+    const term = searchTerm.toLowerCase();
+    const filtered = employees.filter(emp => 
+      emp.full_name.toLowerCase().includes(term) ||
+      emp.email.toLowerCase().includes(term) ||
+      emp.department.toLowerCase().includes(term) ||
+      emp.position.toLowerCase().includes(term) ||
+      (emp.phone && emp.phone.includes(term))
+    );
+    
+    setFilteredEmployees(filtered);
+  };
+
+  const handleDeleteEmployee = async () => {
+    if (!employeeToDelete) return;
+
+    try {
+      const success = await databaseService.deleteEmployee(employeeToDelete.id);
+      
+      if (success) {
+        setEmployees(prev => prev.filter(emp => emp.id !== employeeToDelete.id));
+        toast.success(`Сотрудник ${employeeToDelete.full_name} деактивирован`);
+      } else {
+        toast.error('Не удалось деактивировать сотрудника');
+      }
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      toast.error('Ошибка при деактивации сотрудника');
+    } finally {
+      setEmployeeToDelete(null);
     }
   };
 
@@ -87,29 +143,54 @@ const EmployeeList: React.FC = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Icon name="Users" size={24} />
-            Список сотрудников ({employees.length})
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon name="Users" size={24} />
+              Список сотрудников ({employees.length})
+            </div>
+            <Button onClick={loadEmployees} variant="outline" size="sm">
+              <Icon name="RefreshCw" size={16} className="mr-2" />
+              Обновить
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent>
+          <div className="mb-4">
+            <div className="relative">
+              <Icon 
+                name="Search" 
+                size={18} 
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" 
+              />
+              <Input
+                type="text"
+                placeholder="Поиск по имени, email, отделу, должности или телефону..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            {searchTerm && (
+              <p className="text-sm text-gray-500 mt-2">
+                Найдено: {filteredEmployees.length} из {employees.length}
+              </p>
+            )}
           </div>
-          <Button onClick={loadEmployees} variant="outline" size="sm">
-            <Icon name="RefreshCw" size={16} className="mr-2" />
-            Обновить
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent>
-        {employees.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <Icon name="Users" size={48} className="mx-auto mb-4 opacity-50" />
-            <p>Сотрудники не найдены</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {employees.map((employee) => (
+
+          {filteredEmployees.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Icon name="Users" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>
+                {searchTerm ? 'Сотрудники не найдены по запросу' : 'Сотрудники не найдены'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredEmployees.map((employee) => (
               <div 
                 key={employee.id}
                 className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
@@ -163,6 +244,15 @@ const EmployeeList: React.FC = () => {
                       <Icon name="Edit" size={14} className="mr-1" />
                       Редактировать
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEmployeeToDelete(employee)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Icon name="Trash2" size={14} className="mr-1" />
+                      Удалить
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -171,6 +261,32 @@ const EmployeeList: React.FC = () => {
         )}
       </CardContent>
     </Card>
+
+    <AlertDialog open={!!employeeToDelete} onOpenChange={(open) => !open && setEmployeeToDelete(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Подтверждение деактивации</AlertDialogTitle>
+          <AlertDialogDescription>
+            Вы уверены, что хотите деактивировать сотрудника{' '}
+            <strong>{employeeToDelete?.full_name}</strong>?
+            <br />
+            <br />
+            Сотрудник будет скрыт из списка, но данные останутся в базе данных.
+            Это действие можно отменить через администраторскую панель.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Отмена</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDeleteEmployee}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Деактивировать
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 

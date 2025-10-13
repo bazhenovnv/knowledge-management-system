@@ -152,11 +152,29 @@ class DatabaseService {
   }
 
   async deleteEmployee(id: number): Promise<boolean> {
-    const response = await this.makeRequest(`?action=delete&table=employees&id=${id}`, {
-      method: 'DELETE'
+    // Мягкое удаление - деактивация сотрудника
+    const response = await this.makeRequest(`?action=update&table=employees&id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ is_active: false })
     });
 
     return !response.error;
+  }
+
+  async searchEmployees(searchTerm: string): Promise<DatabaseEmployee[]> {
+    const response = await this.makeRequest<DatabaseEmployee[]>(
+      `?action=search&table=employees&term=${encodeURIComponent(searchTerm)}`
+    );
+    
+    if (response.error) {
+      console.error('Error searching employees:', response.error);
+      return [];
+    }
+
+    return (response.data || []).map(emp => ({
+      ...emp,
+      name: emp.full_name
+    }));
   }
 
   async updateEmployeePassword(id: number, newPassword: string): Promise<boolean> {
