@@ -10,6 +10,8 @@ import { testsService, DatabaseTest } from '@/utils/testsService';
 import DatabaseTestTaking from './DatabaseTestTaking';
 import TestResultsView from './TestResultsView';
 import TestCreationForm from './TestCreationForm';
+import TestEditForm from './TestEditForm';
+import DeleteTestDialog from './DeleteTestDialog';
 
 interface DatabaseTestManagementProps {
   userId: number;
@@ -23,6 +25,8 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   const [takingTestId, setTakingTestId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('tests');
   const [isCreatingTest, setIsCreatingTest] = useState(false);
+  const [editingTestId, setEditingTestId] = useState<number | null>(null);
+  const [deletingTest, setDeletingTest] = useState<{ id: number; title: string } | null>(null);
 
   useEffect(() => {
     loadTests();
@@ -65,16 +69,20 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   };
 
   const handleEditTest = (test: DatabaseTest) => {
-    toast.info('Редактирование тестов скоро будет доступно');
+    setEditingTestId(test.id);
   };
 
-  const handleDeleteTest = async (testId: number) => {
-    if (!confirm('Удалить тест?')) return;
+  const handleDeleteTest = (testId: number, testTitle: string) => {
+    setDeletingTest({ id: testId, title: testTitle });
+  };
+
+  const confirmDeleteTest = async () => {
+    if (!deletingTest) return;
     
     try {
-      const success = await testsService.deleteTest(testId);
+      const success = await testsService.deleteTest(deletingTest.id);
       if (success) {
-        toast.success('Тест удален');
+        toast.success('Тест успешно удалён');
         await loadTests();
       } else {
         toast.error('Ошибка удаления теста');
@@ -82,6 +90,8 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
     } catch (error) {
       toast.error('Ошибка удаления теста');
       console.error('Error deleting test:', error);
+    } finally {
+      setDeletingTest(null);
     }
   };
 
@@ -92,6 +102,19 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
         onCancel={() => setIsCreatingTest(false)}
         onSuccess={() => {
           setIsCreatingTest(false);
+          loadTests();
+        }}
+      />
+    );
+  }
+
+  if (editingTestId) {
+    return (
+      <TestEditForm
+        testId={editingTestId}
+        onCancel={() => setEditingTestId(null)}
+        onSuccess={() => {
+          setEditingTestId(null);
           loadTests();
         }}
       />
@@ -121,6 +144,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   }
 
   return (
+    <>
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
       <TabsList className="grid w-full max-w-md grid-cols-2">
         <TabsTrigger value="tests">
@@ -308,6 +332,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
                             variant="outline"
                             size="sm"
                             onClick={() => handleEditTest(test)}
+                            title="Редактировать тест"
                           >
                             <Icon name="Edit" size={16} />
                           </Button>
@@ -315,8 +340,9 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteTest(test.id)}
-                            className="text-red-600 hover:text-red-700"
+                            onClick={() => handleDeleteTest(test.id, test.title)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                            title="Удалить тест"
                           >
                             <Icon name="Trash2" size={16} />
                           </Button>
@@ -336,6 +362,14 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
         <TestResultsView userId={userId} userRole={userRole} />
       </TabsContent>
     </Tabs>
+
+    <DeleteTestDialog
+      isOpen={!!deletingTest}
+      testTitle={deletingTest?.title || ''}
+      onConfirm={confirmDeleteTest}
+      onCancel={() => setDeletingTest(null)}
+    />
+    </>
   );
 };
 

@@ -85,7 +85,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif method == 'PUT':
             body_data = json.loads(event.get('body', '{}'))
             item_id = params.get('id')
-            result = update_item(cursor, conn, table, item_id, body_data)
+            if action == 'update_test_full':
+                result = update_test_with_questions(cursor, conn, item_id, body_data)
+            else:
+                result = update_item(cursor, conn, table, item_id, body_data)
             
         elif method == 'DELETE':
             item_id = params.get('id')
@@ -691,3 +694,88 @@ def submit_test_results(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка сохранения результатов: {str(e)}'}
+
+
+def update_test_with_questions(cursor, conn, test_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Обновить тест с вопросами и ответами"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        # Обновляем основную информацию теста
+        cursor.execute(f"""
+            UPDATE {schema}.tests
+            SET title = %s,
+                description = %s,
+                course_id = %s,
+                time_limit = %s,
+                passing_score = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING id, title, updated_at
+        """, (
+            data.get('title'),
+            data.get('description'),
+            data.get('course_id'),
+            data.get('time_limit'),
+            data.get('passing_score', 70),
+            test_id
+        ))
+        
+        test_row = cursor.fetchone()
+        if not test_row:
+            return {'error': 'Тест не найден'}
+        
+        # Удаляем старые вопросы и ответы
+        cursor.execute(f"""
+            DELETE FROM {schema}.test_answers
+            WHERE question_id IN (
+                SELECT id FROM {schema}.test_questions WHERE test_id = %s
+            )
+        """, (test_id,))
+        
+        cursor.execute(f"""
+            DELETE FROM {schema}.test_questions WHERE test_id = %s
+        """, (test_id,))
+        
+        # Создаем новые вопросы
+        questions = data.get('questions', [])
+        for idx, question in enumerate(questions):
+            cursor.execute(f"""
+                INSERT INTO {schema}.test_questions (test_id, question_text, question_type, 
+                                                    points, order_num)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING id
+            """, (
+                test_id,
+                question.get('question_text'),
+                question.get('question_type', 'single_choice'),
+                question.get('points', 1),
+                idx + 1
+            ))
+            
+            question_row = cursor.fetchone()
+            question_id = question_row['id']
+            
+            # Создаем варианты ответов
+            answers = question.get('answers', [])
+            for ans_idx, answer in enumerate(answers):
+                cursor.execute(f"""
+                    INSERT INTO {schema}.test_answers (question_id, answer_text, 
+                                                      is_correct, order_num)
+                    VALUES (%s, %s, %s, %s)
+                """, (
+                    question_id,
+                    answer.get('answer_text'),
+                    answer.get('is_correct', False),
+                    ans_idx + 1
+                ))
+        
+        conn.commit()
+        return {
+            'data': dict(test_row),
+            'message': f'Тест "{test_row["title"]}" успешно обновлён'
+        }
+        
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка обновления теста: {str(e)}'}
