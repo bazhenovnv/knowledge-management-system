@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { testsService, DatabaseTest } from '@/utils/testsService';
 import DatabaseTestTaking from './DatabaseTestTaking';
 import TestResultsView from './TestResultsView';
+import TestCreationForm from './TestCreationForm';
 
 interface DatabaseTestManagementProps {
   userId: number;
@@ -21,6 +22,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   const [searchQuery, setSearchQuery] = useState('');
   const [takingTestId, setTakingTestId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState('tests');
+  const [isCreatingTest, setIsCreatingTest] = useState(false);
 
   useEffect(() => {
     loadTests();
@@ -83,6 +85,19 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
     }
   };
 
+  if (isCreatingTest) {
+    return (
+      <TestCreationForm
+        userId={userId}
+        onCancel={() => setIsCreatingTest(false)}
+        onSuccess={() => {
+          setIsCreatingTest(false);
+          loadTests();
+        }}
+      />
+    );
+  }
+
   if (takingTestId) {
     return (
       <DatabaseTestTaking
@@ -130,7 +145,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
                 </CardDescription>
               </div>
               {(userRole === 'admin' || userRole === 'teacher') && (
-                <Button onClick={() => toast.info('Создание тестов скоро будет доступно')}>
+                <Button onClick={() => setIsCreatingTest(true)}>
                   <Icon name="Plus" size={16} className="mr-2" />
                   Создать тест
                 </Button>
