@@ -161,6 +161,32 @@ class DatabaseService {
     return !response.error;
   }
 
+  async restoreEmployee(id: number): Promise<boolean> {
+    // Восстановление деактивированного сотрудника
+    const response = await this.makeRequest(`?action=update&table=employees&id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ is_active: true })
+    });
+
+    return !response.error;
+  }
+
+  async getInactiveEmployees(): Promise<DatabaseEmployee[]> {
+    const response = await this.makeRequest<DatabaseEmployee[]>('?action=list_inactive&table=employees');
+    
+    if (response.error) {
+      console.error('Error fetching inactive employees:', response.error);
+      return [];
+    }
+
+    const employees = (response.data || []).map(emp => ({
+      ...emp,
+      name: emp.full_name
+    }));
+
+    return employees;
+  }
+
   async searchEmployees(searchTerm: string): Promise<DatabaseEmployee[]> {
     const response = await this.makeRequest<DatabaseEmployee[]>(
       `?action=search&table=employees&term=${encodeURIComponent(searchTerm)}`

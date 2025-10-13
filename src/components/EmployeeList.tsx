@@ -84,14 +84,14 @@ const EmployeeList: React.FC = () => {
       const success = await databaseService.deleteEmployee(employeeToDelete.id);
       
       if (success) {
-        setEmployees(prev => prev.filter(emp => emp.id !== employeeToDelete.id));
-        toast.success(`Сотрудник ${employeeToDelete.full_name} деактивирован`);
+        await loadEmployees();
+        toast.success(`Сотрудник ${employeeToDelete.full_name} удален из базы`);
       } else {
-        toast.error('Не удалось деактивировать сотрудника');
+        toast.error('Не удалось удалить сотрудника');
       }
     } catch (error) {
       console.error('Error deleting employee:', error);
-      toast.error('Ошибка при деактивации сотрудника');
+      toast.error('Ошибка при удалении сотрудника');
     } finally {
       setEmployeeToDelete(null);
     }

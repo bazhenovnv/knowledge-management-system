@@ -52,6 +52,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if method == 'GET':
             if action == 'list':
                 result = get_table_data(cursor, table)
+            elif action == 'list_inactive':
+                result = get_inactive_employees(cursor)
             elif action == 'get':
                 item_id = params.get('id')
                 result = get_item_by_id(cursor, table, item_id)
@@ -133,6 +135,23 @@ def get_table_data(cursor, table: str) -> Dict[str, Any]:
         return {'data': [dict(row) for row in rows], 'count': len(rows)}
     except Exception as e:
         return {'error': f'Ошибка получения данных из {table}: {str(e)}'}
+
+
+def get_inactive_employees(cursor) -> Dict[str, Any]:
+    """Получить неактивных сотрудников"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        cursor.execute(f"""
+            SELECT id, full_name, email, department, position, role, phone, hire_date,
+                   is_active, created_at, updated_at
+            FROM {schema}.employees
+            WHERE is_active = false
+            ORDER BY updated_at DESC
+        """)
+        rows = cursor.fetchall()
+        return {'data': [dict(row) for row in rows], 'count': len(rows)}
+    except Exception as e:
+        return {'error': f'Ошибка получения неактивных сотрудников: {str(e)}'}
 
 
 def get_item_by_id(cursor, table: str, item_id: str) -> Dict[str, Any]:
