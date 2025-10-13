@@ -243,7 +243,50 @@ def create_item(cursor, conn, table: str, data: Dict[str, Any]) -> Dict[str, Any
 def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     """Обновить запись"""
     try:
-        if table == 'employees':
+        schema = 't_p47619579_knowledge_management'
+        
+        if table == 'tests':
+            # Обновление теста
+            update_fields = []
+            update_values = []
+            
+            if 'is_active' in data:
+                update_fields.append('is_active = %s')
+                update_values.append(data.get('is_active'))
+            
+            if 'title' in data:
+                update_fields.append('title = %s')
+                update_values.append(data.get('title'))
+            
+            if 'description' in data:
+                update_fields.append('description = %s')
+                update_values.append(data.get('description'))
+            
+            if 'passing_score' in data:
+                update_fields.append('passing_score = %s')
+                update_values.append(data.get('passing_score'))
+            
+            if 'time_limit' in data:
+                update_fields.append('time_limit = %s')
+                update_values.append(data.get('time_limit'))
+            
+            update_fields.append('updated_at = CURRENT_TIMESTAMP')
+            
+            if not update_fields:
+                return {'error': 'Нет полей для обновления'}
+            
+            update_values.append(item_id)
+            
+            query = f"""
+                UPDATE {schema}.tests 
+                SET {', '.join(update_fields)}
+                WHERE id = %s
+                RETURNING id, title, is_active, updated_at
+            """
+            
+            cursor.execute(query, tuple(update_values))
+            
+        elif table == 'employees':
             # Проверяем, какие поля переданы для обновления
             update_fields = []
             update_values = []
