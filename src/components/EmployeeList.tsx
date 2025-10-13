@@ -34,6 +34,9 @@ const EmployeeList: React.FC = () => {
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [employeeToDelete, setEmployeeToDelete] = useState<DatabaseEmployee | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<{ current: number; total: number } | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadEmployees();
@@ -209,6 +212,163 @@ const EmployeeList: React.FC = () => {
     }
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: string[] = [];
+      const totalRows = jsonData.length;
+
+      setImportProgress({ current: 0, total: totalRows });
+
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        setImportProgress({ current: i + 1, total: totalRows });
+        
+        try {
+          const rowData = row as any;
+          
+          // Маппинг колонок (поддержка разных вариантов названий)
+          const fullName = rowData['ФИО'] || rowData['Имя'] || rowData['Full Name'] || rowData['Name'];
+          const email = rowData['Email'] || rowData['E-mail'] || rowData['Почта'];
+          const phone = rowData['Телефон'] || rowData['Phone'] || '';
+          const department = rowData['Отдел'] || rowData['Department'];
+          const position = rowData['Должность'] || rowData['Position'];
+          const roleText = rowData['Роль'] || rowData['Role'] || 'employee';
+          const hireDate = rowData['Дата найма'] || rowData['Hire Date'] || '';
+
+          // Преобразование роли из текста в код
+          let role: 'admin' | 'teacher' | 'employee' = 'employee';
+          if (roleText.toLowerCase().includes('админ') || roleText.toLowerCase() === 'admin') {
+            role = 'admin';
+          } else if (roleText.toLowerCase().includes('препод') || roleText.toLowerCase() === 'teacher') {
+            role = 'teacher';
+          }
+
+          // Валидация обязательных полей
+          if (!fullName || !email || !department || !position) {
+            errorCount++;
+            errors.push(`Строка с email "${email || 'не указан'}": пропущены обязательные поля`);
+            continue;
+          }
+
+          // Валидация email
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            errorCount++;
+            errors.push(`"${fullName}": некорректный email "${email}"`);
+            continue;
+          }
+
+          // Создание сотрудника
+          const newEmployee = await databaseService.createEmployee({
+            full_name: fullName.toString().trim(),
+            email: email.toString().trim(),
+            phone: phone ? phone.toString().trim() : undefined,
+            department: department.toString().trim(),
+            position: position.toString().trim(),
+            role,
+            hire_date: hireDate ? hireDate.toString() : undefined,
+            password: 'temp123' // Временный пароль
+          });
+
+          if (newEmployee) {
+            successCount++;
+          } else {
+            errorCount++;
+            errors.push(`"${fullName}": не удалось создать (возможно, email уже существует)`);
+          }
+        } catch (error) {
+          errorCount++;
+          errors.push(`Ошибка обработки строки: ${error}`);
+        }
+      }
+
+      // Обновляем список сотрудников
+      await loadEmployees();
+
+      // Показываем результаты
+      if (successCount > 0) {
+        toast.success(`Успешно импортировано: ${successCount} сотрудников`);
+      }
+      
+      if (errorCount > 0) {
+        const errorMessage = errors.slice(0, 3).join('\n') + (errors.length > 3 ? `\n... и еще ${errors.length - 3}` : '');
+        toast.error(`Ошибок при импорте: ${errorCount}\n${errorMessage}`, { duration: 5000 });
+      }
+
+      if (successCount === 0 && errorCount === 0) {
+        toast.warning('Файл не содержит данных для импорта');
+      }
+
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Ошибка при чтении файла. Проверьте формат Excel.');
+    } finally {
+      setIsImporting(false);
+      setImportProgress(null);
+      // Очищаем input для возможности повторного импорта того же файла
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const downloadTemplate = () => {
+    const templateData = [
+      {
+        'ФИО': 'Иванов Иван Иванович',
+        'Email': 'ivanov@company.com',
+        'Телефон': '+7 (999) 123-45-67',
+        'Отдел': 'IT',
+        'Должность': 'Senior разработчик',
+        'Роль': 'Сотрудник',
+        'Дата найма': '2024-01-15'
+      },
+      {
+        'ФИО': 'Петрова Анна Сергеевна',
+        'Email': 'petrova@company.com',
+        'Телефон': '+7 (999) 234-56-78',
+        'Отдел': 'Обучение',
+        'Должность': 'Преподаватель',
+        'Роль': 'Преподаватель',
+        'Дата найма': '2024-02-20'
+      }
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Шаблон');
+    
+    // Настройка ширины колонок
+    ws['!cols'] = [
+      { wch: 35 }, // ФИО
+      { wch: 30 }, // Email
+      { wch: 18 }, // Телефон
+      { wch: 20 }, // Отдел
+      { wch: 30 }, // Должность
+      { wch: 15 }, // Роль
+      { wch: 12 }  // Дата найма
+    ];
+
+    XLSX.writeFile(wb, 'Шаблон_импорта_сотрудников.xlsx');
+    toast.success('Шаблон для импорта скачан');
+  };
+
   if (isAddingEmployee) {
     return (
       <div>
@@ -263,6 +423,14 @@ const EmployeeList: React.FC = () => {
 
   return (
     <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        onChange={handleFileImport}
+        style={{ display: 'none' }}
+      />
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -275,6 +443,34 @@ const EmployeeList: React.FC = () => {
                 <Icon name="UserPlus" size={16} className="mr-2" />
                 Добавить
               </Button>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={isImporting}>
+                    {isImporting ? (
+                      <>
+                        <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                        Импорт...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Upload" size={16} className="mr-2" />
+                        Импорт
+                      </>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleImportClick}>
+                    <Icon name="FileUp" size={16} className="mr-2" />
+                    Импорт из Excel
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={downloadTemplate}>
+                    <Icon name="Download" size={16} className="mr-2" />
+                    Скачать шаблон
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -304,6 +500,30 @@ const EmployeeList: React.FC = () => {
         </CardHeader>
         
         <CardContent>
+          {isImporting && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-800">
+                <Icon name="Loader2" size={18} className="animate-spin" />
+                <div className="flex-1">
+                  <span className="text-sm font-medium">Импорт сотрудников...</span>
+                  {importProgress && (
+                    <div className="mt-1">
+                      <div className="text-xs text-blue-600">
+                        Обработано: {importProgress.current} из {importProgress.total}
+                      </div>
+                      <div className="mt-1 w-full bg-blue-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
           <div className="mb-4">
             <div className="relative">
               <Icon 
