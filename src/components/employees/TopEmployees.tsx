@@ -29,6 +29,8 @@ export const TopEmployees = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTestId, setSelectedTestId] = useState<string>("");
   const [availableTests, setAvailableTests] = useState<any[]>([]);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+  const [departments, setDepartments] = useState<string[]>([]);
 
   // Загружаем сотрудников из базы данных
   useEffect(() => {
@@ -40,8 +42,21 @@ export const TopEmployees = () => {
       setEmployees(employeesData);
       setAvailableTests(testsData.filter(t => t.status === 'published'));
 
+      // Получаем уникальные отделы
+      const uniqueDepartments = Array.from(
+        new Set(employeesData
+          .filter(emp => emp.role === 'employee' && emp.department)
+          .map(emp => emp.department))
+      ).sort();
+      setDepartments(uniqueDepartments);
+
       // Фильтруем только сотрудников (не админов и преподавателей)
-      const onlyEmployees = employeesData.filter(emp => emp.role === 'employee');
+      let onlyEmployees = employeesData.filter(emp => emp.role === 'employee');
+      
+      // Применяем фильтр по отделу
+      if (selectedDepartment !== "all") {
+        onlyEmployees = onlyEmployees.filter(emp => emp.department === selectedDepartment);
+      }
       
       // Сотрудники с результатами тестов
       const employeesWithTests = onlyEmployees.filter(emp => 
@@ -95,7 +110,7 @@ export const TopEmployees = () => {
     const interval = setInterval(loadEmployees, 10000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedDepartment]);
 
   // Функция для подсчета общей оценки тестирования
   const getTestScore = (employee: any) => {
@@ -245,13 +260,89 @@ export const TopEmployees = () => {
 
   return (
     <>
+      {/* Фильтр по отделам */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Icon name="Filter" size={18} className="text-gray-500" />
+              <span className="text-sm font-medium text-gray-700">Отдел:</span>
+            </div>
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger className="w-[250px]">
+                <SelectValue placeholder="Все отделы" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center">
+                      <Icon name="Users" size={14} className="mr-2" />
+                      Все отделы
+                    </div>
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {employees.filter(e => e.role === 'employee').length}
+                    </Badge>
+                  </div>
+                </SelectItem>
+                {departments.map((dept) => {
+                  const deptCount = employees.filter(e => e.role === 'employee' && e.department === dept).length;
+                  return (
+                    <SelectItem key={dept} value={dept}>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center">
+                          <Icon name="Building2" size={14} className="mr-2" />
+                          {dept}
+                        </div>
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          {deptCount}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            {selectedDepartment !== "all" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedDepartment("all")}
+                className="text-xs"
+              >
+                <Icon name="X" size={14} className="mr-1" />
+                Сбросить
+              </Button>
+            )}
+          </div>
+          
+          {/* Статистика по текущему фильтру */}
+          <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-1.5">
+              <Icon name="Users" size={16} />
+              <span>
+                Показано: <strong className="text-gray-900">
+                  {topEmployees.length + bottomEmployees.length}
+                </strong> сотрудников
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Топ-3 лучших сотрудников */}
         <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
           <CardHeader>
-            <CardTitle className="flex items-center text-green-700">
-              <Icon name="Trophy" size={24} className="mr-2 text-green-600" />
-              Лучшие сотрудники
+            <CardTitle className="flex items-center justify-between text-green-700">
+              <div className="flex items-center">
+                <Icon name="Trophy" size={24} className="mr-2 text-green-600" />
+                Лучшие сотрудники
+              </div>
+              {selectedDepartment !== "all" && (
+                <Badge variant="outline" className="text-xs">
+                  {selectedDepartment}
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -274,9 +365,16 @@ export const TopEmployees = () => {
         {/* Топ-3 худших сотрудников */}
         <Card className="bg-gradient-to-br from-red-50 to-pink-50 border-red-200">
           <CardHeader>
-            <CardTitle className="flex items-center text-red-700">
-              <Icon name="AlertTriangle" size={24} className="mr-2 text-red-600" />
-              Требуют внимания
+            <CardTitle className="flex items-center justify-between text-red-700">
+              <div className="flex items-center">
+                <Icon name="AlertTriangle" size={24} className="mr-2 text-red-600" />
+                Требуют внимания
+              </div>
+              {selectedDepartment !== "all" && (
+                <Badge variant="outline" className="text-xs">
+                  {selectedDepartment}
+                </Badge>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
