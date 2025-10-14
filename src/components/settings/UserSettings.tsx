@@ -40,8 +40,12 @@ export default function UserSettings({ userId }: UserSettingsProps) {
 
   const loadUserData = async () => {
     try {
+      console.log('Loading user data for userId:', userId);
       const employees = database.getEmployees();
+      console.log('Total employees:', employees.length);
       const employee = employees.find(e => e.id === userId);
+      console.log('Found employee:', employee);
+      
       if (employee) {
         const userData: User = {
           id: employee.id,
@@ -50,6 +54,9 @@ export default function UserSettings({ userId }: UserSettingsProps) {
           role: employee.role
         };
         setUser(userData);
+        console.log('User set:', userData);
+      } else {
+        console.warn('Employee not found with userId:', userId);
       }
     } catch (error) {
       console.error('Ошибка загрузки данных пользователя:', error);
@@ -99,11 +106,14 @@ export default function UserSettings({ userId }: UserSettingsProps) {
     );
   }
 
+  console.log('Rendering UserSettings, user role:', user.role, 'user:', user);
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex items-center space-x-2 mb-6">
         <Icon name="Settings" size={24} className="text-blue-600" />
         <h1 className="text-2xl font-bold">Настройки профиля</h1>
+        <span className="text-sm text-gray-500">(Роль: {user.role})</span>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
