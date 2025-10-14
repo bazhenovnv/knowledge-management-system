@@ -30,6 +30,13 @@ export interface DatabaseCourse {
   updated_at: string;
 }
 
+export interface FileAttachment {
+  name: string;
+  url: string;
+  type: string;
+  size: number;
+}
+
 export interface DatabaseKnowledgeMaterial {
   id: number;
   title: string;
@@ -43,6 +50,8 @@ export interface DatabaseKnowledgeMaterial {
   enrollments: number;
   is_published: boolean;
   created_by: string;
+  cover_image?: string;
+  attachments: FileAttachment[];
   created_at: string;
   updated_at: string;
 }

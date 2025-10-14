@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
-import { databaseService, DatabaseKnowledgeMaterial } from "@/utils/databaseService";
+import { databaseService, DatabaseKnowledgeMaterial, FileAttachment } from "@/utils/databaseService";
 import { toast } from "sonner";
 
 interface KnowledgeTabProps {
@@ -62,7 +62,11 @@ export const KnowledgeTab = ({
     duration: '',
     tags: '',
     is_published: true,
+    cover_image: '',
+    attachments: [] as FileAttachment[],
   });
+
+  const [coverImagePreview, setCoverImagePreview] = useState<string>('');
 
   useEffect(() => {
     loadMaterials();
@@ -103,7 +107,10 @@ export const KnowledgeTab = ({
       duration: '',
       tags: '',
       is_published: true,
+      cover_image: '',
+      attachments: [],
     });
+    setCoverImagePreview('');
   };
 
   const handleEditMaterial = (material: DatabaseKnowledgeMaterial) => {
@@ -117,7 +124,69 @@ export const KnowledgeTab = ({
       duration: material.duration,
       tags: material.tags.join(', '),
       is_published: material.is_published,
+      cover_image: material.cover_image || '',
+      attachments: material.attachments || [],
     });
+    setCoverImagePreview(material.cover_image || '');
+  };
+
+  const handleCoverImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Размер файла не должен превышать 5 МБ');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setCoverImagePreview(base64);
+        setFormData({ ...formData, cover_image: base64 });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newAttachments: FileAttachment[] = [];
+    let processedFiles = 0;
+
+    Array.from(files).forEach((file) => {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`Файл ${file.name} превышает 10 МБ`);
+        processedFiles++;
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        newAttachments.push({
+          name: file.name,
+          url: base64,
+          type: file.type,
+          size: file.size,
+        });
+        processedFiles++;
+
+        if (processedFiles === files.length) {
+          setFormData(prev => ({
+            ...prev,
+            attachments: [...prev.attachments, ...newAttachments],
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    const newAttachments = formData.attachments.filter((_, i) => i !== index);
+    setFormData({ ...formData, attachments: newAttachments });
   };
 
   const handleSaveMaterial = async () => {
@@ -164,6 +233,7 @@ export const KnowledgeTab = ({
   const closeModal = () => {
     setIsCreating(false);
     setEditingMaterial(null);
+    setCoverImagePreview('');
   };
 
   if (loading) {
@@ -240,6 +310,15 @@ export const KnowledgeTab = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMaterials.map((item) => (
           <Card key={item.id} className="hover:shadow-lg transition-shadow">
+            {item.cover_image && (
+              <div className="w-full h-48 overflow-hidden rounded-t-lg">
+                <img
+                  src={item.cover_image}
+                  alt={item.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <CardHeader>
               <div className="flex items-start justify-between">
                 <CardTitle className="text-lg">{item.title}</CardTitle>
@@ -261,6 +340,12 @@ export const KnowledgeTab = ({
                   </Badge>
                 ))}
               </div>
+              {item.attachments && item.attachments.length > 0 && (
+                <div className="flex items-center gap-2 mb-4 text-sm text-gray-600">
+                  <Icon name="Paperclip" size={14} />
+                  <span>{item.attachments.length} файлов</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Icon
@@ -342,10 +427,48 @@ export const KnowledgeTab = ({
               </Button>
             </div>
             <div className="p-6">
+              {viewingMaterial.cover_image && (
+                <img
+                  src={viewingMaterial.cover_image}
+                  alt={viewingMaterial.title}
+                  className="w-full max-h-96 object-cover rounded-lg mb-6"
+                />
+              )}
               <div className="prose max-w-none">
                 <p className="text-gray-600 mb-6">{viewingMaterial.description}</p>
-                <div className="whitespace-pre-wrap">{viewingMaterial.content}</div>
+                <div className="whitespace-pre-wrap mb-6">{viewingMaterial.content}</div>
               </div>
+              
+              {viewingMaterial.attachments && viewingMaterial.attachments.length > 0 && (
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Прикрепленные файлы</h3>
+                  <div className="space-y-2">
+                    {viewingMaterial.attachments.map((file, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 border rounded hover:bg-gray-50">
+                        <Icon name="File" size={20} className="text-gray-500" />
+                        <div className="flex-1">
+                          <p className="font-medium">{file.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {(file.size / 1024).toFixed(1)} КБ
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = file.url;
+                            link.download = file.name;
+                            link.click();
+                          }}
+                        >
+                          <Icon name="Download" size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -363,6 +486,45 @@ export const KnowledgeTab = ({
               </Button>
             </div>
             <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Обложка материала</label>
+                <div className="border-2 border-dashed rounded-lg p-4">
+                  {coverImagePreview ? (
+                    <div className="relative">
+                      <img
+                        src={coverImagePreview}
+                        alt="Preview"
+                        className="w-full h-48 object-cover rounded"
+                      />
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setCoverImagePreview('');
+                          setFormData({ ...formData, cover_image: '' });
+                        }}
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <Icon name="Image" size={32} className="mx-auto mb-2 text-gray-400" />
+                      <label className="cursor-pointer text-blue-600 hover:text-blue-700">
+                        Загрузить обложку (до 5 МБ)
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleCoverImageUpload}
+                        />
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">Название *</label>
                 <Input
@@ -433,6 +595,42 @@ export const KnowledgeTab = ({
                     onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                     placeholder="Через запятую: React, TypeScript"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Прикрепленные файлы</label>
+                <div className="space-y-2">
+                  {formData.attachments.map((file, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 border rounded">
+                      <Icon name="File" size={20} className="text-gray-500" />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{file.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024).toFixed(1)} КБ
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRemoveAttachment(index)}
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="border-2 border-dashed rounded-lg p-4 text-center">
+                    <Icon name="Paperclip" size={24} className="mx-auto mb-2 text-gray-400" />
+                    <label className="cursor-pointer text-blue-600 hover:text-blue-700">
+                      Добавить файлы (до 10 МБ каждый)
+                      <input
+                        type="file"
+                        multiple
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
               
