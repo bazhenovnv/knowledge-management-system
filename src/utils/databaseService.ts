@@ -30,6 +30,23 @@ export interface DatabaseCourse {
   updated_at: string;
 }
 
+export interface DatabaseKnowledgeMaterial {
+  id: number;
+  title: string;
+  description: string;
+  content: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  duration: string;
+  tags: string[];
+  rating: number;
+  enrollments: number;
+  is_published: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface DatabaseResponse<T> {
   data?: T;
   count?: number;
@@ -344,6 +361,82 @@ class DatabaseService {
   async getEmployeesOldFormat(): Promise<any[]> {
     const employees = await this.getEmployees();
     return employees.map(emp => this.convertToOldEmployee(emp));
+  }
+
+  // ========================
+  // МЕТОДЫ ДЛЯ МАТЕРИАЛОВ БАЗЫ ЗНАНИЙ
+  // ========================
+
+  async getKnowledgeMaterials(): Promise<DatabaseKnowledgeMaterial[]> {
+    const response = await this.makeRequest<DatabaseKnowledgeMaterial[]>('?action=list&table=knowledge_materials');
+    
+    if (response.error) {
+      console.error('Error fetching knowledge materials:', response.error);
+      return [];
+    }
+
+    return response.data || [];
+  }
+
+  async getKnowledgeMaterialById(id: number): Promise<DatabaseKnowledgeMaterial | null> {
+    const response = await this.makeRequest<DatabaseKnowledgeMaterial>(`?action=get&table=knowledge_materials&id=${id}`);
+    
+    if (response.error || !response.data) {
+      return null;
+    }
+
+    return response.data;
+  }
+
+  async createKnowledgeMaterial(materialData: {
+    title: string;
+    description: string;
+    content: string;
+    category: string;
+    difficulty: 'easy' | 'medium' | 'hard';
+    duration: string;
+    tags: string[];
+    is_published?: boolean;
+    created_by: string;
+  }): Promise<DatabaseKnowledgeMaterial | null> {
+    const response = await this.makeRequest<DatabaseKnowledgeMaterial>('?action=create&table=knowledge_materials', {
+      method: 'POST',
+      body: JSON.stringify(materialData)
+    });
+
+    if (response.error || !response.data) {
+      console.error('Error creating knowledge material:', response.error);
+      return null;
+    }
+
+    return response.data;
+  }
+
+  async updateKnowledgeMaterial(id: number, updates: Partial<DatabaseKnowledgeMaterial>): Promise<DatabaseKnowledgeMaterial | null> {
+    const response = await this.makeRequest<DatabaseKnowledgeMaterial>(`?action=update&table=knowledge_materials&id=${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    });
+
+    if (response.error || !response.data) {
+      console.error('Error updating knowledge material:', response.error);
+      return null;
+    }
+
+    return response.data;
+  }
+
+  async deleteKnowledgeMaterial(id: number): Promise<boolean> {
+    try {
+      const response = await this.makeRequest(`?table=knowledge_materials&id=${id}`, {
+        method: 'DELETE'
+      });
+
+      return !response.error;
+    } catch (error) {
+      console.error('Delete knowledge material error:', error);
+      return false;
+    }
   }
 }
 

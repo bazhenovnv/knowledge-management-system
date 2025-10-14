@@ -159,6 +159,14 @@ def get_table_data(cursor, table: str) -> Dict[str, Any]:
                 WHERE c.status = 'active'
                 ORDER BY c.created_at DESC
             """)
+        elif table == 'knowledge_materials':
+            cursor.execute(f"""
+                SELECT id, title, description, content, category, difficulty, duration, 
+                       tags, rating, enrollments, is_published, created_by, created_at, updated_at
+                FROM {schema}.knowledge_materials
+                WHERE is_published = true
+                ORDER BY created_at DESC
+            """)
         elif table == 'tests':
             cursor.execute(f"""
                 SELECT t.*, 
@@ -247,6 +255,24 @@ def create_item(cursor, conn, table: str, data: Dict[str, Any]) -> Dict[str, Any
                 data.get('duration_hours'),
                 data.get('max_participants'),
                 data.get('status', 'active')
+            ))
+        elif table == 'knowledge_materials':
+            cursor.execute("""
+                INSERT INTO t_p47619579_knowledge_management.knowledge_materials 
+                (title, description, content, category, difficulty, duration, tags, is_published, created_by)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, title, description, content, category, difficulty, duration, tags, 
+                          rating, enrollments, is_published, created_by, created_at, updated_at
+            """, (
+                data.get('title'),
+                data.get('description'),
+                data.get('content'),
+                data.get('category'),
+                data.get('difficulty', 'medium'),
+                data.get('duration'),
+                data.get('tags', []),
+                data.get('is_published', True),
+                data.get('created_by', 'System')
             ))
         
         row = cursor.fetchone()
