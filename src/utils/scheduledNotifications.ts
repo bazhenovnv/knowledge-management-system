@@ -1,4 +1,4 @@
-import { CONFIG } from '@/config';
+const EMAIL_API_URL = 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17';
 
 export interface ScheduledNotification {
   employeeId: number;
@@ -19,7 +19,7 @@ export interface DeadlineReminder {
 }
 
 class ScheduledNotificationService {
-  private apiUrl = `${CONFIG.API_BASE_URL}/email-notifications`;
+  private apiUrl = EMAIL_API_URL;
 
   async scheduleNotification(notification: ScheduledNotification): Promise<{ success: boolean; notificationId?: number; error?: string }> {
     try {
