@@ -8,7 +8,7 @@ import type { Notification } from './NotificationList';
 
 interface NotificationItemProps {
   notification: Notification;
-  onMarkRead: (id: number) => void;
+  onMarkRead: (id: number | string) => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMarkRead }) => {
@@ -17,11 +17,14 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
       case 'success':
         return { name: 'CheckCircle2', className: 'text-green-500' };
       case 'warning':
+      case 'urgent':
         return { name: 'AlertTriangle', className: 'text-yellow-500' };
       case 'error':
         return { name: 'XCircle', className: 'text-red-500' };
       case 'assignment':
         return { name: 'ClipboardList', className: 'text-blue-500' };
+      case 'reminder':
+        return { name: 'Bell', className: 'text-purple-500' };
       default:
         return { name: 'Info', className: 'text-blue-500' };
     }

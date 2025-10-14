@@ -9,6 +9,7 @@ import {
 import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import NotificationList from './NotificationList';
+import { database } from '@/utils/database';
 
 interface NotificationBellProps {
   employeeId: number;
@@ -21,30 +22,24 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
 
   useEffect(() => {
     loadUnreadCount();
-    const interval = setInterval(loadUnreadCount, 30000);
+    const interval = setInterval(loadUnreadCount, 5000); // Обновляем каждые 5 секунд
     return () => clearInterval(interval);
   }, [employeeId]);
 
-  const loadUnreadCount = async () => {
+  const loadUnreadCount = () => {
     try {
-      const response = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=get_unread_count&employee_id=${employeeId}`,
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-      const data = await response.json();
-      if (data.count !== undefined) {
-        setUnreadCount(data.count);
-      }
+      // Получаем непрочитанные уведомления из локальной БД
+      const unreadNotifications = database.getUnreadNotificationsForUser(employeeId);
+      setUnreadCount(unreadNotifications.length);
     } catch (error) {
       console.error('Error loading unread count:', error);
+      setUnreadCount(0);
     }
   };
 
   const handleNotificationsRead = () => {
-    setUnreadCount(0);
+    // Перезагружаем счётчик после чтения уведомлений
+    loadUnreadCount();
   };
 
   return (

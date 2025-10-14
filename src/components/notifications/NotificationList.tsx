@@ -6,14 +6,15 @@ import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import NotificationItem from './NotificationItem';
+import { database } from '@/utils/database';
 
 export interface Notification {
-  id: number;
-  employee_id: number;
+  id: string | number;
+  employee_id?: number;
   title: string;
   message: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'assignment';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
+  type: 'info' | 'success' | 'warning' | 'error' | 'assignment' | 'reminder' | 'urgent';
+  priority: 'low' | 'normal' | 'high' | 'urgent' | 'medium';
   is_read: boolean;
   link?: string;
   metadata?: any;
@@ -37,20 +38,30 @@ const NotificationList: React.FC<NotificationListProps> = ({
     loadNotifications();
   }, [employeeId]);
 
-  const loadNotifications = async () => {
+  const loadNotifications = () => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=get_notifications&employee_id=${employeeId}`,
-        {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' }
-        }
+      // Получаем уведомления из локальной БД
+      const dbNotifications = database.getNotificationsForUser(employeeId);
+      
+      // Преобразуем формат уведомлений для совместимости с компонентом
+      const formattedNotifications: Notification[] = dbNotifications.map(n => ({
+        id: n.id,
+        employee_id: employeeId,
+        title: n.title,
+        message: n.message,
+        type: n.type as any,
+        priority: n.priority as any,
+        is_read: n.readBy.includes(employeeId),
+        created_at: n.createdAt.toISOString(),
+      }));
+      
+      // Сортируем по дате (новые сначала)
+      formattedNotifications.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
-      const data = await response.json();
-      if (data.data) {
-        setNotifications(data.data);
-      }
+      
+      setNotifications(formattedNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
       toast.error('Ошибка загрузки уведомлений');
@@ -59,44 +70,33 @@ const NotificationList: React.FC<NotificationListProps> = ({
     }
   };
 
-  const handleMarkRead = async (notificationId: number) => {
+  const handleMarkRead = (notificationId: number | string) => {
     try {
-      const response = await fetch(
-        'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=mark_read',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ notification_id: notificationId })
-        }
-      );
+      // Отмечаем как прочитанное в БД
+      database.markNotificationAsRead(notificationId.toString(), employeeId);
       
-      if (response.ok) {
-        setNotifications(prev => 
-          prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
-        );
-        onNotificationsRead?.();
-      }
+      // Обновляем локальный стейт
+      setNotifications(prev => 
+        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
+      );
+      onNotificationsRead?.();
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
   };
 
-  const handleMarkAllRead = async () => {
+  const handleMarkAllRead = () => {
     try {
-      const response = await fetch(
-        'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=mark_all_read',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ employee_id: employeeId })
+      // Отмечаем все уведомления как прочитанные
+      notifications.forEach(n => {
+        if (!n.is_read) {
+          database.markNotificationAsRead(n.id.toString(), employeeId);
         }
-      );
+      });
       
-      if (response.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-        onNotificationsRead?.();
-        toast.success('Все уведомления отмечены как прочитанные');
-      }
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      onNotificationsRead?.();
+      toast.success('Все уведомления отмечены как прочитанные');
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       toast.error('Ошибка при отметке уведомлений');
