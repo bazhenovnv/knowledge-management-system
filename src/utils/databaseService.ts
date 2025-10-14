@@ -182,16 +182,26 @@ class DatabaseService {
   async permanentDeleteEmployee(id: number): Promise<boolean> {
     // Полное удаление сотрудника из базы данных
     try {
-      const response = await this.makeRequest(`?table=employees&id=${id}&permanent=true`, {
-        method: 'DELETE'
+      const url = `${this.baseUrl}?table=employees&id=${id}&permanent=true`;
+      console.log('DELETE request URL:', url);
+      
+      const rawResponse = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      console.log('Permanent delete employee response:', response);
-      console.log('Response has error?', !!response.error);
-      console.log('Response has message?', !!response.message);
-      console.log('Response message:', response.message);
+      console.log('Raw response status:', rawResponse.status);
+      console.log('Raw response ok:', rawResponse.ok);
       
-      // Успех если нет ошибки (проверяем только error)
+      const responseText = await rawResponse.text();
+      console.log('Raw response text:', responseText);
+      
+      const response = JSON.parse(responseText);
+      console.log('Parsed response:', response);
+      
+      // Успех если нет ошибки
       return !response.error;
     } catch (error) {
       console.error('Permanent delete employee error:', error);
