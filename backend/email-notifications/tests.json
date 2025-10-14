@@ -15,6 +15,63 @@
         "success": "boolean"
       },
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Планирование уведомления",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "schedule",
+        "employeeId": 1,
+        "type": "info",
+        "title": "Отложенное уведомление",
+        "message": "Это сообщение отправится позже",
+        "scheduledFor": "2025-10-15T10:00:00Z",
+        "channels": ["database", "push"]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "notificationId": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Установка напоминания о дедлайне",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "set_deadline_reminder",
+        "entityType": "test",
+        "entityId": 1,
+        "deadline": "2025-10-20T15:00:00Z",
+        "intervals": [86400, 3600, 0]
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "reminderId": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Обработка отложенных уведомлений",
+      "method": "GET",
+      "path": "/?action=process",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "scheduled": {
+          "processed": "number",
+          "failed": "number",
+          "total": "number"
+        },
+        "deadlines": {
+          "reminders_checked": "number",
+          "notifications_created": "number"
+        }
+      },
+      "bodyMatcher": "partial"
     }
   ]
 }

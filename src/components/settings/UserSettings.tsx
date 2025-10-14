@@ -13,6 +13,7 @@ import DepartmentSettings from "./DepartmentSettings";
 import { notificationsService } from "@/utils/notificationsService";
 import { toast } from "sonner";
 import NotificationSettings from "@/components/notifications/NotificationSettings";
+import ScheduledNotificationsPanel from "./ScheduledNotificationsPanel";
 
 interface User {
   id: number;
@@ -177,11 +178,12 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       )}
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="profile">Профиль</TabsTrigger>
           <TabsTrigger value="password">Пароль</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="notifications">Уведомления</TabsTrigger>
+          <TabsTrigger value="scheduled">Планировщик</TabsTrigger>
           <TabsTrigger value="appearance">Тема</TabsTrigger>
           {user.role === 'admin' && <TabsTrigger value="departments">Отделы</TabsTrigger>}
         </TabsList>
@@ -317,6 +319,10 @@ export default function UserSettings({ userId }: UserSettingsProps) {
 
         <TabsContent value="notifications">
           <NotificationSettings employeeId={userId} />
+        </TabsContent>
+
+        <TabsContent value="scheduled">
+          <ScheduledNotificationsPanel employeeId={userId} />
         </TabsContent>
 
         <TabsContent value="appearance">
