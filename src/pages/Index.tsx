@@ -148,7 +148,7 @@ const Index = () => {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               userRole={userRole}
-              onSwitchToTests={() => setActiveTab("tests")}
+              currentUserId={1}
             />
           </TabsContent>
 
