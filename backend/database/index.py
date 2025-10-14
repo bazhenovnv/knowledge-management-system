@@ -396,7 +396,26 @@ def permanent_delete_item(cursor, conn, table: str, item_id: str) -> Dict[str, A
     """Полностью удалить запись из базы данных (жёсткое удаление)"""
     try:
         schema = 't_p47619579_knowledge_management'
-        cursor.execute(f"DELETE FROM {schema}.{table} WHERE id = %s", (item_id,))
+        
+        # Для сотрудников сначала удаляем все связанные записи
+        if table == 'employees':
+            # Удаляем результаты тестов
+            cursor.execute(f"DELETE FROM {schema}.test_results WHERE employee_id = %s", (item_id,))
+            
+            # Удаляем записи о посещаемости
+            cursor.execute(f"DELETE FROM {schema}.attendance WHERE employee_id = %s", (item_id,))
+            
+            # Удаляем записи на курсы
+            cursor.execute(f"DELETE FROM {schema}.course_enrollments WHERE employee_id = %s", (item_id,))
+            
+            # Удаляем уведомления
+            cursor.execute(f"DELETE FROM {schema}.notifications WHERE employee_id = %s", (item_id,))
+            
+            # Теперь можно удалить самого сотрудника
+            cursor.execute(f"DELETE FROM {schema}.{table} WHERE id = %s", (item_id,))
+        else:
+            # Для других таблиц просто удаляем запись
+            cursor.execute(f"DELETE FROM {schema}.{table} WHERE id = %s", (item_id,))
         
         if cursor.rowcount > 0:
             conn.commit()
