@@ -49,6 +49,7 @@ export const KnowledgeTab = ({
   const [materials, setMaterials] = useState<DatabaseKnowledgeMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState<string[]>([]);
   const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -100,14 +101,25 @@ export const KnowledgeTab = ({
   };
 
   const filteredMaterials = materials.filter(material => {
-    const matchesCategory = selectedCategory === 'all' || material.category === selectedCategory;
     const matchesSearch = !searchQuery || 
       material.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       material.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch && material.is_published;
+    
+    const materialDepartments = material.category ? material.category.split(', ').map(d => d.trim()) : [];
+    const matchesDepartment = selectedDepartmentFilter.length === 0 || 
+      selectedDepartmentFilter.some(dept => materialDepartments.includes(dept));
+    
+    return matchesSearch && matchesDepartment && material.is_published;
   });
 
-  const categories = ['all', ...new Set(materials.map(m => m.category))];
+  const allDepartments = Array.from(
+    new Set(
+      materials.flatMap(m => 
+        m.category ? m.category.split(', ').map(d => d.trim()) : []
+      )
+    )
+  ).sort();
+
   const canEditMaterial = (userRole === 'admin' || userRole === 'teacher');
 
   const handleCreateMaterial = () => {
@@ -307,24 +319,56 @@ export const KnowledgeTab = ({
           </div>
         </CardContent>
       </Card>
-      
-      <div className="flex items-center space-x-4 mb-6">
-        <select 
-          value={selectedCategory} 
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          className="border rounded px-3 py-2"
-        >
-          <option value="all">Все категории</option>
-          {categories.filter(cat => cat !== 'all').map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
-          ))}
-        </select>
-        <Badge variant="secondary">
-          Найдено: {filteredMaterials.length}
-        </Badge>
-      </div>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Icon name="Filter" size={20} />
+            Фильтр по отделам
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {allDepartments.map((dept) => (
+              <Badge
+                key={dept}
+                variant={selectedDepartmentFilter.includes(dept) ? "default" : "outline"}
+                className="cursor-pointer hover:bg-blue-100 transition-colors"
+                onClick={() => {
+                  if (selectedDepartmentFilter.includes(dept)) {
+                    setSelectedDepartmentFilter(selectedDepartmentFilter.filter(d => d !== dept));
+                  } else {
+                    setSelectedDepartmentFilter([...selectedDepartmentFilter, dept]);
+                  }
+                }}
+              >
+                {dept}
+              </Badge>
+            ))}
+            {selectedDepartmentFilter.length > 0 && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedDepartmentFilter([])}
+                className="ml-2"
+              >
+                <Icon name="X" size={16} className="mr-1" />
+                Сбросить
+              </Button>
+            )}
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <Badge variant="secondary">
+              Найдено: {filteredMaterials.length}
+            </Badge>
+            {selectedDepartmentFilter.length > 0 && (
+              <span className="text-sm text-gray-600">
+                (фильтр: {selectedDepartmentFilter.join(', ')})
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredMaterials.map((item) => (
