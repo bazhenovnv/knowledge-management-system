@@ -148,6 +148,7 @@ class TestsService {
         is_correct: boolean;
       }>;
     }>;
+    assignedEmployees?: number[];
   }): Promise<DatabaseTest | null> {
     console.log('testsService.createTest called with:', testData);
     
@@ -163,7 +164,44 @@ class TestsService {
       return null;
     }
 
-    return response.data;
+    const createdTest = response.data;
+
+    // Автоматически создаем уведомления для назначенных сотрудников
+    if (testData.assignedEmployees && testData.assignedEmployees.length > 0) {
+      await this.notifyEmployeesAboutNewTest(
+        createdTest,
+        testData.assignedEmployees
+      );
+    }
+
+    return createdTest;
+  }
+
+  // Отправить уведомления о новом тесте
+  private async notifyEmployeesAboutNewTest(
+    test: DatabaseTest,
+    employeeIds: number[]
+  ): Promise<void> {
+    try {
+      const { notificationsService } = await import('./notificationsService');
+      
+      for (const employeeId of employeeIds) {
+        await notificationsService.createNotification({
+          employee_id: employeeId,
+          title: 'Новый тест',
+          message: `Вам назначен тест "${test.title}". ${test.description || 'Пройдите его при первой возможности.'}`,
+          type: 'assignment',
+          priority: 'high',
+          link: '/tests',
+          metadata: {
+            test_id: test.id,
+            test_title: test.title,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error sending test notifications:', error);
+    }
   }
 
   // Получить результаты теста
@@ -191,6 +229,7 @@ class TestsService {
     attempt_number?: number;
     time_spent?: number;
     user_answers: UserAnswer[];
+    test_title?: string;
   }): Promise<TestResult | null> {
     const response = await this.makeRequest<TestResult>('?action=submit_test', {
       method: 'POST',
@@ -202,7 +241,49 @@ class TestsService {
       return null;
     }
 
-    return response.data;
+    const result = response.data;
+
+    // Автоматически создаем уведомление о результате
+    await this.notifyEmployeeAboutTestResult(
+      data.employee_id,
+      data.test_title || `Тест #${data.test_id}`,
+      result
+    );
+
+    return result;
+  }
+
+  // Уведомить сотрудника о результате теста
+  private async notifyEmployeeAboutTestResult(
+    employeeId: number,
+    testTitle: string,
+    result: TestResult
+  ): Promise<void> {
+    try {
+      const { notificationsService } = await import('./notificationsService');
+      
+      const passed = result.passed;
+      const percentage = result.percentage;
+
+      await notificationsService.createNotification({
+        employee_id: employeeId,
+        title: passed ? 'Тест сдан успешно!' : 'Тест не пройден',
+        message: passed 
+          ? `Вы успешно прошли тест "${testTitle}" с результатом ${percentage}%. Поздравляем!`
+          : `Тест "${testTitle}" не пройден. Набрано ${percentage}%. Попробуйте ещё раз.`,
+        type: passed ? 'success' : 'warning',
+        priority: passed ? 'normal' : 'high',
+        link: '/tests',
+        metadata: {
+          test_id: result.test_id,
+          result_id: result.id,
+          percentage,
+          passed,
+        },
+      });
+    } catch (error) {
+      console.error('Error sending test result notification:', error);
+    }
   }
 
   // Обновить тест
