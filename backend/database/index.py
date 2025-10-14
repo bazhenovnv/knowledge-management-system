@@ -64,6 +64,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 test_id = params.get('test_id')
                 employee_id = params.get('employee_id')
                 result = get_test_results(cursor, test_id, employee_id)
+            elif action == 'get_notifications':
+                employee_id = params.get('employee_id')
+                result = get_notifications(cursor, employee_id)
+            elif action == 'get_unread_count':
+                employee_id = params.get('employee_id')
+                result = get_unread_notifications_count(cursor, employee_id)
             elif action == 'stats':
                 result = get_database_stats(cursor)
             else:
@@ -77,6 +83,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = create_test_with_questions(cursor, conn, body_data)
             elif action == 'submit_test':
                 result = submit_test_results(cursor, conn, body_data)
+            elif action == 'create_notification':
+                result = create_notification(cursor, conn, body_data)
+            elif action == 'mark_read':
+                notification_id = body_data.get('notification_id')
+                result = mark_notification_read(cursor, conn, notification_id)
+            elif action == 'mark_all_read':
+                employee_id = body_data.get('employee_id')
+                result = mark_all_notifications_read(cursor, conn, employee_id)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -837,3 +851,116 @@ def update_test_with_questions(cursor, conn, test_id: str, data: Dict[str, Any])
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка обновления теста: {str(e)}'}
+
+
+def get_notifications(cursor, employee_id: str) -> Dict[str, Any]:
+    """Получить уведомления сотрудника"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            SELECT id, employee_id, title, message, type, priority, is_read, 
+                   link, metadata, created_at, read_at
+            FROM {schema}.notifications
+            WHERE employee_id = %s
+            ORDER BY created_at DESC
+            LIMIT 50
+        """, (employee_id,))
+        
+        notifications = cursor.fetchall()
+        return {'data': [dict(n) for n in notifications], 'count': len(notifications)}
+        
+    except Exception as e:
+        return {'error': f'Ошибка получения уведомлений: {str(e)}'}
+
+
+def get_unread_notifications_count(cursor, employee_id: str) -> Dict[str, Any]:
+    """Получить количество непрочитанных уведомлений"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            SELECT COUNT(*) as count
+            FROM {schema}.notifications
+            WHERE employee_id = %s AND is_read = false
+        """, (employee_id,))
+        
+        result = cursor.fetchone()
+        return {'count': result['count']}
+        
+    except Exception as e:
+        return {'error': f'Ошибка подсчета уведомлений: {str(e)}'}
+
+
+def create_notification(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создать уведомление"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.notifications (employee_id, title, message, type, 
+                                               priority, link, metadata)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, employee_id, title, message, type, priority, is_read, 
+                      link, created_at
+        """, (
+            data.get('employee_id'),
+            data.get('title'),
+            data.get('message'),
+            data.get('type', 'info'),
+            data.get('priority', 'normal'),
+            data.get('link'),
+            json.dumps(data.get('metadata')) if data.get('metadata') else None
+        ))
+        
+        row = cursor.fetchone()
+        conn.commit()
+        return {'data': dict(row), 'message': 'Уведомление создано'}
+        
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка создания уведомления: {str(e)}'}
+
+
+def mark_notification_read(cursor, conn, notification_id: str) -> Dict[str, Any]:
+    """Отметить уведомление как прочитанное"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            UPDATE {schema}.notifications
+            SET is_read = true, read_at = CURRENT_TIMESTAMP
+            WHERE id = %s
+            RETURNING id, is_read, read_at
+        """, (notification_id,))
+        
+        row = cursor.fetchone()
+        if row:
+            conn.commit()
+            return {'data': dict(row), 'message': 'Уведомление отмечено как прочитанное'}
+        else:
+            return {'error': 'Уведомление не найдено'}
+            
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка обновления уведомления: {str(e)}'}
+
+
+def mark_all_notifications_read(cursor, conn, employee_id: str) -> Dict[str, Any]:
+    """Отметить все уведомления пользователя как прочитанные"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            UPDATE {schema}.notifications
+            SET is_read = true, read_at = CURRENT_TIMESTAMP
+            WHERE employee_id = %s AND is_read = false
+        """, (employee_id,))
+        
+        updated_count = cursor.rowcount
+        conn.commit()
+        return {'message': f'Отмечено {updated_count} уведомлений как прочитанные', 'count': updated_count}
+        
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка обновления уведомлений: {str(e)}'}

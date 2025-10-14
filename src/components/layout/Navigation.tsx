@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
 import { NotificationPanel } from "@/components/notifications/NotificationPanel";
 import { NotificationBadge } from "@/components/notifications/NotificationBadge";
+import NotificationBell from "@/components/notifications/NotificationBell";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { useState } from "react";
@@ -24,6 +25,7 @@ interface NavigationProps {
   onLogout?: () => void;
   userRole?: string;
   userName?: string;
+  employeeId?: number;
 }
 
 export const Navigation = ({
@@ -34,6 +36,7 @@ export const Navigation = ({
   onLogout,
   userRole,
   userName,
+  employeeId = 1,
 }: NavigationProps) => {
   const {
     notifications,
@@ -89,18 +92,7 @@ export const Navigation = ({
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <NotificationPanel
-            notifications={notifications}
-            unreadCount={unreadCount}
-            isOpen={isOpen}
-            onOpenChange={setIsOpen}
-            onMarkAsRead={markAsRead}
-            onMarkAllAsRead={markAllAsRead}
-            onDelete={deleteNotification}
-            onClearAll={clearAll}
-            onActionClick={handleActionClick}
-          />
-          <NotificationBadge count={unreadCount} />
+          <NotificationBell employeeId={employeeId} />
           <Button
             variant="outline"
             size="sm"

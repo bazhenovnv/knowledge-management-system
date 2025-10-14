@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Icon from "@/components/ui/icon";
 import { database } from "@/utils/database";
 import DepartmentSettings from "./DepartmentSettings";
+import { notificationsService } from "@/utils/notificationsService";
+import { toast } from "sonner";
 
 interface User {
   id: number;
@@ -355,6 +357,28 @@ export default function UserSettings({ userId }: UserSettingsProps) {
                     Так будет выглядеть интерфейс с выбранной темой
                   </p>
                 </div>
+              </div>
+
+              <Separator />
+
+              <div>
+                <Label className="text-base font-medium">Тестирование уведомлений</Label>
+                <p className="text-sm text-gray-600 mb-3">Создать тестовые уведомления для проверки системы</p>
+                <Button 
+                  onClick={async () => {
+                    try {
+                      await notificationsService.createTestNotifications(userId);
+                      toast.success('Тестовые уведомления созданы!');
+                    } catch (error) {
+                      toast.error('Ошибка создания уведомлений');
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Icon name="Bell" size={16} className="mr-2" />
+                  Создать тестовые уведомления
+                </Button>
               </div>
             </CardContent>
           </Card>

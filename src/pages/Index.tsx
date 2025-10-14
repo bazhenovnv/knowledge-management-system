@@ -135,6 +135,7 @@ const Index = () => {
             onLogout={handleLogout}
             userRole={userRole}
             userName={userName}
+            employeeId={1}
           />
 
           <TabsContent value="dashboard" className="space-y-6">
