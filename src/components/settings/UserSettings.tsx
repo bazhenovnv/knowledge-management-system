@@ -14,6 +14,7 @@ import { notificationsService } from "@/utils/notificationsService";
 import { toast } from "sonner";
 import NotificationSettings from "@/components/notifications/NotificationSettings";
 import ScheduledNotificationsPanel from "./ScheduledNotificationsPanel";
+import DatabaseSettings from "./DatabaseSettings";
 
 interface User {
   id: number;
@@ -178,14 +179,19 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       )}
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-8' : 'grid-cols-6'}`}>
           <TabsTrigger value="profile">Профиль</TabsTrigger>
           <TabsTrigger value="password">Пароль</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="notifications">Уведомления</TabsTrigger>
           <TabsTrigger value="scheduled">Планировщик</TabsTrigger>
           <TabsTrigger value="appearance">Тема</TabsTrigger>
-          {user.role === 'admin' && <TabsTrigger value="departments">Отделы</TabsTrigger>}
+          {user.role === 'admin' && (
+            <>
+              <TabsTrigger value="departments">Отделы</TabsTrigger>
+              <TabsTrigger value="database">База данных</TabsTrigger>
+            </>
+          )}
         </TabsList>
 
         <TabsContent value="profile">
@@ -397,9 +403,15 @@ export default function UserSettings({ userId }: UserSettingsProps) {
         </TabsContent>
 
         {user.role === 'admin' && (
-          <TabsContent value="departments">
-            <DepartmentSettings userRole={user.role} />
-          </TabsContent>
+          <>
+            <TabsContent value="departments">
+              <DepartmentSettings userRole={user.role} />
+            </TabsContent>
+            
+            <TabsContent value="database">
+              <DatabaseSettings />
+            </TabsContent>
+          </>
         )}
       </Tabs>
     </div>
