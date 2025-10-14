@@ -629,10 +629,18 @@ const EmployeeList: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{employee.full_name}</h3>
+                        <h3 className={`font-semibold text-lg ${!employee.is_active ? 'text-gray-400 line-through' : ''}`}>
+                          {employee.full_name}
+                        </h3>
                         <Badge className={getRoleBadgeColor(employee.role)}>
                           {getRoleText(employee.role)}
                         </Badge>
+                        {!employee.is_active && (
+                          <Badge variant="outline" className="bg-gray-100 text-gray-600 border-gray-300">
+                            <Icon name="XCircle" size={12} className="mr-1" />
+                            Неактивен
+                          </Badge>
+                        )}
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
@@ -675,15 +683,36 @@ const EmployeeList: React.FC = () => {
                       <Icon name="Edit" size={14} className="mr-1" />
                       Редактировать
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setEmployeeToDelete(employee)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Icon name="Trash2" size={14} className="mr-1" />
-                      Удалить
-                    </Button>
+                    
+                    {!employee.is_active ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const restored = await databaseService.restoreEmployee(employee.id);
+                          if (restored) {
+                            toast.success(`Сотрудник ${employee.full_name} восстановлен`);
+                            loadEmployees();
+                          } else {
+                            toast.error('Ошибка при восстановлении сотрудника');
+                          }
+                        }}
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                      >
+                        <Icon name="UserCheck" size={14} className="mr-1" />
+                        Восстановить
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setEmployeeToDelete(employee)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Icon name="Trash2" size={14} className="mr-1" />
+                        Удалить
+                      </Button>
+                    )}
                     </div>
                   </div>
                 </div>

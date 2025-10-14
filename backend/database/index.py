@@ -145,8 +145,7 @@ def get_table_data(cursor, table: str) -> Dict[str, Any]:
                 SELECT id, full_name, email, department, position, role, phone, hire_date,
                        is_active, created_at, updated_at
                 FROM {schema}.employees
-                WHERE is_active = true
-                ORDER BY created_at DESC
+                ORDER BY is_active DESC, created_at DESC
             """)
         elif table == 'courses':
             cursor.execute(f"""
