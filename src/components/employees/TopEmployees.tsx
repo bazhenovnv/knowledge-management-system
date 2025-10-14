@@ -322,6 +322,142 @@ export const TopEmployees = () => {
         XLSX.utils.book_append_sheet(wb, wsDepts, 'Статистика по отделам');
       }
 
+      // Создаем лист со статистикой по тестам
+      const testResults = database.getTestResults();
+      const testStats = testsData
+        .filter(t => t.status === 'published')
+        .map(test => {
+          // Находим все результаты для этого теста
+          const testResultsForTest = testResults.filter(r => r.testId === test.id);
+          
+          // Фильтруем результаты по выбранному отделу
+          let relevantResults = testResultsForTest;
+          if (selectedDepartment !== "all") {
+            relevantResults = testResultsForTest.filter(r => {
+              const emp = employeesData.find(e => e.id.toString() === r.userId);
+              return emp && emp.department === selectedDepartment;
+            });
+          }
+          
+          const attemptCount = relevantResults.length;
+          const avgScore = attemptCount > 0
+            ? Math.round(relevantResults.reduce((sum, r) => sum + r.score, 0) / attemptCount)
+            : 0;
+          const avgTime = attemptCount > 0
+            ? Math.round(relevantResults.reduce((sum, r) => sum + r.timeSpent, 0) / attemptCount)
+            : 0;
+          const passRate = attemptCount > 0
+            ? Math.round((relevantResults.filter(r => r.score >= 70).length / attemptCount) * 100)
+            : 0;
+          
+          // Считаем сколько сотрудников назначен этот тест
+          let assignedCount = 0;
+          if (selectedDepartment === "all") {
+            assignedCount = employeesData.filter(e => 
+              e.role === 'employee' && 
+              e.assignedTests?.some((a: any) => a.testId === test.id)
+            ).length;
+          } else {
+            assignedCount = employeesData.filter(e => 
+              e.role === 'employee' && 
+              e.department === selectedDepartment &&
+              e.assignedTests?.some((a: any) => a.testId === test.id)
+            ).length;
+          }
+          
+          return {
+            'Название теста': test.title,
+            'Категория': test.category,
+            'Сложность': test.difficulty === 'easy' ? 'Легкий' : test.difficulty === 'medium' ? 'Средний' : 'Сложный',
+            'Вопросов': test.questions?.length || 0,
+            'Лимит времени (мин)': test.timeLimit,
+            'Прошли тест': attemptCount,
+            'Назначено': assignedCount,
+            'Процент выполнения (%)': assignedCount > 0 ? Math.round((attemptCount / assignedCount) * 100) : 0,
+            'Средний балл (%)': avgScore,
+            'Среднее время (мин)': avgTime,
+            'Процент сдачи (≥70%)': passRate,
+            'Создал': test.createdBy,
+            'Дата создания': new Date(test.createdAt).toLocaleDateString('ru-RU')
+          };
+        })
+        .sort((a, b) => b['Прошли тест'] - a['Прошли тест']); // Сортируем по популярности
+      
+      const wsTests = XLSX.utils.json_to_sheet(testStats);
+      wsTests['!cols'] = [
+        { wch: 35 }, // Название теста
+        { wch: 20 }, // Категория
+        { wch: 12 }, // Сложность
+        { wch: 10 }, // Вопросов
+        { wch: 18 }, // Лимит времени
+        { wch: 15 }, // Прошли тест
+        { wch: 12 }, // Назначено
+        { wch: 20 }, // Процент выполнения
+        { wch: 18 }, // Средний балл
+        { wch: 18 }, // Среднее время
+        { wch: 18 }, // Процент сдачи
+        { wch: 20 }, // Создал
+        { wch: 15 }  // Дата создания
+      ];
+      XLSX.utils.book_append_sheet(wb, wsTests, 'Статистика по тестам');
+
+      // Создаем лист с детальными результатами прохождения тестов
+      const detailedResults: any[] = [];
+      filteredEmployees.forEach(emp => {
+        if (emp.testResults && emp.testResults.length > 0) {
+          emp.testResults.forEach((result: any) => {
+            const test = testsData.find(t => t.id === result.id.toString());
+            
+            detailedResults.push({
+              'ФИО сотрудника': emp.name,
+              'Отдел': emp.department || 'Не указан',
+              'Должность': emp.position,
+              'Название теста': test?.title || `Тест #${result.id}`,
+              'Категория': test?.category || 'Не указана',
+              'Сложность': test?.difficulty === 'easy' ? 'Легкий' : test?.difficulty === 'medium' ? 'Средний' : 'Сложный',
+              'Балл (%)': result.score,
+              'Результат': result.score >= 80 ? 'Отлично' : result.score >= 70 ? 'Хорошо' : result.score >= 60 ? 'Удовлетворительно' : 'Неудовлетворительно',
+              'Время (мин)': result.timeSpent,
+              'Правильных ответов': result.correctAnswers || 'N/A',
+              'Всего вопросов': result.totalQuestions || test?.questions?.length || 'N/A',
+              'Процент правильных': result.correctAnswers && result.totalQuestions 
+                ? Math.round((result.correctAnswers / result.totalQuestions) * 100) 
+                : 'N/A',
+              'Дата прохождения': result.completedAt 
+                ? new Date(result.completedAt).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : 'Не указана'
+            });
+          });
+        }
+      });
+
+      // Сортируем по дате (новые сначала)
+      detailedResults.sort((a, b) => {
+        const dateA = a['Дата прохождения'] !== 'Не указана' ? new Date(a['Дата прохождения']) : new Date(0);
+        const dateB = b['Дата прохождения'] !== 'Не указана' ? new Date(b['Дата прохождения']) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
+      });
+
+      if (detailedResults.length > 0) {
+        const wsDetailed = XLSX.utils.json_to_sheet(detailedResults);
+        wsDetailed['!cols'] = [
+          { wch: 25 }, // ФИО сотрудника
+          { wch: 20 }, // Отдел
+          { wch: 25 }, // Должность
+          { wch: 35 }, // Название теста
+          { wch: 20 }, // Категория
+          { wch: 12 }, // Сложность
+          { wch: 10 }, // Балл
+          { wch: 20 }, // Результат
+          { wch: 12 }, // Время
+          { wch: 18 }, // Правильных ответов
+          { wch: 15 }, // Всего вопросов
+          { wch: 18 }, // Процент правильных
+          { wch: 18 }  // Дата прохождения
+        ];
+        XLSX.utils.book_append_sheet(wb, wsDetailed, 'Детальные результаты');
+      }
+
       // Генерируем имя файла
       const fileName = selectedDepartment === "all" 
         ? `Статистика_сотрудников_${new Date().toLocaleDateString('ru-RU')}.xlsx`
