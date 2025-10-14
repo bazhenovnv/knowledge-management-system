@@ -66,7 +66,21 @@ export const KnowledgeTab = ({
     attachments: [] as FileAttachment[],
   });
 
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [coverImagePreview, setCoverImagePreview] = useState<string>('');
+  
+  const departments = [
+    'IT',
+    'HR',
+    'Маркетинг',
+    'Продажи',
+    'Финансы',
+    'Партнерка',
+    'Поддержка',
+    'Разработка',
+    'Дизайн',
+    'Аналитика'
+  ];
 
   useEffect(() => {
     loadMaterials();
@@ -104,12 +118,13 @@ export const KnowledgeTab = ({
       content: '',
       category: '',
       difficulty: 'medium',
-      duration: '',
+      duration: '1 час',
       tags: '',
       is_published: true,
       cover_image: '',
       attachments: [],
     });
+    setSelectedDepartments([]);
     setCoverImagePreview('');
   };
 
@@ -121,12 +136,13 @@ export const KnowledgeTab = ({
       content: material.content,
       category: material.category,
       difficulty: material.difficulty,
-      duration: material.duration,
+      duration: material.duration || '1 час',
       tags: material.tags.join(', '),
       is_published: material.is_published,
       cover_image: material.cover_image || '',
       attachments: material.attachments || [],
     });
+    setSelectedDepartments(material.category ? material.category.split(', ') : []);
     setCoverImagePreview(material.cover_image || '');
   };
 
@@ -192,16 +208,19 @@ export const KnowledgeTab = ({
   const handleSaveMaterial = async () => {
     try {
       const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      const categoryString = selectedDepartments.join(', ');
       
       if (editingMaterial) {
         await databaseService.updateKnowledgeMaterial(editingMaterial.id, {
           ...formData,
+          category: categoryString,
           tags: tagsArray,
         });
         toast.success('Материал обновлен');
       } else {
         await databaseService.createKnowledgeMaterial({
           ...formData,
+          category: categoryString,
           tags: tagsArray,
           created_by: `User ${currentUserId}`,
         });
@@ -554,16 +573,41 @@ export const KnowledgeTab = ({
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Категория *</label>
-                  <Input
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    placeholder="Например: Разработка"
-                  />
+              <div>
+                <label className="block text-sm font-medium mb-2">Отделы * (выберите один или несколько)</label>
+                <div className="border rounded px-3 py-2 max-h-48 overflow-y-auto">
+                  {departments.map((dept) => (
+                    <div key={dept} className="flex items-center gap-2 py-1">
+                      <input
+                        type="checkbox"
+                        id={`dept-${dept}`}
+                        checked={selectedDepartments.includes(dept)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedDepartments([...selectedDepartments, dept]);
+                          } else {
+                            setSelectedDepartments(selectedDepartments.filter(d => d !== dept));
+                          }
+                        }}
+                      />
+                      <label htmlFor={`dept-${dept}`} className="text-sm cursor-pointer">
+                        {dept}
+                      </label>
+                    </div>
+                  ))}
                 </div>
-                
+                {selectedDepartments.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {selectedDepartments.map((dept) => (
+                      <Badge key={dept} variant="secondary" className="text-xs">
+                        {dept}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Сложность</label>
                   <select
@@ -575,17 +619,6 @@ export const KnowledgeTab = ({
                     <option value="medium">Средний</option>
                     <option value="hard">Сложный</option>
                   </select>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Длительность *</label>
-                  <Input
-                    value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                    placeholder="Например: 2 часа"
-                  />
                 </div>
                 
                 <div>
@@ -653,7 +686,7 @@ export const KnowledgeTab = ({
                 <Button
                   onClick={handleSaveMaterial}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={!formData.title || !formData.description || !formData.content || !formData.category || !formData.duration}
+                  disabled={!formData.title || !formData.description || !formData.content || selectedDepartments.length === 0}
                 >
                   {editingMaterial ? 'Сохранить' : 'Создать'}
                 </Button>
