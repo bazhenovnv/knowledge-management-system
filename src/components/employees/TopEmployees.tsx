@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import * as XLSX from 'xlsx';
 
 export const TopEmployees = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -201,6 +203,140 @@ export const TopEmployees = () => {
     return { icon: 'Info', text: 'Требует внимания', color: 'text-gray-600' };
   };
 
+  // Функция экспорта в Excel
+  const exportToExcel = () => {
+    try {
+      const employeesData = database.getEmployees();
+      const testsData = database.getTests();
+      const totalAvailableTests = testsData.filter(t => t.status === 'published').length;
+      
+      // Фильтруем сотрудников по выбранному отделу
+      let filteredEmployees = employeesData.filter(emp => emp.role === 'employee');
+      if (selectedDepartment !== "all") {
+        filteredEmployees = filteredEmployees.filter(emp => emp.department === selectedDepartment);
+      }
+
+      // Формируем данные для экспорта
+      const exportData = filteredEmployees.map(emp => {
+        const testScore = getTestScore(emp);
+        const completedTests = getCompletedTests(emp);
+        const totalTime = emp.testResults?.reduce((sum: number, test: any) => sum + test.timeSpent, 0) || 0;
+        
+        return {
+          'ФИО': emp.name,
+          'Email': emp.email,
+          'Отдел': emp.department || 'Не указан',
+          'Должность': emp.position,
+          'Статус': getStatusText(emp.status),
+          'Средний балл (%)': testScore,
+          'Пройдено тестов': completedTests,
+          'Всего тестов': totalAvailableTests,
+          'Процент выполнения (%)': totalAvailableTests > 0 ? Math.round((completedTests / totalAvailableTests) * 100) : 0,
+          'Время на тесты (мин)': totalTime,
+          'Назначено тестов': emp.assignedTests?.length || 0,
+          'Непройденных тестов': emp.assignedTests?.filter((a: any) => 
+            !emp.testResults?.some((r: any) => r.id.toString() === a.testId)
+          ).length || 0
+        };
+      });
+
+      // Сортируем по среднему баллу (от лучших к худшим)
+      exportData.sort((a, b) => b['Средний балл (%)'] - a['Средний балл (%)']);
+
+      // Создаем рабочую книгу
+      const wb = XLSX.utils.book_new();
+      
+      // Добавляем основной лист со всеми сотрудниками
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      
+      // Настраиваем ширину колонок
+      const colWidths = [
+        { wch: 25 }, // ФИО
+        { wch: 25 }, // Email
+        { wch: 20 }, // Отдел
+        { wch: 25 }, // Должность
+        { wch: 15 }, // Статус
+        { wch: 15 }, // Средний балл
+        { wch: 15 }, // Пройдено тестов
+        { wch: 15 }, // Всего тестов
+        { wch: 20 }, // Процент выполнения
+        { wch: 18 }, // Время на тесты
+        { wch: 18 }, // Назначено тестов
+        { wch: 20 }  // Непройденных тестов
+      ];
+      ws['!cols'] = colWidths;
+      
+      XLSX.utils.book_append_sheet(wb, ws, 'Сотрудники');
+
+      // Создаем лист с топ-3 лучшими
+      if (topEmployees.length > 0) {
+        const topData = topEmployees.map((emp, index) => ({
+          'Место': index + 1,
+          'ФИО': emp.name,
+          'Отдел': emp.department || 'Не указан',
+          'Средний балл (%)': getTestScore(emp),
+          'Пройдено тестов': getCompletedTests(emp)
+        }));
+        const wsTop = XLSX.utils.json_to_sheet(topData);
+        wsTop['!cols'] = [{ wch: 10 }, { wch: 25 }, { wch: 20 }, { wch: 18 }, { wch: 18 }];
+        XLSX.utils.book_append_sheet(wb, wsTop, 'Лучшие сотрудники');
+      }
+
+      // Создаем лист с требующими внимания
+      if (bottomEmployees.length > 0) {
+        const bottomData = bottomEmployees.map(emp => {
+          const reason = getAttentionReason(emp);
+          return {
+            'ФИО': emp.name,
+            'Отдел': emp.department || 'Не указан',
+            'Причина': reason.text,
+            'Средний балл (%)': getTestScore(emp),
+            'Пройдено тестов': getCompletedTests(emp)
+          };
+        });
+        const wsBottom = XLSX.utils.json_to_sheet(bottomData);
+        wsBottom['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 18 }, { wch: 18 }];
+        XLSX.utils.book_append_sheet(wb, wsBottom, 'Требуют внимания');
+      }
+
+      // Создаем лист со сводкой по отделам
+      if (selectedDepartment === "all") {
+        const deptStats = departments.map(dept => {
+          const deptEmployees = employeesData.filter(e => e.role === 'employee' && e.department === dept);
+          const avgScore = deptEmployees.length > 0 
+            ? Math.round(deptEmployees.reduce((sum, emp) => sum + getTestScore(emp), 0) / deptEmployees.length)
+            : 0;
+          const totalCompleted = deptEmployees.reduce((sum, emp) => sum + getCompletedTests(emp), 0);
+          
+          return {
+            'Отдел': dept,
+            'Количество сотрудников': deptEmployees.length,
+            'Средний балл (%)': avgScore,
+            'Всего пройдено тестов': totalCompleted,
+            'Среднее тестов на человека': deptEmployees.length > 0 ? Math.round(totalCompleted / deptEmployees.length * 10) / 10 : 0
+          };
+        }).sort((a, b) => b['Средний балл (%)'] - a['Средний балл (%)']);
+        
+        const wsDepts = XLSX.utils.json_to_sheet(deptStats);
+        wsDepts['!cols'] = [{ wch: 25 }, { wch: 22 }, { wch: 18 }, { wch: 22 }, { wch: 25 }];
+        XLSX.utils.book_append_sheet(wb, wsDepts, 'Статистика по отделам');
+      }
+
+      // Генерируем имя файла
+      const fileName = selectedDepartment === "all" 
+        ? `Статистика_сотрудников_${new Date().toLocaleDateString('ru-RU')}.xlsx`
+        : `Статистика_${selectedDepartment}_${new Date().toLocaleDateString('ru-RU')}.xlsx`;
+      
+      // Сохраняем файл
+      XLSX.writeFile(wb, fileName);
+      
+      toast.success(`Экспорт выполнен успешно! Файл: ${fileName}`);
+    } catch (error) {
+      console.error('Ошибка при экспорте:', error);
+      toast.error('Ошибка при экспорте данных');
+    }
+  };
+
   const renderEmployeeItem = (employee: any, index: number, isTop: boolean) => {
     const testScore = getTestScore(employee);
     const completedTests = getCompletedTests(employee);
@@ -316,8 +452,8 @@ export const TopEmployees = () => {
           </div>
           
           {/* Статистика по текущему фильтру */}
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-sm text-gray-600">
               <Icon name="Users" size={16} />
               <span>
                 Показано: <strong className="text-gray-900">
@@ -325,6 +461,15 @@ export const TopEmployees = () => {
                 </strong> сотрудников
               </span>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportToExcel}
+              className="text-xs"
+            >
+              <Icon name="Download" size={14} className="mr-1.5" />
+              Экспорт в Excel
+            </Button>
           </div>
         </div>
       </div>
