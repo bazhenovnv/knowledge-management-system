@@ -163,7 +163,7 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
                   <SelectValue placeholder="Выберите отдел" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map((dept) => (
+                  {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
                     </SelectItem>
@@ -183,7 +183,7 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
                   <SelectValue placeholder="Выберите должность" />
                 </SelectTrigger>
                 <SelectContent>
-                  {POSITIONS.map((position) => (
+                  {positions.map((position) => (
                     <SelectItem key={position} value={position}>
                       {position}
                     </SelectItem>
