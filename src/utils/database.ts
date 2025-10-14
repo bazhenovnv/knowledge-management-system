@@ -16,6 +16,15 @@ export interface Employee {
     score: number;
     timeSpent: number;
   }>;
+  assignedTests?: Array<{
+    testId: string;
+    testTitle: string;
+    assignedBy: string;
+    assignedAt: Date;
+    dueDate?: Date;
+    status: 'pending' | 'completed' | 'overdue';
+    completedAt?: Date;
+  }>;
   password?: string; // Пароль пользователя (опциональный для обратной совместимости)
   lastLoginAt?: Date; // Время последнего входа
   isActive?: boolean; // Активный статус

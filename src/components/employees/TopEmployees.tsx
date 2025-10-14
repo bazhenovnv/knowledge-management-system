@@ -113,12 +113,34 @@ export const TopEmployees = () => {
   const assignTest = () => {
     if (!selectedTestId || !selectedEmployee) return;
 
-    // Здесь можно добавить логику назначения теста
-    // Например, отправить уведомление сотруднику или создать задачу
+    const test = availableTests.find(t => t.id === selectedTestId);
+    if (!test) return;
+
+    // Получаем текущего пользователя для assignedBy
+    const currentUser = database.getCurrentUser();
     
-    alert(`Тест успешно назначен сотруднику ${selectedEmployee.name}!`);
+    // Создаем запись о назначении
+    const assignment = {
+      testId: test.id,
+      testTitle: test.title,
+      assignedBy: currentUser?.name || 'Администратор',
+      assignedAt: new Date(),
+      status: 'pending' as const,
+    };
+
+    // Обновляем сотрудника
+    const currentAssignedTests = selectedEmployee.assignedTests || [];
+    database.updateEmployee(selectedEmployee.id, {
+      assignedTests: [...currentAssignedTests, assignment]
+    });
+
+    alert(`Тест "${test.title}" успешно назначен сотруднику ${selectedEmployee.name}!`);
     setSelectedTestId("");
     setIsDialogOpen(false);
+    
+    // Перезагружаем данные
+    const updatedEmployees = database.getEmployees();
+    setEmployees(updatedEmployees);
   };
 
   // Определение причины, почему сотрудник требует внимания
@@ -376,6 +398,86 @@ export const TopEmployees = () => {
                     </Card>
                   )}
                 </div>
+
+                {/* История назначенных тестов */}
+                {selectedEmployee.assignedTests && selectedEmployee.assignedTests.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center text-purple-600">
+                      <Icon name="History" size={20} className="mr-2" />
+                      История назначений
+                    </h3>
+                    <div className="space-y-3">
+                      {selectedEmployee.assignedTests
+                        .sort((a: any, b: any) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime())
+                        .map((assignment: any, index: number) => {
+                          const isCompleted = selectedEmployee.testResults?.some((r: any) => r.id.toString() === assignment.testId);
+                          const actualStatus = isCompleted ? 'completed' : assignment.status;
+                          
+                          return (
+                            <Card key={index} className="hover:shadow-md transition-shadow">
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2">
+                                      <Icon 
+                                        name={actualStatus === 'completed' ? 'CheckCircle2' : actualStatus === 'overdue' ? 'AlertCircle' : 'Clock'} 
+                                        size={16} 
+                                        className={
+                                          actualStatus === 'completed' ? 'text-green-500' : 
+                                          actualStatus === 'overdue' ? 'text-red-500' : 
+                                          'text-yellow-500'
+                                        } 
+                                      />
+                                      <p className="font-medium">{assignment.testTitle}</p>
+                                    </div>
+                                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                                      <div className="flex items-center">
+                                        <Icon name="User" size={12} className="mr-1.5" />
+                                        Назначил: {assignment.assignedBy}
+                                      </div>
+                                      <div className="flex items-center">
+                                        <Icon name="Calendar" size={12} className="mr-1.5" />
+                                        {new Date(assignment.assignedAt).toLocaleDateString('ru-RU', {
+                                          day: 'numeric',
+                                          month: 'long',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </div>
+                                      {assignment.completedAt && (
+                                        <div className="flex items-center text-green-600">
+                                          <Icon name="CheckCircle" size={12} className="mr-1.5" />
+                                          Выполнен: {new Date(assignment.completedAt).toLocaleDateString('ru-RU', {
+                                            day: 'numeric',
+                                            month: 'long',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <Badge 
+                                    variant={
+                                      actualStatus === 'completed' ? 'default' : 
+                                      actualStatus === 'overdue' ? 'destructive' : 
+                                      'secondary'
+                                    }
+                                    className="ml-4"
+                                  >
+                                    {actualStatus === 'completed' ? 'Выполнен' : 
+                                     actualStatus === 'overdue' ? 'Просрочен' : 
+                                     'Ожидает'}
+                                  </Badge>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Рекомендации */}
                 {getTestScore(selectedEmployee) < 70 && (
