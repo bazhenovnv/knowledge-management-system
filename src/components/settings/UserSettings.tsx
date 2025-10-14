@@ -43,6 +43,7 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       console.log('Loading user data for userId:', userId);
       const employees = database.getEmployees();
       console.log('Total employees:', employees.length);
+      console.log('All employees:', employees.map(e => ({ id: e.id, name: e.name, role: e.role })));
       const employee = employees.find(e => e.id === userId);
       console.log('Found employee:', employee);
       
@@ -57,6 +58,20 @@ export default function UserSettings({ userId }: UserSettingsProps) {
         console.log('User set:', userData);
       } else {
         console.warn('Employee not found with userId:', userId);
+        console.log('Trying to get employee from localStorage...');
+        const userRole = localStorage.getItem('userRole');
+        const userName = localStorage.getItem('userName');
+        
+        if (userRole && userName) {
+          const userData: User = {
+            id: userId,
+            fullName: userName,
+            email: '',
+            role: userRole
+          };
+          setUser(userData);
+          console.log('User set from localStorage:', userData);
+        }
       }
     } catch (error) {
       console.error('Ошибка загрузки данных пользователя:', error);
