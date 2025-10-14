@@ -12,6 +12,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const TopEmployees = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -19,6 +27,8 @@ export const TopEmployees = () => {
   const [bottomEmployees, setBottomEmployees] = useState<any[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedTestId, setSelectedTestId] = useState<string>("");
+  const [availableTests, setAvailableTests] = useState<any[]>([]);
 
   // Загружаем сотрудников из базы данных
   useEffect(() => {
@@ -28,6 +38,7 @@ export const TopEmployees = () => {
       const totalAvailableTests = testsData.filter(t => t.status === 'published').length;
       
       setEmployees(employeesData);
+      setAvailableTests(testsData.filter(t => t.status === 'published'));
 
       // Фильтруем только сотрудников (не админов и преподавателей)
       const onlyEmployees = employeesData.filter(emp => emp.role === 'employee');
@@ -96,6 +107,18 @@ export const TopEmployees = () => {
   // Функция для подсчета пройденных тестов
   const getCompletedTests = (employee: any) => {
     return employee.testResults ? employee.testResults.length : 0;
+  };
+
+  // Функция назначения теста сотруднику
+  const assignTest = () => {
+    if (!selectedTestId || !selectedEmployee) return;
+
+    // Здесь можно добавить логику назначения теста
+    // Например, отправить уведомление сотруднику или создать задачу
+    
+    alert(`Тест успешно назначен сотруднику ${selectedEmployee.name}!`);
+    setSelectedTestId("");
+    setIsDialogOpen(false);
   };
 
   // Определение причины, почему сотрудник требует внимания
@@ -393,6 +416,90 @@ export const TopEmployees = () => {
                     </Card>
                   </div>
                 )}
+
+                {/* Назначить тест */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center text-blue-600">
+                    <Icon name="ClipboardList" size={20} className="mr-2" />
+                    Назначить тест
+                  </h3>
+                  <Card className="bg-blue-50 border-blue-200">
+                    <CardContent className="p-4">
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            Выберите тест для назначения
+                          </label>
+                          <Select value={selectedTestId} onValueChange={setSelectedTestId}>
+                            <SelectTrigger className="w-full bg-white">
+                              <SelectValue placeholder="Выберите тест из списка" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableTests.length > 0 ? (
+                                availableTests.map((test) => (
+                                  <SelectItem key={test.id} value={test.id}>
+                                    <div className="flex items-center justify-between w-full">
+                                      <span className="font-medium">{test.title}</span>
+                                      <Badge 
+                                        variant="outline" 
+                                        className="ml-2 text-xs"
+                                      >
+                                        {test.difficulty === 'easy' ? 'Легкий' : test.difficulty === 'medium' ? 'Средний' : 'Сложный'}
+                                      </Badge>
+                                    </div>
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <SelectItem value="no-tests" disabled>
+                                  Нет доступных тестов
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        {selectedTestId && (
+                          <div className="p-3 bg-white rounded-lg border border-blue-200">
+                            {(() => {
+                              const test = availableTests.find(t => t.id === selectedTestId);
+                              if (!test) return null;
+                              return (
+                                <div className="space-y-2">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <p className="font-medium text-gray-900">{test.title}</p>
+                                      <p className="text-sm text-gray-500 mt-1">{test.description}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center space-x-4 text-sm text-gray-600 mt-3">
+                                    <span className="flex items-center">
+                                      <Icon name="FileText" size={14} className="mr-1" />
+                                      {test.questions?.length || 0} вопросов
+                                    </span>
+                                    <span className="flex items-center">
+                                      <Icon name="Clock" size={14} className="mr-1" />
+                                      {test.timeLimit} мин
+                                    </span>
+                                    <Badge variant="outline">{test.category}</Badge>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                        <Button 
+                          onClick={assignTest} 
+                          disabled={!selectedTestId || selectedTestId === 'no-tests'}
+                          className="w-full"
+                        >
+                          <Icon name="Send" size={16} className="mr-2" />
+                          Назначить выбранный тест
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </>
           )}
