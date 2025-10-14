@@ -90,7 +90,6 @@ const NotificationList: React.FC<NotificationListProps> = ({
 
   const handleMarkAllRead = () => {
     try {
-      // Отмечаем все уведомления как прочитанные
       notifications.forEach(n => {
         if (!n.is_read) {
           database.markNotificationAsRead(n.id.toString(), employeeId);
@@ -106,7 +105,25 @@ const NotificationList: React.FC<NotificationListProps> = ({
     }
   };
 
+  const handleDeleteRead = () => {
+    try {
+      const deletedCount = database.deleteReadNotificationsForUser(employeeId);
+      
+      if (deletedCount > 0) {
+        loadNotifications();
+        onNotificationsRead?.();
+        toast.success(`Удалено ${deletedCount} ${deletedCount === 1 ? 'уведомление' : deletedCount < 5 ? 'уведомления' : 'уведомлений'}`);
+      } else {
+        toast.info('Нет прочитанных уведомлений для удаления');
+      }
+    } catch (error) {
+      console.error('Error deleting read notifications:', error);
+      toast.error('Ошибка при удалении уведомлений');
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const readCount = notifications.filter(n => n.is_read).length;
 
   const filteredNotifications = notifications.filter(notification => {
     if (filter === 'all') return true;
@@ -136,17 +153,30 @@ const NotificationList: React.FC<NotificationListProps> = ({
             </p>
           )}
         </div>
-        {unreadCount > 0 && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleMarkAllRead}
-            className="text-xs"
-          >
-            <Icon name="CheckCheck" size={14} className="mr-1" />
-            Отметить все
-          </Button>
-        )}
+        <div className="flex gap-1">
+          {unreadCount > 0 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleMarkAllRead}
+              className="text-xs"
+            >
+              <Icon name="CheckCheck" size={14} className="mr-1" />
+              Отметить все
+            </Button>
+          )}
+          {readCount > 0 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleDeleteRead}
+              className="text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Icon name="Trash2" size={14} className="mr-1" />
+              Удалить прочитанные
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-1 px-3 py-2 border-b overflow-x-auto">

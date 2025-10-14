@@ -743,6 +743,19 @@ class DatabaseService {
     return true;
   }
 
+  // Удалить все прочитанные уведомления для пользователя
+  deleteReadNotificationsForUser(userId: number): number {
+    const notifications = this.getNotifications();
+    const userNotifications = this.getNotificationsForUser(userId);
+    const readNotifications = userNotifications.filter(n => n.readBy.includes(userId));
+    
+    const readNotificationIds = new Set(readNotifications.map(n => n.id));
+    const filteredNotifications = notifications.filter(n => !readNotificationIds.has(n.id));
+    
+    this.setData(STORAGE_KEYS.NOTIFICATIONS, filteredNotifications);
+    return readNotificationIds.size;
+  }
+
   // Получить статистику уведомлений
   getNotificationStats(): {
     totalNotifications: number;
