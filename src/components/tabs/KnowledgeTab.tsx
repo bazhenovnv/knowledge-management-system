@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
 import { databaseService, DatabaseKnowledgeMaterial, FileAttachment } from "@/utils/databaseService";
 import { toast } from "sonner";
+import { useDepartments } from "@/hooks/useDepartments";
 
 interface KnowledgeTabProps {
   searchQuery: string;
@@ -46,6 +47,7 @@ export const KnowledgeTab = ({
   userRole,
   currentUserId,
 }: KnowledgeTabProps) => {
+  const departmentsFromHook = useDepartments();
   const [materials, setMaterials] = useState<DatabaseKnowledgeMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -70,18 +72,7 @@ export const KnowledgeTab = ({
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [coverImagePreview, setCoverImagePreview] = useState<string>('');
   
-  const departments = [
-    'IT',
-    'HR',
-    'Маркетинг',
-    'Продажи',
-    'Финансы',
-    'Партнерка',
-    'Поддержка',
-    'Разработка',
-    'Дизайн',
-    'Аналитика'
-  ];
+  const departments = departmentsFromHook;
 
   useEffect(() => {
     loadMaterials();
@@ -112,13 +103,7 @@ export const KnowledgeTab = ({
     return matchesSearch && matchesDepartment && material.is_published;
   });
 
-  const allDepartments = Array.from(
-    new Set(
-      materials.flatMap(m => 
-        m.category ? m.category.split(', ').map(d => d.trim()) : []
-      )
-    )
-  ).sort();
+  const allDepartments = departmentsFromHook.sort();
 
   const canEditMaterial = (userRole === 'admin' || userRole === 'teacher');
 
