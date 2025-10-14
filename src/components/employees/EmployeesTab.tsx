@@ -121,6 +121,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
 
   // Функция редактирования сотрудника
   const handleEditEmployee = (employee: Employee) => {
+    console.log("handleEditEmployee called with:", employee);
     setEditingEmployee({
       id: employee.id,
       name: employee.name,
@@ -135,14 +136,24 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
 
   // Функция сохранения изменений
   const handleSaveEdit = () => {
+    console.log("handleSaveEdit called", editingEmployee);
+    
     if (!editingEmployee.name || !editingEmployee.email || !editingEmployee.department || !editingEmployee.position) {
       toast.error("Заполните все обязательные поля");
       return;
     }
 
+    if (!editingEmployee.id) {
+      toast.error("ID сотрудника не найден");
+      console.error("Employee ID is null", editingEmployee);
+      return;
+    }
+
     try {
+      console.log("Updating employee with ID:", editingEmployee.id);
+      
       // Обновляем сотрудника в базе данных
-      const updatedEmployee = database.updateEmployee(editingEmployee.id!, {
+      const updatedEmployee = database.updateEmployee(editingEmployee.id, {
         name: editingEmployee.name,
         email: editingEmployee.email,
         department: editingEmployee.department,
@@ -150,6 +161,8 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
         role: editingEmployee.role as "admin" | "teacher" | "employee",
         status: editingEmployee.status
       });
+
+      console.log("Updated employee result:", updatedEmployee);
 
       if (updatedEmployee) {
         // Обновляем локальное состояние
@@ -172,6 +185,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
         toast.success("Данные сотрудника обновлены в базе данных");
       } else {
         toast.error("Сотрудник не найден");
+        console.error("Updated employee is null");
       }
     } catch (error) {
       toast.error("Ошибка при обновлении данных сотрудника");
