@@ -106,7 +106,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
         elif method == 'DELETE':
             item_id = params.get('id')
-            result = delete_item(cursor, conn, table, item_id)
+            permanent = params.get('permanent', 'false').lower() == 'true'
+            if permanent:
+                result = permanent_delete_item(cursor, conn, table, item_id)
+            else:
+                result = delete_item(cursor, conn, table, item_id)
             
         else:
             result = {'error': f'Метод {method} не поддерживается'}
@@ -386,6 +390,22 @@ def delete_item(cursor, conn, table: str, item_id: str) -> Dict[str, Any]:
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка удаления записи: {str(e)}'}
+
+
+def permanent_delete_item(cursor, conn, table: str, item_id: str) -> Dict[str, Any]:
+    """Полностью удалить запись из базы данных (жёсткое удаление)"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        cursor.execute(f"DELETE FROM {schema}.{table} WHERE id = %s", (item_id,))
+        
+        if cursor.rowcount > 0:
+            conn.commit()
+            return {'message': f'Запись с ID {item_id} полностью удалена из базы данных'}
+        else:
+            return {'error': 'Запись не найдена'}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка при удалении записи: {str(e)}'}
 
 
 def get_database_stats(cursor) -> Dict[str, Any]:

@@ -179,6 +179,22 @@ class DatabaseService {
     return !response.error;
   }
 
+  async permanentDeleteEmployee(id: number): Promise<boolean> {
+    // Полное удаление сотрудника из базы данных
+    try {
+      const response = await this.makeRequest(`?table=employees&id=${id}&permanent=true`, {
+        method: 'DELETE'
+      });
+
+      console.log('Permanent delete employee response:', response);
+      
+      return !response.error && !!response.message;
+    } catch (error) {
+      console.error('Permanent delete employee error:', error);
+      return false;
+    }
+  }
+
   async getInactiveEmployees(): Promise<DatabaseEmployee[]> {
     const response = await this.makeRequest<DatabaseEmployee[]>('?action=list_inactive&table=employees');
     

@@ -84,11 +84,17 @@ const EmployeeList: React.FC = () => {
     if (!employeeToDelete) return;
 
     try {
-      const success = await databaseService.deleteEmployee(employeeToDelete.id);
+      // Если сотрудник неактивен - полное удаление, иначе - мягкое (деактивация)
+      const success = employeeToDelete.is_active 
+        ? await databaseService.deleteEmployee(employeeToDelete.id)
+        : await databaseService.permanentDeleteEmployee(employeeToDelete.id);
       
       if (success) {
         await loadEmployees();
-        toast.success(`Сотрудник ${employeeToDelete.full_name} удален из базы`);
+        const message = employeeToDelete.is_active
+          ? `Сотрудник ${employeeToDelete.full_name} деактивирован`
+          : `Сотрудник ${employeeToDelete.full_name} полностью удалён из базы данных`;
+        toast.success(message);
       } else {
         toast.error('Не удалось удалить сотрудника');
       }
@@ -685,23 +691,34 @@ const EmployeeList: React.FC = () => {
                     </Button>
                     
                     {!employee.is_active ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={async () => {
-                          const restored = await databaseService.restoreEmployee(employee.id);
-                          if (restored) {
-                            toast.success(`Сотрудник ${employee.full_name} восстановлен`);
-                            loadEmployees();
-                          } else {
-                            toast.error('Ошибка при восстановлении сотрудника');
-                          }
-                        }}
-                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      >
-                        <Icon name="UserCheck" size={14} className="mr-1" />
-                        Восстановить
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            const restored = await databaseService.restoreEmployee(employee.id);
+                            if (restored) {
+                              toast.success(`Сотрудник ${employee.full_name} восстановлен`);
+                              loadEmployees();
+                            } else {
+                              toast.error('Ошибка при восстановлении сотрудника');
+                            }
+                          }}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                        >
+                          <Icon name="UserCheck" size={14} className="mr-1" />
+                          Восстановить
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setEmployeeToDelete(employee)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Icon name="Trash2" size={14} className="mr-1" />
+                          Удалить полностью
+                        </Button>
+                      </>
                     ) : (
                       <Button
                         size="sm"
@@ -726,14 +743,31 @@ const EmployeeList: React.FC = () => {
     <AlertDialog open={!!employeeToDelete} onOpenChange={(open) => !open && setEmployeeToDelete(null)}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Подтверждение деактивации</AlertDialogTitle>
+          <AlertDialogTitle>
+            {employeeToDelete?.is_active ? 'Подтверждение деактивации' : 'Подтверждение удаления'}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Вы уверены, что хотите деактивировать сотрудника{' '}
-            <strong>{employeeToDelete?.full_name}</strong>?
-            <br />
-            <br />
-            Сотрудник будет скрыт из списка, но данные останутся в базе данных.
-            Это действие можно отменить через администраторскую панель.
+            {employeeToDelete?.is_active ? (
+              <>
+                Вы уверены, что хотите деактивировать сотрудника{' '}
+                <strong>{employeeToDelete?.full_name}</strong>?
+                <br />
+                <br />
+                Сотрудник будет помечен как неактивный, но данные останутся в базе данных.
+                Позже его можно будет восстановить.
+              </>
+            ) : (
+              <>
+                <span className="text-red-600 font-semibold">⚠️ Внимание! Это действие необратимо!</span>
+                <br />
+                <br />
+                Вы уверены, что хотите <strong>полностью удалить</strong> сотрудника{' '}
+                <strong>{employeeToDelete?.full_name}</strong> из базы данных?
+                <br />
+                <br />
+                Все данные сотрудника будут удалены безвозвратно. Восстановление будет невозможно.
+              </>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -742,7 +776,7 @@ const EmployeeList: React.FC = () => {
             onClick={handleDeleteEmployee}
             className="bg-red-600 hover:bg-red-700"
           >
-            Деактивировать
+            {employeeToDelete?.is_active ? 'Деактивировать' : 'Удалить навсегда'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
