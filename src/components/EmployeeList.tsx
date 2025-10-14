@@ -47,12 +47,15 @@ const EmployeeList: React.FC = () => {
   }, [employees, searchTerm]);
 
   const loadEmployees = async () => {
+    console.log('🔄 Loading employees from database...');
     setIsLoading(true);
     try {
       const data = await databaseService.getEmployees();
+      console.log('✅ Employees loaded:', data.length, 'records');
+      console.log('📋 First employee:', data[0]);
       setEmployees(data);
     } catch (error) {
-      console.error('Error loading employees:', error);
+      console.error('❌ Error loading employees:', error);
       toast.error('Ошибка при загрузке списка сотрудников');
     } finally {
       setIsLoading(false);
