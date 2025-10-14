@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Отправка email уведомления",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "to_email": "test@example.com",
+        "subject": "Тестовое уведомление",
+        "message": "Это тестовое сообщение из системы уведомлений",
+        "type": "info"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": "boolean"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
