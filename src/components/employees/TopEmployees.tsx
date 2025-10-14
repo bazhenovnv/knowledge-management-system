@@ -143,6 +143,27 @@ export const TopEmployees = () => {
     setEmployees(updatedEmployees);
   };
 
+  // Функция отправки напоминания о непройденном тесте
+  const sendReminder = (assignment: any) => {
+    if (!selectedEmployee) return;
+
+    const currentUser = database.getCurrentUser();
+    
+    // Создаем уведомление используя метод из database
+    database.createNotification({
+      title: `Напоминание: Пройдите тест "${assignment.testTitle}"`,
+      message: `Напоминаем, что вам назначен тест "${assignment.testTitle}". Пожалуйста, пройдите его в ближайшее время.`,
+      priority: 'medium',
+      type: 'reminder',
+      recipients: [selectedEmployee.id],
+      createdBy: currentUser?.name || 'Администратор',
+      createdByRole: (currentUser?.role || 'admin') as 'admin' | 'teacher',
+      status: 'sent',
+    });
+
+    alert(`Напоминание отправлено сотруднику ${selectedEmployee.name}!`);
+  };
+
   // Определение причины, почему сотрудник требует внимания
   const getAttentionReason = (employee: any) => {
     const testScore = getTestScore(employee);
@@ -402,10 +423,31 @@ export const TopEmployees = () => {
                 {/* История назначенных тестов */}
                 {selectedEmployee.assignedTests && selectedEmployee.assignedTests.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold mb-3 flex items-center text-purple-600">
-                      <Icon name="History" size={20} className="mr-2" />
-                      История назначений
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-lg font-semibold flex items-center text-purple-600">
+                        <Icon name="History" size={20} className="mr-2" />
+                        История назначений
+                      </h3>
+                      {selectedEmployee.assignedTests.some((a: any) => 
+                        !selectedEmployee.testResults?.some((r: any) => r.id.toString() === a.testId)
+                      ) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const pendingTests = selectedEmployee.assignedTests.filter((a: any) => 
+                              !selectedEmployee.testResults?.some((r: any) => r.id.toString() === a.testId)
+                            );
+                            pendingTests.forEach((assignment: any) => sendReminder(assignment));
+                            alert(`Отправлено ${pendingTests.length} напоминаний сотруднику ${selectedEmployee.name}!`);
+                          }}
+                          className="text-xs"
+                        >
+                          <Icon name="BellRing" size={14} className="mr-1" />
+                          Напомнить обо всех
+                        </Button>
+                      )}
+                    </div>
                     <div className="space-y-3">
                       {selectedEmployee.assignedTests
                         .sort((a: any, b: any) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime())
@@ -416,7 +458,7 @@ export const TopEmployees = () => {
                           return (
                             <Card key={index} className="hover:shadow-md transition-shadow">
                               <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
+                                <div className="flex items-start justify-between gap-4">
                                   <div className="flex-1">
                                     <div className="flex items-center space-x-2">
                                       <Icon 
@@ -458,18 +500,33 @@ export const TopEmployees = () => {
                                       )}
                                     </div>
                                   </div>
-                                  <Badge 
-                                    variant={
-                                      actualStatus === 'completed' ? 'default' : 
-                                      actualStatus === 'overdue' ? 'destructive' : 
-                                      'secondary'
-                                    }
-                                    className="ml-4"
-                                  >
-                                    {actualStatus === 'completed' ? 'Выполнен' : 
-                                     actualStatus === 'overdue' ? 'Просрочен' : 
-                                     'Ожидает'}
-                                  </Badge>
+                                  <div className="flex flex-col items-end space-y-2">
+                                    <Badge 
+                                      variant={
+                                        actualStatus === 'completed' ? 'default' : 
+                                        actualStatus === 'overdue' ? 'destructive' : 
+                                        'secondary'
+                                      }
+                                    >
+                                      {actualStatus === 'completed' ? 'Выполнен' : 
+                                       actualStatus === 'overdue' ? 'Просрочен' : 
+                                       'Ожидает'}
+                                    </Badge>
+                                    {actualStatus !== 'completed' && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          sendReminder(assignment);
+                                        }}
+                                        className="text-xs"
+                                      >
+                                        <Icon name="Bell" size={12} className="mr-1" />
+                                        Напомнить
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
                               </CardContent>
                             </Card>
