@@ -353,9 +353,9 @@ export const KnowledgeTab = ({
                     size={16}
                     className="text-yellow-500 fill-current"
                   />
-                  <span className="text-sm">{item.rating.toFixed(1)}</span>
+                  <span className="text-sm">{Number(item.rating || 0).toFixed(1)}</span>
                   <span className="text-sm text-gray-500">
-                    ({item.enrollments})
+                    ({item.enrollments || 0})
                   </span>
                 </div>
                 <div className="flex gap-2">

@@ -41,52 +41,57 @@ export const AdminDashboard = ({
       try {
         setLoading(true);
         
-        // Загружаем статистику из базы данных
-        const dbStats = await databaseService.getDatabaseStats();
+        // Рассчитываем средний балл из test_results
+        const testResultsResponse = await fetch(
+          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
+        );
+        const testResultsData = await testResultsResponse.json();
+        const testResults = testResultsData.data || [];
         
-        if (dbStats) {
-          // Рассчитываем средний балл из test_results
-          const testResultsResponse = await fetch(
-            `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
-          );
-          const testResultsData = await testResultsResponse.json();
-          const testResults = testResultsData.data || [];
-          
-          const averageScore = testResults.length > 0
-            ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)
-            : 0;
-          
-          // Подсчитываем новые регистрации за последние 24 часа
-          const employeesResponse = await fetch(
-            `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
-          );
-          const employeesData = await employeesResponse.json();
-          const allEmployees = employeesData.data || [];
-          
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          const newRegistrations = allEmployees.filter((emp: DatabaseEmployee) => 
-            new Date(emp.created_at) > yesterday
-          ).length;
-          
-          // Подсчитываем тесты
-          const testsResponse = await fetch(
-            `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
-          );
-          const testsData = await testsResponse.json();
-          const totalTests = testsData.data?.length || 0;
+        const averageScore = testResults.length > 0
+          ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)
+          : 0;
+        
+        // Подсчитываем новые регистрации за последние 24 часа
+        const employeesResponse = await fetch(
+          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+        );
+        const employeesData = await employeesResponse.json();
+        const allEmployees = employeesData.data || [];
+        
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const newRegistrations = allEmployees.filter((emp: DatabaseEmployee) => 
+          new Date(emp.created_at) > yesterday
+        ).length;
+        
+        const activeEmployees = allEmployees.filter((emp: DatabaseEmployee) => emp.is_active).length;
+        const inactiveEmployees = allEmployees.length - activeEmployees;
+        
+        // Подсчитываем тесты
+        const testsResponse = await fetch(
+          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
+        );
+        const testsData = await testsResponse.json();
+        const totalTests = testsData.data?.length || 0;
+        
+        // Подсчитываем курсы
+        const coursesResponse = await fetch(
+          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=courses`
+        );
+        const coursesData = await coursesResponse.json();
+        const activeCourses = coursesData.data?.filter((c: any) => c.status === 'active').length || 0;
 
-          setStats({
-            totalEmployees: dbStats.active_employees + dbStats.inactive_employees,
-            activeEmployees: dbStats.active_employees,
-            inactiveEmployees: dbStats.inactive_employees,
-            totalTests,
-            totalTestResults: testResults.length,
-            averageScore,
-            activeCourses: dbStats.active_courses,
-            newRegistrations
-          });
-        }
+        setStats({
+          totalEmployees: allEmployees.length,
+          activeEmployees,
+          inactiveEmployees,
+          totalTests,
+          totalTestResults: testResults.length,
+          averageScore,
+          activeCourses,
+          newRegistrations
+        });
       } catch (error) {
         console.error('Error loading stats:', error);
         toast.error('Ошибка загрузки статистики');

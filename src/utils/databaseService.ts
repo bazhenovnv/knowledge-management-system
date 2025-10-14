@@ -334,12 +334,12 @@ class DatabaseService {
   } | null> {
     const response = await this.makeRequest<any>('?action=stats');
     
-    if (response.error || !response.stats) {
+    if (response.error) {
       console.error('Error fetching stats:', response.error);
       return null;
     }
 
-    return response.stats;
+    return response.stats || response.data || null;
   }
 
   // ========================
@@ -384,7 +384,13 @@ class DatabaseService {
       return [];
     }
 
-    return response.data || [];
+    return (response.data || []).map(material => ({
+      ...material,
+      rating: Number(material.rating) || 0,
+      enrollments: Number(material.enrollments) || 0,
+      attachments: material.attachments || [],
+      cover_image: material.cover_image || '',
+    }));
   }
 
   async getKnowledgeMaterialById(id: number): Promise<DatabaseKnowledgeMaterial | null> {
