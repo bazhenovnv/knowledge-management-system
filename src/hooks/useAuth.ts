@@ -35,6 +35,12 @@ export const useAuth = () => {
     const saved = localStorage.getItem("userName");
     return saved || "";
   });
+  
+  const [userId, setUserId] = useState<number>(() => {
+    // Проверяем localStorage при инициализации
+    const saved = localStorage.getItem("userId");
+    return saved ? parseInt(saved) : 0;
+  });
   const [loginForm, setLoginForm] = useState<LoginForm>({
     email: "",
     password: "",
@@ -54,7 +60,8 @@ export const useAuth = () => {
     localStorage.setItem("isLoggedIn", isLoggedIn.toString());
     localStorage.setItem("userRole", userRole);
     localStorage.setItem("userName", userName);
-  }, [isLoggedIn, userRole, userName]);
+    localStorage.setItem("userId", userId.toString());
+  }, [isLoggedIn, userRole, userName, userId]);
 
   const handleLogin = (email: string, password: string) => {
     // Обязательная проверка полей
@@ -80,6 +87,7 @@ export const useAuth = () => {
     if (email === "admin@example.com" && password === "admin123") {
       setUserRole("admin");
       setUserName("Администратор");
+      setUserId(1);
       setIsLoggedIn(true);
       initializeAutoBackup("admin");
       toast.success("Вход выполнен как Администратор");
@@ -87,12 +95,14 @@ export const useAuth = () => {
     } else if (email === "teacher@example.com" && password === "teacher123") {
       setUserRole("teacher");
       setUserName("Преподаватель");
+      setUserId(2);
       setIsLoggedIn(true);
       toast.success("Вход выполнен как Преподаватель");
       return;
     } else if (email === "employee@example.com" && password === "employee123") {
       setUserRole("employee");
       setUserName("Сотрудник");
+      setUserId(3);
       setIsLoggedIn(true);
       toast.success("Вход выполнен как Сотрудник");
       return;
@@ -119,6 +129,7 @@ export const useAuth = () => {
     // Успешный вход
     setUserRole(employee.role);
     setUserName(employee.name);
+    setUserId(employee.id);
     setIsLoggedIn(true);
     
     // Создаём автобэкап для администратора
@@ -136,12 +147,14 @@ export const useAuth = () => {
     setIsLoggedIn(false);
     setUserRole("employee");
     setUserName("");
+    setUserId(0);
     setLoginForm({ email: "", password: "" });
     
     // Очищаем localStorage
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userRole");
     localStorage.removeItem("userName");
+    localStorage.removeItem("userId");
   };
 
   const handleRegister = (formData: RegisterForm) => {
@@ -201,6 +214,7 @@ export const useAuth = () => {
       // Устанавливаем пользователя как авторизованного
       setUserRole("employee");
       setUserName(formData.name);
+      setUserId(newEmployee.id);
       setIsLoggedIn(true);
       setShowRegister(false);
       
@@ -240,6 +254,7 @@ export const useAuth = () => {
     isLoggedIn,
     userRole,
     userName,
+    userId,
     loginForm,
     registerForm,
     showRegister,

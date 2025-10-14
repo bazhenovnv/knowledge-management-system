@@ -53,8 +53,15 @@ export default function UserSettings({ userId }: UserSettingsProps) {
 
   const loadUserData = async () => {
     try {
-      const userData = database.getUsers().find(u => u.id === userId);
-      if (userData) {
+      const employees = database.getEmployees();
+      const employee = employees.find(e => e.id === userId);
+      if (employee) {
+        const userData: User = {
+          id: employee.id,
+          fullName: employee.name,
+          email: employee.email,
+          role: employee.role
+        };
         setUser(userData);
         setEmailForm(prev => ({ ...prev, newEmail: userData.email }));
       }

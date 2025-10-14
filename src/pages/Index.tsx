@@ -68,6 +68,7 @@ const Index = () => {
     isLoggedIn,
     userRole,
     userName,
+    userId,
     loginForm,
     registerForm,
     showRegister,
@@ -212,7 +213,7 @@ const Index = () => {
 
           <TabsContent value="settings" className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm">
-              <UserSettings userId={database.getCurrentUser()?.id || 1} />
+              <UserSettings userId={userId} />
             </div>
             {userRole === "admin" && (
               <div className="bg-white rounded-lg shadow-sm">

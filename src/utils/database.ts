@@ -448,6 +448,64 @@ class DatabaseService {
     const employees = this.getEmployees();
     
     if (employees.length === 0) {
+      // Сначала создаём тестовых пользователей с фиксированными ID
+      const testUsers = [
+        {
+          id: 1,
+          name: "Администратор",
+          email: "admin@example.com",
+          department: "Администрация",
+          position: "Системный администратор",
+          role: "admin" as const,
+          status: 5,
+          tests: 0,
+          avgScore: 0,
+          score: 0,
+          testResults: [],
+          password: "admin123",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 2,
+          name: "Преподаватель",
+          email: "teacher@example.com",
+          department: "Учебный отдел",
+          position: "Старший преподаватель",
+          role: "teacher" as const,
+          status: 5,
+          tests: 0,
+          avgScore: 0,
+          score: 0,
+          testResults: [],
+          password: "teacher123",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        {
+          id: 3,
+          name: "Сотрудник",
+          email: "employee@example.com",
+          department: "Общий отдел",
+          position: "Специалист",
+          role: "employee" as const,
+          status: 3,
+          tests: 0,
+          avgScore: 0,
+          score: 0,
+          testResults: [],
+          password: "employee123",
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      // Сохраняем тестовых пользователей напрямую
+      this.setData(STORAGE_KEYS.EMPLOYEES, testUsers);
+      
       // Инициализируем с базовыми данными из mockData
       const initialEmployees: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>[] = [
         {
