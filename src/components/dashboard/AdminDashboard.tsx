@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 
 import Icon from "@/components/ui/icon";
 import { useState, useEffect } from "react";
-import { database } from "@/utils/database";
+import { databaseService, DatabaseEmployee } from "@/utils/databaseService";
 import { TopEmployees } from "@/components/employees/TopEmployees";
 import { toast } from "sonner";
 import NotificationForm from "@/components/notifications/NotificationForm";
@@ -24,55 +24,80 @@ export const AdminDashboard = ({
 }: AdminDashboardProps) => {
   const [stats, setStats] = useState({
     totalEmployees: 0,
+    activeEmployees: 0,
+    inactiveEmployees: 0,
     totalTests: 0,
     totalTestResults: 0,
     averageScore: 0,
     activeCourses: 0,
-    newRegistrations: 0 // Новые регистрации за последний день
+    newRegistrations: 0
   });
+  const [loading, setLoading] = useState(true);
   const [notificationFormOpen, setNotificationFormOpen] = useState(false);
   const [selectedEmployeeForNotification, setSelectedEmployeeForNotification] = useState<any>(null);
 
-  // Загружаем статистику из базы данных
   useEffect(() => {
-    const loadStats = () => {
-      const employeesData = database.getEmployees();
-      const testsData = database.getTests();
-      const testResultsData = database.getTestResults();
-      
-      // Рассчитываем средний балл
-      const totalScore = employeesData.reduce((sum, emp) => {
-        const avgScore = emp.testResults?.length > 0 
-          ? emp.testResults.reduce((s, t) => s + t.score, 0) / emp.testResults.length 
-          : 0;
-        return sum + avgScore;
-      }, 0);
-      const averageScore = employeesData.length > 0 ? Math.round(totalScore / employeesData.length) : 0;
-      
-      // Подсчитываем активные курсы (опубликованные тесты)
-      const activeCourses = testsData.filter(test => test.status === 'published').length;
-      
-      // Подсчитываем новые регистрации за последние 24 часа
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const newRegistrations = employeesData.filter(emp => 
-        new Date(emp.createdAt) > yesterday
-      ).length;
+    const loadStats = async () => {
+      try {
+        setLoading(true);
+        
+        // Загружаем статистику из базы данных
+        const dbStats = await databaseService.getDatabaseStats();
+        
+        if (dbStats) {
+          // Рассчитываем средний балл из test_results
+          const testResultsResponse = await fetch(
+            `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
+          );
+          const testResultsData = await testResultsResponse.json();
+          const testResults = testResultsData.data || [];
+          
+          const averageScore = testResults.length > 0
+            ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)
+            : 0;
+          
+          // Подсчитываем новые регистрации за последние 24 часа
+          const employeesResponse = await fetch(
+            `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+          );
+          const employeesData = await employeesResponse.json();
+          const allEmployees = employeesData.data || [];
+          
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const newRegistrations = allEmployees.filter((emp: DatabaseEmployee) => 
+            new Date(emp.created_at) > yesterday
+          ).length;
+          
+          // Подсчитываем тесты
+          const testsResponse = await fetch(
+            `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
+          );
+          const testsData = await testsResponse.json();
+          const totalTests = testsData.data?.length || 0;
 
-      setStats({
-        totalEmployees: employeesData.length,
-        totalTests: testsData.length,
-        totalTestResults: testResultsData.length,
-        averageScore,
-        activeCourses,
-        newRegistrations
-      });
+          setStats({
+            totalEmployees: dbStats.active_employees + dbStats.inactive_employees,
+            activeEmployees: dbStats.active_employees,
+            inactiveEmployees: dbStats.inactive_employees,
+            totalTests,
+            totalTestResults: testResults.length,
+            averageScore,
+            activeCourses: dbStats.active_courses,
+            newRegistrations
+          });
+        }
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        toast.error('Ошибка загрузки статистики');
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadStats();
     
-    // Обновляем статистику каждые 10 секунд
-    const interval = setInterval(loadStats, 10000);
+    const interval = setInterval(loadStats, 30000);
     
     return () => clearInterval(interval);
   }, []);
@@ -100,8 +125,11 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-blue-600">{stats.totalEmployees}</div>
-                <div className="text-sm text-gray-600">Сотрудников</div>
+                <div className="text-3xl font-bold text-blue-600">{loading ? '...' : stats.activeEmployees}</div>
+                <div className="text-sm text-gray-600">Активных сотрудников</div>
+                {!loading && stats.inactiveEmployees > 0 && (
+                  <div className="text-xs text-gray-500 mt-1">+{stats.inactiveEmployees} неактивных</div>
+                )}
               </div>
               <Icon name="Users" size={32} className="text-blue-600" />
             </div>
@@ -111,8 +139,8 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-green-600">{stats.totalTestResults}</div>
-                <div className="text-sm text-gray-600">Результатов тестов</div>
+                <div className="text-3xl font-bold text-green-600">{loading ? '...' : stats.totalTestResults}</div>
+                <div className="text-sm text-gray-600">Пройдено тестов</div>
               </div>
               <Icon name="BookOpen" size={32} className="text-green-600" />
             </div>
@@ -122,7 +150,7 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-purple-600">{stats.averageScore}%</div>
+                <div className="text-3xl font-bold text-purple-600">{loading ? '...' : stats.averageScore}%</div>
                 <div className="text-sm text-gray-600">Средний балл</div>
               </div>
               <Icon name="TrendingUp" size={32} className="text-purple-600" />
@@ -133,9 +161,8 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-orange-600">{stats.newRegistrations}</div>
-                <div className="text-sm text-gray-600">Новых регистраций</div>
-                <div className="text-xs text-gray-500">за последние 24 часа</div>
+                <div className="text-3xl font-bold text-orange-600">{loading ? '...' : stats.activeCourses}</div>
+                <div className="text-sm text-gray-600">Активных курсов</div>
               </div>
               <Icon name="UserPlus" size={32} className="text-orange-600" />
             </div>
@@ -159,7 +186,7 @@ export const AdminDashboard = ({
             </Button>
           </div>
           <div className="text-sm text-gray-600">
-            Всего активных сотрудников: <span className="font-medium">{stats.totalEmployees}</span>
+            Всего активных сотрудников: <span className="font-medium">{loading ? '...' : stats.activeEmployees}</span>
             <br />
             Для полного управления перейдите в раздел "Сотрудники"
           </div>
