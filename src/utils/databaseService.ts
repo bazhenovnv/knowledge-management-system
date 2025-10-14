@@ -187,8 +187,12 @@ class DatabaseService {
       });
 
       console.log('Permanent delete employee response:', response);
+      console.log('Response has error?', !!response.error);
+      console.log('Response has message?', !!response.message);
+      console.log('Response message:', response.message);
       
-      return !response.error && !!response.message;
+      // Успех если нет ошибки (проверяем только error)
+      return !response.error;
     } catch (error) {
       console.error('Permanent delete employee error:', error);
       return false;
