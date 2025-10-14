@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import * as XLSX from 'xlsx';
+import EmployeeCharts from './EmployeeCharts';
 
 export const TopEmployees = () => {
   const [employees, setEmployees] = useState<any[]>([]);
@@ -33,6 +34,7 @@ export const TopEmployees = () => {
   const [availableTests, setAvailableTests] = useState<any[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   const [departments, setDepartments] = useState<string[]>([]);
+  const [showCharts, setShowCharts] = useState(false);
 
   // Загружаем сотрудников из базы данных
   useEffect(() => {
@@ -458,6 +460,137 @@ export const TopEmployees = () => {
         XLSX.utils.book_append_sheet(wb, wsDetailed, 'Детальные результаты');
       }
 
+      // Создаем лист с данными для графиков
+      const chartData: any[] = [];
+      
+      // 1. График: Распределение сотрудников по баллам
+      const scoreRanges = [
+        { range: '0-39%', min: 0, max: 39, count: 0 },
+        { range: '40-59%', min: 40, max: 59, count: 0 },
+        { range: '60-69%', min: 60, max: 69, count: 0 },
+        { range: '70-79%', min: 70, max: 79, count: 0 },
+        { range: '80-89%', min: 80, max: 89, count: 0 },
+        { range: '90-100%', min: 90, max: 100, count: 0 }
+      ];
+      
+      filteredEmployees.forEach(emp => {
+        const score = getTestScore(emp);
+        const range = scoreRanges.find(r => score >= r.min && score <= r.max);
+        if (range) range.count++;
+      });
+      
+      chartData.push({ 'Тип графика': 'Распределение по баллам', 'Описание': 'Гистограмма - Диапазон баллов на оси X, Количество сотрудников на оси Y' });
+      chartData.push({});
+      scoreRanges.forEach(r => {
+        chartData.push({ 'Диапазон баллов': r.range, 'Количество сотрудников': r.count });
+      });
+      
+      chartData.push({});
+      chartData.push({});
+      
+      // 2. График: Топ-10 самых популярных тестов
+      chartData.push({ 'Тип графика': 'Популярность тестов', 'Описание': 'Столбчатая диаграмма - Название теста на оси X, Количество прохождений на оси Y' });
+      chartData.push({});
+      
+      const topTests = [...testStats]
+        .sort((a, b) => b['Прошли тест'] - a['Прошли тест'])
+        .slice(0, 10);
+      
+      topTests.forEach(test => {
+        chartData.push({
+          'Название теста': test['Название теста'].length > 30 ? test['Название теста'].substring(0, 27) + '...' : test['Название теста'],
+          'Прохождений': test['Прошли тест']
+        });
+      });
+      
+      chartData.push({});
+      chartData.push({});
+      
+      // 3. График: Средний балл по категориям тестов
+      chartData.push({ 'Тип графика': 'Баллы по категориям', 'Описание': 'Столбчатая диаграмма - Категория на оси X, Средний балл на оси Y' });
+      chartData.push({});
+      
+      const categories = new Set(testsData.filter(t => t.status === 'published').map(t => t.category));
+      const categoryStats = Array.from(categories).map(category => {
+        const categoryTests = testStats.filter(t => t['Категория'] === category);
+        const avgScore = categoryTests.length > 0
+          ? Math.round(categoryTests.reduce((sum, t) => sum + t['Средний балл (%)'], 0) / categoryTests.length)
+          : 0;
+        
+        return {
+          'Категория': category,
+          'Средний балл (%)': avgScore
+        };
+      }).sort((a, b) => b['Средний балл (%)'] - a['Средний балл (%)']);
+      
+      categoryStats.forEach(cat => {
+        chartData.push(cat);
+      });
+      
+      chartData.push({});
+      chartData.push({});
+      
+      // 4. График: Сравнение отделов (только для "Все отделы")
+      if (selectedDepartment === "all" && departments.length > 0) {
+        chartData.push({ 'Тип графика': 'Сравнение отделов', 'Описание': 'Столбчатая диаграмма - Отдел на оси X, Средний балл на оси Y' });
+        chartData.push({});
+        
+        const deptComparison = departments.map(dept => {
+          const deptEmployees = employeesData.filter(e => e.role === 'employee' && e.department === dept);
+          const avgScore = deptEmployees.length > 0 
+            ? Math.round(deptEmployees.reduce((sum, emp) => sum + getTestScore(emp), 0) / deptEmployees.length)
+            : 0;
+          
+          return {
+            'Отдел': dept,
+            'Средний балл (%)': avgScore,
+            'Сотрудников': deptEmployees.length
+          };
+        }).sort((a, b) => b['Средний балл (%)'] - a['Средний балл (%)']);
+        
+        deptComparison.forEach(dept => {
+          chartData.push(dept);
+        });
+        
+        chartData.push({});
+        chartData.push({});
+      }
+      
+      // 5. График: Процент выполнения vs Сложность теста
+      chartData.push({ 'Тип графика': 'Выполнение по сложности', 'Описание': 'Точечная диаграмма - Средний балл на оси X, Процент выполнения на оси Y, Размер точки = количество попыток' });
+      chartData.push({});
+      
+      const difficultyData = testStats.map(test => ({
+        'Название теста': test['Название теста'].length > 25 ? test['Название теста'].substring(0, 22) + '...' : test['Название теста'],
+        'Сложность': test['Сложность'],
+        'Средний балл (%)': test['Средний балл (%)'],
+        'Процент выполнения (%)': test['Процент выполнения (%)'],
+        'Попыток': test['Прошли тест']
+      })).sort((a, b) => b['Средний балл (%)'] - a['Средний балл (%)']);
+      
+      difficultyData.forEach(d => {
+        chartData.push(d);
+      });
+      
+      // Добавляем инструкцию в начало
+      const instructionData = [
+        { 'ИНСТРУКЦИЯ': 'Как построить графики из этих данных:' },
+        {},
+        { 'Шаг 1': 'Выделите данные конкретного графика (смотрите "Тип графика" и "Описание")' },
+        { 'Шаг 2': 'Вкладка "Вставка" → выберите тип диаграммы (Гистограмма, Столбчатая, Точечная)' },
+        { 'Шаг 3': 'Excel автоматически построит график по выделенным данным' },
+        { 'Шаг 4': 'Настройте оси и заголовок согласно описанию графика' },
+        {},
+        { 'СОВЕТ': 'Каждый блок данных разделен пустыми строками для удобства выделения' },
+        {},
+        { '───────────────────────────────────────────────────────────────': '' },
+        {}
+      ];
+      
+      const wsChart = XLSX.utils.json_to_sheet([...instructionData, ...chartData]);
+      wsChart['!cols'] = [{ wch: 40 }, { wch: 25 }, { wch: 20 }, { wch: 20 }];
+      XLSX.utils.book_append_sheet(wb, wsChart, 'Данные для графиков');
+
       // Генерируем имя файла
       const fileName = selectedDepartment === "all" 
         ? `Статистика_сотрудников_${new Date().toLocaleDateString('ru-RU')}.xlsx`
@@ -597,18 +730,42 @@ export const TopEmployees = () => {
                 </strong> сотрудников
               </span>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={exportToExcel}
-              className="text-xs"
-            >
-              <Icon name="Download" size={14} className="mr-1.5" />
-              Экспорт в Excel
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={showCharts ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowCharts(!showCharts)}
+                className="text-xs"
+              >
+                <Icon name={showCharts ? "EyeOff" : "BarChart3"} size={14} className="mr-1.5" />
+                {showCharts ? "Скрыть графики" : "Показать графики"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToExcel}
+                className="text-xs"
+              >
+                <Icon name="Download" size={14} className="mr-1.5" />
+                Экспорт в Excel
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Графики */}
+      {showCharts && (
+        <EmployeeCharts
+          employees={employees.filter(e => 
+            e.role === 'employee' && 
+            (selectedDepartment === 'all' || e.department === selectedDepartment)
+          )}
+          tests={availableTests}
+          testResults={database.getTestResults()}
+          selectedDepartment={selectedDepartment}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Топ-3 лучших сотрудников */}
