@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -6,6 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import Icon from "@/components/ui/icon";
 import { database } from "@/utils/database";
 import { toast } from "sonner";
+import { autoBackupService, AutoBackup } from "@/utils/autoBackup";
+import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +24,18 @@ export default function DatabaseSettings() {
   const [isImporting, setIsImporting] = useState(false);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [backupHistory, setBackupHistory] = useState<AutoBackup[]>([]);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+  const [selectedBackup, setSelectedBackup] = useState<AutoBackup | null>(null);
+
+  useEffect(() => {
+    loadBackupHistory();
+  }, []);
+
+  const loadBackupHistory = () => {
+    const history = autoBackupService.getBackupHistory();
+    setBackupHistory(history);
+  };
 
   const getDbStats = () => {
     const employees = database.getEmployees();
@@ -317,6 +331,125 @@ export default function DatabaseSettings() {
 
           <Separator />
 
+          {/* Автоматические резервные копии */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3 flex items-center">
+              <Icon name="History" size={18} className="mr-2" />
+              Автоматические резервные копии
+            </h3>
+            <Alert className="mb-3 border-blue-200 bg-blue-50">
+              <Icon name="Info" size={16} className="text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                Система автоматически создаёт резервную копию при каждом входе администратора (не чаще 1 раза в 24 часа). Хранятся последние {backupHistory.length} из 10 копий. Размер: {autoBackupService.getBackupSize()}
+              </AlertDescription>
+            </Alert>
+
+            {backupHistory.length === 0 ? (
+              <div className="text-center p-8 border rounded-lg bg-gray-50">
+                <Icon name="Database" size={32} className="mx-auto mb-2 text-gray-400" />
+                <p className="text-gray-600">Автоматические резервные копии ещё не создавались</p>
+                <p className="text-sm text-gray-500 mt-1">Они будут созданы при следующем входе</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {backupHistory.map((backup, index) => (
+                  <div key={backup.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Icon name="Database" size={16} className="text-blue-600" />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{backup.date} в {backup.time}</span>
+                            {index === 0 && (
+                              <Badge variant="secondary" className="text-xs">Последняя</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {backup.stats.total} записей: {backup.stats.employees} сотр., {backup.stats.tests} тест., {backup.stats.testResults} рез.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => autoBackupService.downloadBackup(backup.id)}
+                        >
+                          <Icon name="Download" size={14} className="mr-1" />
+                          Скачать
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedBackup(backup);
+                            setShowRestoreDialog(true);
+                          }}
+                        >
+                          <Icon name="RotateCcw" size={14} className="mr-1" />
+                          Восстановить
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (confirm('Удалить эту резервную копию?')) {
+                              autoBackupService.deleteBackup(backup.id);
+                              loadBackupHistory();
+                              toast.success('Резервная копия удалена');
+                            }
+                          }}
+                        >
+                          <Icon name="Trash2" size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {backupHistory.length > 0 && (
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const backup = autoBackupService.createAutoBackup();
+                    if (backup) {
+                      loadBackupHistory();
+                      toast.success('Резервная копия создана!');
+                    } else {
+                      toast.info('Резервная копия уже создавалась за последние 24 часа');
+                    }
+                  }}
+                  className="flex-1"
+                >
+                  <Icon name="Plus" size={14} className="mr-1" />
+                  Создать копию сейчас
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm(`Удалить все ${backupHistory.length} автоматических резервных копий?`)) {
+                      autoBackupService.clearAllBackups();
+                      loadBackupHistory();
+                      toast.success('Все автоматические копии удалены');
+                    }
+                  }}
+                  className="flex-1"
+                >
+                  <Icon name="Trash2" size={14} className="mr-1" />
+                  Очистить историю
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
           {/* Опасная зона */}
           <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
             <h3 className="text-lg font-semibold mb-3 flex items-center text-red-700">
@@ -408,6 +541,51 @@ export default function DatabaseSettings() {
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction onClick={resetToDemo} className="bg-red-600 hover:bg-red-700">
               Да, сбросить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Диалог подтверждения восстановления */}
+      <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-blue-600">
+              <Icon name="RotateCcw" size={20} className="mr-2" />
+              Восстановить из резервной копии?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedBackup && (
+                <>
+                  <p>Вы собираетесь восстановить данные из резервной копии:</p>
+                  <div className="mt-2 p-3 bg-blue-50 rounded border border-blue-200">
+                    <p className="font-semibold">{selectedBackup.date} в {selectedBackup.time}</p>
+                    <p className="text-sm mt-1">
+                      {selectedBackup.stats.total} записей ({selectedBackup.stats.employees} сотр., {selectedBackup.stats.tests} тест., {selectedBackup.stats.testResults} рез.)
+                    </p>
+                  </div>
+                  <p className="mt-3 font-semibold text-orange-600">
+                    ⚠️ Все текущие данные будут заменены. Продолжить?
+                  </p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (selectedBackup && autoBackupService.restoreBackup(selectedBackup.id)) {
+                  toast.success('Данные восстановлены! Страница будет перезагружена.');
+                  setTimeout(() => window.location.reload(), 1500);
+                } else {
+                  toast.error('Ошибка восстановления данных');
+                }
+                setShowRestoreDialog(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Да, восстановить
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

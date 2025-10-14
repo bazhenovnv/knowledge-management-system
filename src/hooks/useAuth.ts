@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { database } from "@/utils/database";
+import { initializeAutoBackup } from "@/utils/autoBackup";
 
 export interface LoginForm {
   email: string;
@@ -80,6 +81,7 @@ export const useAuth = () => {
       setUserRole("admin");
       setUserName("Администратор");
       setIsLoggedIn(true);
+      initializeAutoBackup("admin");
       toast.success("Вход выполнен как Администратор");
       return;
     } else if (email === "teacher@example.com" && password === "teacher123") {
@@ -118,6 +120,12 @@ export const useAuth = () => {
     setUserRole(employee.role);
     setUserName(employee.name);
     setIsLoggedIn(true);
+    
+    // Создаём автобэкап для администратора
+    if (employee.role === 'admin') {
+      initializeAutoBackup('admin');
+    }
+    
     toast.success(`Добро пожаловать, ${employee.name}!`);
     
     // Обновляем время последнего входа
