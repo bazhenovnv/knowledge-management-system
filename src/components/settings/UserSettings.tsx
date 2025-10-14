@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import NotificationSettings from "@/components/notifications/NotificationSettings";
 import ScheduledNotificationsPanel from "./ScheduledNotificationsPanel";
 import DatabaseSettings from "./DatabaseSettings";
+import AppSettings from "./AppSettings";
 
 interface User {
   id: number;
@@ -186,7 +187,7 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       )}
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-8' : 'grid-cols-6'}`}>
+        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-9' : 'grid-cols-6'}`}>
           <TabsTrigger value="profile">Профиль</TabsTrigger>
           <TabsTrigger value="password">Пароль</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
@@ -196,6 +197,7 @@ export default function UserSettings({ userId }: UserSettingsProps) {
           {user.role === 'admin' && (
             <>
               <TabsTrigger value="departments">Отделы</TabsTrigger>
+              <TabsTrigger value="app">Приложение</TabsTrigger>
               <TabsTrigger value="database">База данных</TabsTrigger>
             </>
           )}
@@ -413,6 +415,10 @@ export default function UserSettings({ userId }: UserSettingsProps) {
           <>
             <TabsContent value="departments">
               <DepartmentSettings userRole={user.role} />
+            </TabsContent>
+            
+            <TabsContent value="app">
+              <AppSettings />
             </TabsContent>
             
             <TabsContent value="database">
