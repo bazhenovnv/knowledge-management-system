@@ -27,12 +27,15 @@ interface NotificationListProps {
   onNotificationsRead?: () => void;
 }
 
+type FilterType = 'all' | 'unread' | 'reminder' | 'assignment' | 'urgent';
+
 const NotificationList: React.FC<NotificationListProps> = ({ 
   employeeId, 
   onNotificationsRead 
 }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterType>('all');
 
   useEffect(() => {
     loadNotifications();
@@ -105,6 +108,23 @@ const NotificationList: React.FC<NotificationListProps> = ({
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
+  const filteredNotifications = notifications.filter(notification => {
+    if (filter === 'all') return true;
+    if (filter === 'unread') return !notification.is_read;
+    return notification.type === filter;
+  });
+
+  const getFilterLabel = (filterType: FilterType) => {
+    const counts = {
+      all: notifications.length,
+      unread: unreadCount,
+      reminder: notifications.filter(n => n.type === 'reminder').length,
+      assignment: notifications.filter(n => n.type === 'assignment').length,
+      urgent: notifications.filter(n => n.type === 'urgent' || n.priority === 'urgent').length,
+    };
+    return counts[filterType];
+  };
+
   return (
     <div className="flex flex-col h-full max-h-[600px]">
       <div className="flex items-center justify-between p-4 border-b">
@@ -129,19 +149,73 @@ const NotificationList: React.FC<NotificationListProps> = ({
         )}
       </div>
 
+      <div className="flex gap-1 px-3 py-2 border-b overflow-x-auto">
+        <Button
+          variant={filter === 'all' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setFilter('all')}
+          className="text-xs h-7 px-2 flex-shrink-0"
+        >
+          Все ({getFilterLabel('all')})
+        </Button>
+        <Button
+          variant={filter === 'unread' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setFilter('unread')}
+          className="text-xs h-7 px-2 flex-shrink-0"
+        >
+          <Icon name="Circle" size={10} className="mr-1 fill-current" />
+          Непрочитанные ({getFilterLabel('unread')})
+        </Button>
+        <Button
+          variant={filter === 'reminder' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setFilter('reminder')}
+          className="text-xs h-7 px-2 flex-shrink-0"
+        >
+          <Icon name="Bell" size={12} className="mr-1" />
+          Напоминания ({getFilterLabel('reminder')})
+        </Button>
+        <Button
+          variant={filter === 'assignment' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setFilter('assignment')}
+          className="text-xs h-7 px-2 flex-shrink-0"
+        >
+          <Icon name="ClipboardList" size={12} className="mr-1" />
+          Задания ({getFilterLabel('assignment')})
+        </Button>
+        <Button
+          variant={filter === 'urgent' ? 'default' : 'ghost'}
+          size="sm"
+          onClick={() => setFilter('urgent')}
+          className="text-xs h-7 px-2 flex-shrink-0"
+        >
+          <Icon name="AlertTriangle" size={12} className="mr-1" />
+          Срочные ({getFilterLabel('urgent')})
+        </Button>
+      </div>
+
       <ScrollArea className="flex-1">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Icon name="Loader2" size={24} className="animate-spin text-muted-foreground" />
           </div>
-        ) : notifications.length === 0 ? (
+        ) : filteredNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
             <Icon name="Bell" size={48} className="text-muted-foreground mb-3" />
-            <p className="text-sm text-muted-foreground">Нет уведомлений</p>
+            <p className="text-sm text-muted-foreground">
+              {filter === 'all' ? 'Нет уведомлений' : `Нет уведомлений в категории "${
+                filter === 'unread' ? 'Непрочитанные' :
+                filter === 'reminder' ? 'Напоминания' :
+                filter === 'assignment' ? 'Задания' :
+                filter === 'urgent' ? 'Срочные' : ''
+              }"`}
+            </p>
           </div>
         ) : (
           <div className="divide-y">
-            {notifications.map((notification) => (
+            {filteredNotifications.map((notification) => (
               <NotificationItem
                 key={notification.id}
                 notification={notification}
