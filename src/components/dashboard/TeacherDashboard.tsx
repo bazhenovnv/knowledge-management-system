@@ -143,6 +143,173 @@ export const TeacherDashboard = ({
     }
   };
 
+  // Экспорт результатов тестов
+  const handleExportTestResults = async () => {
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
+      );
+      const data = await response.json();
+      const testResults = data.data || [];
+      
+      // Получаем информацию о тестах и студентах
+      const testsResponse = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
+      );
+      const testsData = await testsResponse.json();
+      const tests = testsData.data || [];
+      
+      const employeesResponse = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+      );
+      const employeesData = await employeesResponse.json();
+      const allEmployees = employeesData.data || [];
+      
+      // Обогащаем данные результатов
+      const enrichedResults = testResults.map((result: any) => {
+        const test = tests.find((t: any) => t.id === result.test_id);
+        const employee = allEmployees.find((e: any) => e.id === result.employee_id);
+        return {
+          id: result.id,
+          student_name: employee?.name || 'Неизвестный',
+          student_email: employee?.email || '',
+          test_title: test?.title || 'Неизвестный тест',
+          score: result.score,
+          completed_at: result.completed_at,
+          time_spent: result.time_spent || 0
+        };
+      });
+      
+      const jsonStr = JSON.stringify(enrichedResults, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `test-results-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Результаты тестов экспортированы');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Ошибка экспорта результатов тестов');
+    }
+  };
+
+  // Экспорт студентов
+  const handleExportStudents = async () => {
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+      );
+      const data = await response.json();
+      const allEmployees = data.data || [];
+      
+      // Фильтруем только студентов (role === 'employee')
+      const students = allEmployees.filter((emp: any) => emp.role === 'employee');
+      
+      const jsonStr = JSON.stringify(students, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `students-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Список студентов экспортирован');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Ошибка экспорта студентов');
+    }
+  };
+
+  // Импорт студентов
+  const handleImportStudents = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      try {
+        const text = await file.text();
+        const importedStudents = JSON.parse(text);
+        
+        if (!Array.isArray(importedStudents)) {
+          toast.error('Неверный формат файла');
+          return;
+        }
+        
+        // Импортируем каждого студента
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (const student of importedStudents) {
+          try {
+            // Проверяем, есть ли уже такой email
+            const checkResponse = await fetch(
+              `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+            );
+            const checkData = await checkResponse.json();
+            const existingEmployees = checkData.data || [];
+            const exists = existingEmployees.some((e: any) => e.email === student.email);
+            
+            if (exists) {
+              console.log(`Пропускаем ${student.email} - уже существует`);
+              continue;
+            }
+            
+            // Создаем нового студента
+            const response = await fetch(
+              `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  table: 'employees',
+                  data: {
+                    name: student.name,
+                    email: student.email,
+                    password_hash: student.password_hash || 'temp123',
+                    role: 'employee',
+                    department_id: student.department_id || null,
+                    position: student.position || '',
+                    is_active: student.is_active !== false
+                  }
+                })
+              }
+            );
+            
+            if (response.ok) {
+              successCount++;
+            } else {
+              errorCount++;
+            }
+          } catch (error) {
+            console.error(`Ошибка импорта ${student.email}:`, error);
+            errorCount++;
+          }
+        }
+        
+        toast.success(`Импортировано: ${successCount}, Ошибок: ${errorCount}`);
+        
+        // Перезагружаем страницу
+        window.location.reload();
+      } catch (error) {
+        console.error('Import error:', error);
+        toast.error('Ошибка импорта файла');
+      }
+    };
+    input.click();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -272,6 +439,53 @@ export const TeacherDashboard = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Экспорт/Импорт данных */}
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Экспорт и импорт данных</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Результаты тестов</p>
+              <Button
+                onClick={handleExportTestResults}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Icon name="Download" size={16} className="mr-2" />
+                Экспорт результатов
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Список студентов</p>
+              <Button
+                onClick={handleExportStudents}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Icon name="Download" size={16} className="mr-2" />
+                Экспорт студентов
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Импорт студентов</p>
+              <Button
+                onClick={handleImportStudents}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Icon name="Upload" size={16} className="mr-2" />
+                Импорт студентов
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Рейтинг сотрудников */}
       <TopEmployees />
