@@ -55,6 +55,7 @@ export const KnowledgeTab = ({
   const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -202,6 +203,17 @@ export const KnowledgeTab = ({
     setFormData({ ...formData, attachments: newAttachments });
   };
 
+  const handleMoveAttachment = (fromIndex: number, toIndex: number) => {
+    const newAttachments = [...formData.attachments];
+    const [movedFile] = newAttachments.splice(fromIndex, 1);
+    newAttachments.splice(toIndex, 0, movedFile);
+    setFormData({ ...formData, attachments: newAttachments });
+  };
+
+  const handlePreviewMaterial = () => {
+    setShowPreview(true);
+  };
+
   const handleSaveMaterial = async () => {
     try {
       const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
@@ -250,6 +262,7 @@ export const KnowledgeTab = ({
     setIsCreating(false);
     setEditingMaterial(null);
     setCoverImagePreview('');
+    setShowPreview(false);
   };
 
   if (loading) {
@@ -522,6 +535,110 @@ export const KnowledgeTab = ({
         </div>
       )}
 
+      {showPreview && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">{formData.title || 'Предпросмотр материала'}</h2>
+                <div className="flex items-center gap-3 mt-2">
+                  <Badge className={getDifficultyColor(formData.difficulty)}>
+                    {getDifficultyLabel(formData.difficulty)}
+                  </Badge>
+                  <span className="text-sm text-gray-600">{selectedDepartments.join(', ') || 'Не указан отдел'}</span>
+                  <span className="text-sm text-gray-600">{formData.duration}</span>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreview(false)}
+              >
+                <Icon name="X" size={20} />
+              </Button>
+            </div>
+            <div className="p-6">
+              {coverImagePreview && (
+                <img
+                  src={coverImagePreview}
+                  alt={formData.title}
+                  className="w-full max-h-96 object-cover rounded-lg mb-6"
+                />
+              )}
+              <div className="prose max-w-none">
+                <p className="text-gray-600 mb-6 text-lg">{formData.description || 'Описание отсутствует'}</p>
+                <div className="whitespace-pre-wrap mb-6 text-base leading-relaxed">{formData.content || 'Содержание отсутствует'}</div>
+              </div>
+              
+              {formData.attachments && formData.attachments.length > 0 && (
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-lg font-semibold mb-4">Прикрепленные файлы ({formData.attachments.length})</h3>
+                  <div className="space-y-4">
+                    {formData.attachments.map((file, index) => (
+                      <div key={index} className="border rounded-lg overflow-hidden">
+                        {file.type?.startsWith('image/') ? (
+                          <div>
+                            <img
+                              src={file.url}
+                              alt={file.name}
+                              className="w-full max-h-96 object-contain bg-gray-50"
+                            />
+                            <div className="p-3 bg-white border-t">
+                              <p className="font-medium text-sm">{file.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {(file.size / 1024).toFixed(1)} КБ
+                              </p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 p-4">
+                            <Icon name="File" size={24} className="text-gray-500" />
+                            <div className="flex-1">
+                              <p className="font-medium">{file.name}</p>
+                              <p className="text-sm text-gray-500">
+                                {(file.size / 1024).toFixed(1)} КБ
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {formData.tags && formData.tags.trim() && (
+                <div className="mt-6 border-t pt-6">
+                  <h3 className="text-sm font-semibold mb-3">Теги</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {formData.tags.split(',').map((tag, index) => (
+                      <Badge key={index} variant="secondary">
+                        {tag.trim()}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="sticky bottom-0 bg-white border-t p-4 flex justify-end gap-3">
+              <Button variant="outline" onClick={() => setShowPreview(false)}>
+                Закрыть предпросмотр
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowPreview(false);
+                  handleSaveMaterial();
+                }}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                disabled={!formData.title || !formData.description || !formData.content || selectedDepartments.length === 0}
+              >
+                {editingMaterial ? 'Сохранить материал' : 'Создать материал'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {(isCreating || editingMaterial) && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
@@ -661,24 +778,53 @@ export const KnowledgeTab = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Прикрепленные файлы</label>
+                <label className="block text-sm font-medium mb-2">Прикрепленные файлы (изображения и документы)</label>
                 <div className="space-y-2">
                   {formData.attachments.map((file, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 border rounded">
-                      <Icon name="File" size={20} className="text-gray-500" />
+                    <div key={index} className="flex items-center gap-3 p-3 border rounded hover:bg-gray-50 cursor-move" draggable>
+                      <div className="flex items-center gap-2">
+                        <Icon name="GripVertical" size={16} className="text-gray-400" />
+                        {file.type?.startsWith('image/') ? (
+                          <img src={file.url} alt={file.name} className="w-12 h-12 object-cover rounded" />
+                        ) : (
+                          <Icon name="File" size={20} className="text-gray-500" />
+                        )}
+                      </div>
                       <div className="flex-1">
                         <p className="font-medium text-sm">{file.name}</p>
                         <p className="text-xs text-gray-500">
                           {(file.size / 1024).toFixed(1)} КБ
                         </p>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRemoveAttachment(index)}
-                      >
-                        <Icon name="Trash2" size={16} />
-                      </Button>
+                      <div className="flex gap-2">
+                        {index > 0 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleMoveAttachment(index, index - 1)}
+                            title="Переместить вверх"
+                          >
+                            <Icon name="ChevronUp" size={16} />
+                          </Button>
+                        )}
+                        {index < formData.attachments.length - 1 && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleMoveAttachment(index, index + 1)}
+                            title="Переместить вниз"
+                          >
+                            <Icon name="ChevronDown" size={16} />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRemoveAttachment(index)}
+                        >
+                          <Icon name="Trash2" size={16} />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                   <div className="border-2 border-dashed rounded-lg p-4 text-center">
@@ -708,17 +854,28 @@ export const KnowledgeTab = ({
                 </label>
               </div>
               
-              <div className="flex justify-end gap-3 pt-4">
-                <Button variant="outline" onClick={closeModal}>
-                  Отмена
-                </Button>
+              <div className="flex justify-between gap-3 pt-4">
                 <Button
-                  onClick={handleSaveMaterial}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  disabled={!formData.title || !formData.description || !formData.content || selectedDepartments.length === 0}
+                  variant="outline"
+                  onClick={handlePreviewMaterial}
+                  className="border-purple-500 text-purple-600 hover:bg-purple-50"
+                  disabled={!formData.title || !formData.content}
                 >
-                  {editingMaterial ? 'Сохранить' : 'Создать'}
+                  <Icon name="Eye" size={16} className="mr-2" />
+                  Предпросмотр
                 </Button>
+                <div className="flex gap-3">
+                  <Button variant="outline" onClick={closeModal}>
+                    Отмена
+                  </Button>
+                  <Button
+                    onClick={handleSaveMaterial}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    disabled={!formData.title || !formData.description || !formData.content || selectedDepartments.length === 0}
+                  >
+                    {editingMaterial ? 'Сохранить' : 'Создать'}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
