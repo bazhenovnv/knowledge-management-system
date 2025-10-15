@@ -113,6 +113,170 @@ export const AdminDashboard = ({
     setNotificationFormOpen(true);
   };
 
+  // Экспорт результатов тестов
+  const handleExportTestResults = async () => {
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
+      );
+      const data = await response.json();
+      const testResults = data.data || [];
+      
+      // Получаем информацию о тестах и сотрудниках для более подробного экспорта
+      const testsResponse = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
+      );
+      const testsData = await testsResponse.json();
+      const tests = testsData.data || [];
+      
+      const employeesResponse = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+      );
+      const employeesData = await employeesResponse.json();
+      const allEmployees = employeesData.data || [];
+      
+      // Обогащаем данные результатов
+      const enrichedResults = testResults.map((result: any) => {
+        const test = tests.find((t: any) => t.id === result.test_id);
+        const employee = allEmployees.find((e: any) => e.id === result.employee_id);
+        return {
+          id: result.id,
+          employee_name: employee?.name || 'Неизвестный',
+          employee_email: employee?.email || '',
+          test_title: test?.title || 'Неизвестный тест',
+          score: result.score,
+          completed_at: result.completed_at,
+          time_spent: result.time_spent || 0
+        };
+      });
+      
+      const jsonStr = JSON.stringify(enrichedResults, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `test-results-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Результаты тестов экспортированы');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Ошибка экспорта результатов тестов');
+    }
+  };
+
+  // Экспорт сотрудников
+  const handleExportEmployees = async () => {
+    try {
+      const response = await fetch(
+        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+      );
+      const data = await response.json();
+      const allEmployees = data.data || [];
+      
+      const jsonStr = JSON.stringify(allEmployees, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `employees-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Список сотрудников экспортирован');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Ошибка экспорта сотрудников');
+    }
+  };
+
+  // Импорт сотрудников
+  const handleImportEmployees = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e: any) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      try {
+        const text = await file.text();
+        const importedEmployees = JSON.parse(text);
+        
+        if (!Array.isArray(importedEmployees)) {
+          toast.error('Неверный формат файла');
+          return;
+        }
+        
+        // Импортируем каждого сотрудника
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (const emp of importedEmployees) {
+          try {
+            // Проверяем, есть ли уже такой email
+            const checkResponse = await fetch(
+              `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+            );
+            const checkData = await checkResponse.json();
+            const existingEmployees = checkData.data || [];
+            const exists = existingEmployees.some((e: any) => e.email === emp.email);
+            
+            if (exists) {
+              console.log(`Пропускаем ${emp.email} - уже существует`);
+              continue;
+            }
+            
+            // Создаем нового сотрудника
+            const response = await fetch(
+              `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'create',
+                  table: 'employees',
+                  data: {
+                    name: emp.name,
+                    email: emp.email,
+                    password_hash: emp.password_hash || 'temp123',
+                    role: emp.role || 'employee',
+                    department_id: emp.department_id || null,
+                    position: emp.position || '',
+                    is_active: emp.is_active !== false
+                  }
+                })
+              }
+            );
+            
+            if (response.ok) {
+              successCount++;
+            } else {
+              errorCount++;
+            }
+          } catch (error) {
+            console.error(`Ошибка импорта ${emp.email}:`, error);
+            errorCount++;
+          }
+        }
+        
+        toast.success(`Импортировано: ${successCount}, Ошибок: ${errorCount}`);
+        
+        // Перезагружаем статистику
+        window.location.reload();
+      } catch (error) {
+        console.error('Import error:', error);
+        toast.error('Ошибка импорта файла');
+      }
+    };
+    input.click();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -175,6 +339,53 @@ export const AdminDashboard = ({
         </Card>
       </div>
 
+
+      {/* Экспорт/Импорт данных */}
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Экспорт и импорт данных</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Результаты тестов</p>
+              <Button
+                onClick={handleExportTestResults}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Icon name="Download" size={16} className="mr-2" />
+                Экспорт результатов
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Список сотрудников</p>
+              <Button
+                onClick={handleExportEmployees}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Icon name="Download" size={16} className="mr-2" />
+                Экспорт сотрудников
+              </Button>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-gray-700">Импорт сотрудников</p>
+              <Button
+                onClick={handleImportEmployees}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                <Icon name="Upload" size={16} className="mr-2" />
+                Импорт сотрудников
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Краткая информация о сотрудниках */}
       <Card>
