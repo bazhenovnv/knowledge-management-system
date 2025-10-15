@@ -44,47 +44,57 @@ export const TeacherDashboard = ({
     averageScore: 0,
     activeStudents: 0
   });
+  const [students, setStudents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
   const [notificationFormOpen, setNotificationFormOpen] = useState(false);
   const [selectedStudentForNotification, setSelectedStudentForNotification] = useState<any>(null);
 
-  // Загружаем статистику из базы данных
+  // Загружаем студентов из базы данных
   useEffect(() => {
-    const loadStats = () => {
-      const employeesData = database.getEmployees();
-      const testsData = database.getTests();
-      const testResultsData = database.getTestResults();
-      
-      // Подсчитываем студентов (роль "employee")
-      const students = employeesData.filter(emp => emp.role === 'employee');
-      
-      // Подсчитываем тесты, созданные преподавателем
-      const createdTests = testsData.filter(test => test.createdBy === 'Преподаватель').length;
-      
-      // Рассчитываем средний балл студентов
-      const totalScore = students.reduce((sum, emp) => {
-        const avgScore = emp.testResults?.length > 0 
-          ? emp.testResults.reduce((s, t) => s + t.score, 0) / emp.testResults.length 
-          : 0;
-        return sum + avgScore;
-      }, 0);
-      const averageScore = students.length > 0 ? Math.round(totalScore / students.length) : 0;
-      
-      // Активные студенты (те, кто проходил тесты)
-      const activeStudents = students.filter(emp => emp.testResults && emp.testResults.length > 0).length;
-
-      setStats({
-        totalStudents: students.length,
-        createdTests,
-        averageScore,
-        activeStudents
-      });
+    const loadStudents = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+        );
+        const data = await response.json();
+        const allEmployees = data.data || [];
+        
+        // Фильтруем только студентов (role === 'employee')
+        const studentsList = allEmployees
+          .filter((emp: any) => emp.role === 'employee' && emp.is_active)
+          .map((emp: any) => ({
+            id: emp.id,
+            name: emp.full_name,
+            email: emp.email,
+            department: emp.department,
+            position: emp.position,
+            role: emp.role,
+            status: 4 // Дефолтный статус
+          }));
+        
+        setStudents(studentsList);
+        
+        // Обновляем статистику
+        setStats({
+          totalStudents: studentsList.length,
+          createdTests: 0,
+          averageScore: 0,
+          activeStudents: studentsList.length
+        });
+      } catch (error) {
+        console.error('Error loading students:', error);
+        toast.error('Ошибка загрузки списка студентов');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    loadStats();
+    loadStudents();
     
-    // Обновляем статистику каждые 10 секунд
-    const interval = setInterval(loadStats, 10000);
+    // Обновляем каждые 30 секунд
+    const interval = setInterval(loadStudents, 30000);
     
     return () => clearInterval(interval);
   }, []);
@@ -352,8 +362,19 @@ export const TeacherDashboard = ({
             <CardTitle>Активные студенты</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {employees.slice(0, 3).map((employee, index) => (
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Icon name="Loader2" size={24} className="animate-spin mr-2" />
+                <span>Загрузка студентов...</span>
+              </div>
+            ) : students.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Icon name="Users" size={32} className="mx-auto mb-2 opacity-50" />
+                <p>Нет активных студентов</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {students.slice(0, 3).map((employee, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between p-3 border rounded-lg"
@@ -435,7 +456,8 @@ export const TeacherDashboard = ({
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
