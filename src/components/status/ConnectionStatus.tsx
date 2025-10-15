@@ -152,6 +152,17 @@ export default function ConnectionStatus({
     return null;
   }
 
+  const handleManualReconnect = () => {
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current);
+    }
+    setAttemptCount(0);
+    toast.info('Переподключение...', {
+      description: 'Проверяем соединение с сервером'
+    });
+    checkConnection();
+  };
+
   return (
     <div className="fixed top-4 right-4 z-50 max-w-md">
       {status === 'reconnecting' && (
@@ -168,15 +179,26 @@ export default function ConnectionStatus({
       
       {showAlert && status === 'offline' && (
         <Alert variant="destructive" className="animate-in slide-in-from-top">
-          <Icon name="WifiOff" size={16} />
-          <AlertDescription className="ml-2">
-            Нет подключения к серверу. Проверьте интернет-соединение.
-            {lastCheck && (
-              <span className="block text-xs mt-1 opacity-80">
-                Последняя проверка: {lastCheck.toLocaleTimeString()}
-              </span>
-            )}
-          </AlertDescription>
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-2">
+              <Icon name="WifiOff" size={16} className="mt-0.5" />
+              <AlertDescription>
+                Нет подключения к серверу. Проверьте интернет-соединение.
+                {lastCheck && (
+                  <span className="block text-xs mt-1 opacity-80">
+                    Последняя проверка: {lastCheck.toLocaleTimeString()}
+                  </span>
+                )}
+              </AlertDescription>
+            </div>
+            <button
+              onClick={handleManualReconnect}
+              className="ml-2 text-white hover:bg-red-600 rounded p-1 transition-colors"
+              title="Переподключиться"
+            >
+              <Icon name="RefreshCw" size={16} />
+            </button>
+          </div>
         </Alert>
       )}
     </div>

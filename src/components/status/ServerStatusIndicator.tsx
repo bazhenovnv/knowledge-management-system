@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import {
   Tooltip,
@@ -7,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 
 interface ServerStatusIndicatorProps {
   apiUrl?: string;
@@ -22,8 +24,16 @@ export default function ServerStatusIndicator({
   const [status, setStatus] = useState<'online' | 'offline' | 'checking'>('checking');
   const [ping, setPing] = useState<number | null>(null);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
+  const [isManualChecking, setIsManualChecking] = useState(false);
 
-  const checkConnection = async () => {
+  const checkConnection = async (isManual: boolean = false) => {
+    if (isManual) {
+      setIsManualChecking(true);
+      toast.info('Проверка соединения...', {
+        description: 'Подключаемся к серверу'
+      });
+    }
+
     const startTime = Date.now();
     
     try {
@@ -42,16 +52,41 @@ export default function ServerStatusIndicator({
       if (response.ok) {
         setStatus('online');
         setPing(responseTime);
+        
+        if (isManual) {
+          toast.success('Соединение установлено', {
+            description: `Задержка: ${responseTime}ms`
+          });
+        }
       } else {
         setStatus('offline');
         setPing(null);
+        
+        if (isManual) {
+          toast.error('Сервер недоступен', {
+            description: 'Попробуйте позже'
+          });
+        }
       }
     } catch (error) {
       setStatus('offline');
       setPing(null);
+      
+      if (isManual) {
+        toast.error('Не удалось подключиться', {
+          description: 'Проверьте интернет-соединение'
+        });
+      }
     }
 
     setLastCheck(new Date());
+    if (isManual) {
+      setIsManualChecking(false);
+    }
+  };
+
+  const handleManualReconnect = () => {
+    checkConnection(true);
   };
 
   useEffect(() => {
@@ -105,15 +140,19 @@ export default function ServerStatusIndicator({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex items-center gap-2 cursor-pointer">
-              <div className={`w-2 h-2 rounded-full ${getStatusColor()} ${status === 'checking' ? 'animate-pulse' : ''}`} />
+            <button 
+              onClick={handleManualReconnect}
+              disabled={isManualChecking}
+              className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity disabled:opacity-50"
+            >
+              <div className={`w-2 h-2 rounded-full ${getStatusColor()} ${status === 'checking' || isManualChecking ? 'animate-pulse' : ''}`} />
               {status === 'online' && ping !== null && (
                 <span className="text-xs text-gray-600">{ping}ms</span>
               )}
-            </div>
+            </button>
           </TooltipTrigger>
           <TooltipContent>
-            <div className="text-sm">
+            <div className="text-sm space-y-1">
               <p className="font-medium">{getStatusText()}</p>
               {status === 'online' && ping !== null && (
                 <p className="text-xs text-gray-500">Задержка: {ping}ms</p>
@@ -123,6 +162,9 @@ export default function ServerStatusIndicator({
                   {lastCheck.toLocaleTimeString()}
                 </p>
               )}
+              <p className="text-xs text-gray-400 border-t pt-1 mt-1">
+                Нажмите для переподключения
+              </p>
             </div>
           </TooltipContent>
         </Tooltip>
@@ -131,19 +173,36 @@ export default function ServerStatusIndicator({
   }
 
   return (
-    <Badge 
-      variant={status === 'online' ? 'default' : 'destructive'}
-      className={`flex items-center gap-2 ${status === 'online' ? 'bg-green-500 hover:bg-green-600' : ''}`}
-    >
-      <Icon 
-        name={getStatusIcon()} 
-        size={14} 
-        className={status === 'checking' ? 'animate-spin' : ''}
-      />
-      <span>{getStatusText()}</span>
-      {status === 'online' && ping !== null && (
-        <span className="text-xs opacity-80">({ping}ms)</span>
-      )}
-    </Badge>
+    <div className="flex items-center gap-2">
+      <Badge 
+        variant={status === 'online' ? 'default' : 'destructive'}
+        className={`flex items-center gap-2 ${status === 'online' ? 'bg-green-500 hover:bg-green-600' : ''}`}
+      >
+        <Icon 
+          name={getStatusIcon()} 
+          size={14} 
+          className={status === 'checking' || isManualChecking ? 'animate-spin' : ''}
+        />
+        <span>{getStatusText()}</span>
+        {status === 'online' && ping !== null && (
+          <span className="text-xs opacity-80">({ping}ms)</span>
+        )}
+      </Badge>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleManualReconnect}
+        disabled={isManualChecking}
+        className="h-7"
+        title="Переподключиться к серверу"
+      >
+        <Icon 
+          name="RefreshCw" 
+          size={14} 
+          className={isManualChecking ? 'animate-spin' : ''}
+        />
+      </Button>
+    </div>
   );
 }
