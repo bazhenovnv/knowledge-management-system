@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { scheduledNotifications } from '@/utils/scheduledNotifications';
 import { toast } from 'sonner';
+import ServerStatusIndicator from '@/components/status/ServerStatusIndicator';
+import ConnectionStatus from '@/components/status/ConnectionStatus';
 
 interface ScheduledNotificationsPanelProps {
   employeeId: number;
@@ -101,6 +103,16 @@ export default function ScheduledNotificationsPanel({ employeeId }: ScheduledNot
 
   return (
     <div className="space-y-6">
+      <ConnectionStatus />
+      
+      <div className="flex items-center justify-between p-4 bg-white rounded-lg border">
+        <div>
+          <h3 className="font-medium text-sm">Статус сервера</h3>
+          <p className="text-xs text-gray-500">Состояние подключения к backend</p>
+        </div>
+        <ServerStatusIndicator />
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

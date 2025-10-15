@@ -16,6 +16,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { useState } from "react";
+import ServerStatusIndicator from "@/components/status/ServerStatusIndicator";
 
 interface NavigationProps {
   activeTab: string;
@@ -92,6 +93,7 @@ export const Navigation = ({
           )}
         </div>
         <div className="flex items-center space-x-2">
+          <ServerStatusIndicator compact />
           <NotificationBell employeeId={employeeId} />
           <Button
             variant="outline"
