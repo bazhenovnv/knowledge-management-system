@@ -215,6 +215,19 @@ export const Navigation = ({
                     <Icon name="Settings" size={16} className="mr-2" />
                     Настройки
                   </Button>
+                  {userRole === "admin" && (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start bg-orange-50 hover:bg-orange-100"
+                      onClick={() => {
+                        window.location.href = '/admin-settings';
+                        setSidebarOpen(false);
+                      }}
+                    >
+                      <Icon name="Wrench" size={16} className="mr-2" />
+                      Настройки проекта
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     className="w-full justify-start"
