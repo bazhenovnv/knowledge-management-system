@@ -68,8 +68,9 @@ class DatabaseService {
   private baseUrl: string;
 
   constructor() {
-    // В реальном проекте URL должен быть в переменных окружения
-    this.baseUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+    // URL бэкенд функции для работы с базой данных
+    // Функция автоматически развернута в облаке
+    this.baseUrl = import.meta.env.VITE_DATABASE_API_URL || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
   }
 
   private async makeRequest<T>(
@@ -78,8 +79,10 @@ class DatabaseService {
   ): Promise<DatabaseResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
+      
       const response = await fetch(url, {
         ...options,
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
@@ -87,12 +90,14 @@ class DatabaseService {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Database API error (${response.status}):`, errorText);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Database request error:', error);
+      console.error('Database request failed:', error);
       return { error: `Ошибка запроса к базе данных: ${error}` };
     }
   }

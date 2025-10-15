@@ -122,18 +122,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Auth-Token'
             },
             'body': json.dumps(result, default=str, ensure_ascii=False),
             'isBase64Encoded': False
         }
         
     except Exception as e:
+        import traceback
+        print(f"ERROR in handler: {str(e)}")
+        print(traceback.format_exc())
+        
         return {
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, X-User-Id, X-Auth-Token'
             },
             'body': json.dumps({'error': str(e)}, ensure_ascii=False),
             'isBase64Encoded': False
