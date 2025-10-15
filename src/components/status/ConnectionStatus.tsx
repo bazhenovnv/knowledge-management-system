@@ -1,21 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
+import { toast } from 'sonner';
 
 interface ConnectionStatusProps {
   apiUrl?: string;
   checkInterval?: number;
+  reconnectAttempts?: number;
+  reconnectDelay?: number;
 }
 
 export default function ConnectionStatus({ 
   apiUrl = 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17',
-  checkInterval = 30000 
+  checkInterval = 30000,
+  reconnectAttempts = 5,
+  reconnectDelay = 3000
 }: ConnectionStatusProps) {
-  const [status, setStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  const [status, setStatus] = useState<'online' | 'offline' | 'checking' | 'reconnecting'>('checking');
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [showAlert, setShowAlert] = useState(false);
+  const [attemptCount, setAttemptCount] = useState(0);
+  const wasOffline = useRef(false);
+  const reconnectTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const checkConnection = async () => {
+  const attemptReconnect = async (attempt: number = 1): Promise<void> => {
+    if (attempt > reconnectAttempts) {
+      setStatus('offline');
+      setShowAlert(true);
+      setAttemptCount(0);
+      toast.error('Не удалось восстановить соединение', {
+        description: 'Проверьте подключение к интернету'
+      });
+      return;
+    }
+
+    setStatus('reconnecting');
+    setAttemptCount(attempt);
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -30,13 +51,56 @@ export default function ConnectionStatus({
       if (response.ok) {
         setStatus('online');
         setShowAlert(false);
-      } else {
-        setStatus('offline');
-        setShowAlert(true);
+        setAttemptCount(0);
+        
+        if (wasOffline.current) {
+          toast.success('Соединение восстановлено', {
+            description: 'Подключение к серверу успешно'
+          });
+          wasOffline.current = false;
+        }
+        return;
       }
     } catch (error) {
-      setStatus('offline');
-      setShowAlert(true);
+      console.log(`Попытка переподключения ${attempt}/${reconnectAttempts} не удалась`);
+    }
+
+    reconnectTimeout.current = setTimeout(() => {
+      attemptReconnect(attempt + 1);
+    }, reconnectDelay);
+  };
+
+  const checkConnection = async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch(`${apiUrl}?action=process`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        if (wasOffline.current) {
+          toast.success('Соединение восстановлено');
+          wasOffline.current = false;
+        }
+        setStatus('online');
+        setShowAlert(false);
+        setAttemptCount(0);
+      } else {
+        throw new Error('Server error');
+      }
+    } catch (error) {
+      if (status === 'online') {
+        wasOffline.current = true;
+        toast.warning('Потеряно соединение с сервером', {
+          description: 'Попытка переподключения...'
+        });
+      }
+      attemptReconnect(1);
     }
 
     setLastCheck(new Date());
@@ -47,19 +111,29 @@ export default function ConnectionStatus({
 
     const interval = setInterval(checkConnection, checkInterval);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
+    };
   }, [apiUrl, checkInterval]);
 
   useEffect(() => {
     const handleOnline = () => {
-      setStatus('online');
-      setShowAlert(false);
+      toast.info('Интернет подключен', {
+        description: 'Проверяем соединение с сервером...'
+      });
       checkConnection();
     };
 
     const handleOffline = () => {
+      wasOffline.current = true;
       setStatus('offline');
       setShowAlert(true);
+      toast.error('Интернет отключен', {
+        description: 'Ожидание восстановления сети...'
+      });
     };
 
     window.addEventListener('online', handleOnline);
@@ -68,6 +142,9 @@ export default function ConnectionStatus({
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
     };
   }, []);
 
@@ -77,6 +154,18 @@ export default function ConnectionStatus({
 
   return (
     <div className="fixed top-4 right-4 z-50 max-w-md">
+      {status === 'reconnecting' && (
+        <Alert className="animate-in slide-in-from-top border-yellow-500 bg-yellow-50">
+          <Icon name="RefreshCw" size={16} className="animate-spin text-yellow-600" />
+          <AlertDescription className="ml-2 text-yellow-800">
+            Переподключение к серверу...
+            <span className="block text-xs mt-1 opacity-80">
+              Попытка {attemptCount} из {reconnectAttempts}
+            </span>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {showAlert && status === 'offline' && (
         <Alert variant="destructive" className="animate-in slide-in-from-top">
           <Icon name="WifiOff" size={16} />
