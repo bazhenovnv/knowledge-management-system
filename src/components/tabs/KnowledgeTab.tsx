@@ -72,6 +72,7 @@ export const KnowledgeTab = ({
 
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [coverImagePreview, setCoverImagePreview] = useState<string>('');
+  const [draggedFileIndex, setDraggedFileIndex] = useState<number | null>(null);
   
   const departments = departmentsFromHook;
 
@@ -208,6 +209,30 @@ export const KnowledgeTab = ({
     const [movedFile] = newAttachments.splice(fromIndex, 1);
     newAttachments.splice(toIndex, 0, movedFile);
     setFormData({ ...formData, attachments: newAttachments });
+  };
+
+  const handleDragStart = (index: number) => {
+    setDraggedFileIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedFileIndex === null || draggedFileIndex === dropIndex) return;
+    
+    const newAttachments = [...formData.attachments];
+    const [draggedFile] = newAttachments.splice(draggedFileIndex, 1);
+    newAttachments.splice(dropIndex, 0, draggedFile);
+    
+    setFormData({ ...formData, attachments: newAttachments });
+    setDraggedFileIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedFileIndex(null);
   };
 
   const handlePreviewMaterial = () => {
@@ -778,10 +803,26 @@ export const KnowledgeTab = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Прикрепленные файлы (изображения и документы)</label>
+                <label className="block text-sm font-medium mb-2">Прикрепленные файлы</label>
+                {formData.attachments.length > 0 && (
+                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-sm text-blue-700">
+                    <Icon name="Info" size={16} />
+                    <span>Перетаскивайте файлы мышкой для изменения порядка или используйте кнопки ▲▼</span>
+                  </div>
+                )}
                 <div className="space-y-2">
                   {formData.attachments.map((file, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 border rounded hover:bg-gray-50 cursor-move" draggable>
+                    <div
+                      key={index}
+                      className={`flex items-center gap-3 p-3 border rounded hover:bg-gray-50 cursor-move transition-all ${
+                        draggedFileIndex === index ? 'opacity-40 scale-95' : ''
+                      } ${draggedFileIndex !== null && draggedFileIndex !== index ? 'border-blue-300 bg-blue-50' : ''}`}
+                      draggable
+                      onDragStart={() => handleDragStart(index)}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDrop={(e) => handleDrop(e, index)}
+                      onDragEnd={handleDragEnd}
+                    >
                       <div className="flex items-center gap-2">
                         <Icon name="GripVertical" size={16} className="text-gray-400" />
                         {file.type?.startsWith('image/') ? (
