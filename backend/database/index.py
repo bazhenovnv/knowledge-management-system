@@ -15,7 +15,7 @@ def hash_password(password: str) -> str:
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    Backend API для работы с базой данных системы управления знаниями
+    Backend API для работы с базой данных системы управления знаниями.
     Args: event с httpMethod, body, queryStringParameters
     Returns: JSON ответ с данными из БД
     """
