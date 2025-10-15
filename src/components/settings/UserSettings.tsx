@@ -132,11 +132,10 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-7' : 'grid-cols-4'}`}>
+        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-6' : 'grid-cols-3'}`}>
           <TabsTrigger value="profile">Профиль</TabsTrigger>
           <TabsTrigger value="notifications">Уведомления</TabsTrigger>
           <TabsTrigger value="scheduled">Планировщик</TabsTrigger>
-          <TabsTrigger value="appearance">Тема</TabsTrigger>
           {user.role === 'admin' && (
             <>
               <TabsTrigger value="departments">Отделы</TabsTrigger>
@@ -158,40 +157,6 @@ export default function UserSettings({ userId }: UserSettingsProps) {
 
         <TabsContent value="scheduled">
           <ScheduledNotificationsPanel employeeId={userId} />
-        </TabsContent>
-
-        <TabsContent value="appearance">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Icon name="Palette" size={20} className="mr-2" />
-                Настройки внешнего вида
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-
-
-              <div>
-                <Label className="text-base font-medium">Тестирование уведомлений</Label>
-                <p className="text-sm text-gray-600 mb-3">Создать тестовые уведомления для проверки системы</p>
-                <Button 
-                  onClick={async () => {
-                    try {
-                      await notificationsService.createTestNotifications(userId);
-                      toast.success('Тестовые уведомления созданы!');
-                    } catch (error) {
-                      toast.error('Ошибка создания уведомлений');
-                    }
-                  }}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <Icon name="Bell" size={16} className="mr-2" />
-                  Создать тестовые уведомления
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {user.role === 'admin' && (
