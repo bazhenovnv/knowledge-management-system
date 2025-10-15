@@ -169,44 +169,7 @@ export default function UserSettings({ userId }: UserSettingsProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div>
-                <Label className="text-base font-medium">Тема интерфейса</Label>
-                <p className="text-sm text-gray-600 mb-3">Выберите светлую или тёмную тему</p>
-                <Select value={theme} onValueChange={handleThemeChange}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="light">
-                      <div className="flex items-center">
-                        <Icon name="Sun" size={16} className="mr-2" />
-                        Светлая тема
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="dark">
-                      <div className="flex items-center">
-                        <Icon name="Moon" size={16} className="mr-2" />
-                        Тёмная тема
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <div className="p-4 rounded-lg border bg-gray-50">
-                <h4 className="font-medium mb-2">Предварительный просмотр</h4>
-                <div className={`p-4 rounded border ${theme === 'dark' ? 'bg-gray-800 text-white border-gray-700' : 'bg-white text-gray-900 border-gray-200'}`}>
-                  <div className="flex items-center justify-between">
-                    <span>Пример интерфейса</span>
-                    <Icon name="Star" size={16} className={theme === 'dark' ? 'text-yellow-400' : 'text-yellow-500'} />
-                  </div>
-                  <p className="text-sm mt-2 opacity-70">
-                    Так будет выглядеть интерфейс с выбранной темой
-                  </p>
-                </div>
-              </div>
-
-              <Separator />
 
               <div>
                 <Label className="text-base font-medium">Тестирование уведомлений</Label>
