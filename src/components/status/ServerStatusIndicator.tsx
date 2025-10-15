@@ -17,7 +17,7 @@ interface ServerStatusIndicatorProps {
 }
 
 export default function ServerStatusIndicator({ 
-  apiUrl = 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17',
+  apiUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
   checkInterval = 30000,
   compact = false
 }: ServerStatusIndicatorProps) {
@@ -40,7 +40,7 @@ export default function ServerStatusIndicator({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`${apiUrl}?action=process`, {
+      const response = await fetch(`${apiUrl}?action=stats`, {
         method: 'GET',
         signal: controller.signal
       });

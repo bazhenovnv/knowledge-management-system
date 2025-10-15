@@ -11,7 +11,7 @@ interface ConnectionStatusProps {
 }
 
 export default function ConnectionStatus({ 
-  apiUrl = 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17',
+  apiUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
   checkInterval = 30000,
   reconnectAttempts = 5,
   reconnectDelay = 3000
@@ -41,7 +41,7 @@ export default function ConnectionStatus({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`${apiUrl}?action=process`, {
+      const response = await fetch(`${apiUrl}?action=stats`, {
         method: 'GET',
         signal: controller.signal
       });
@@ -75,7 +75,7 @@ export default function ConnectionStatus({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`${apiUrl}?action=process`, {
+      const response = await fetch(`${apiUrl}?action=stats`, {
         method: 'GET',
         signal: controller.signal
       });

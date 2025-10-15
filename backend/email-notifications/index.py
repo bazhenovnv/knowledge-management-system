@@ -53,7 +53,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200,
                     'headers': {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                        'Access-Control-Allow-Headers': 'Content-Type'
                     },
                     'body': json.dumps({
                         'success': True,
@@ -94,7 +96,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200,
                     'headers': {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                        'Access-Control-Allow-Headers': 'Content-Type'
                     },
                     'body': json.dumps({
                         'success': True,
@@ -128,7 +132,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200,
                     'headers': {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                        'Access-Control-Allow-Headers': 'Content-Type'
                     },
                     'body': json.dumps({
                         'success': True,
@@ -147,7 +153,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     conn.close()
                     return {
                         'statusCode': 400,
-                        'headers': {'Access-Control-Allow-Origin': '*'},
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*',
+                            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                            'Access-Control-Allow-Headers': 'Content-Type'
+                        },
                         'body': json.dumps({'error': 'Missing required fields: to_email, subject, message'}),
                         'isBase64Encoded': False
                     }
@@ -159,7 +170,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200 if result['success'] else 500,
                     'headers': {
                         'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                        'Access-Control-Allow-Headers': 'Content-Type'
                     },
                     'body': json.dumps(result),
                     'isBase64Encoded': False
@@ -168,7 +181,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn.close()
         return {
             'statusCode': 405,
-            'headers': {'Access-Control-Allow-Origin': '*'},
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
             'body': json.dumps({'error': 'Method not allowed'}),
             'isBase64Encoded': False
         }
@@ -178,7 +196,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
             },
             'body': json.dumps({'success': False, 'error': str(e)}),
             'isBase64Encoded': False
