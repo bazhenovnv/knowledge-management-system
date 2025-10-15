@@ -43,7 +43,7 @@ export default function ScheduledNotificationsPanel({ employeeId }: ScheduledNot
       setTitle('');
       setMessage('');
     } else {
-      toast.error('Ошибка планирования уведомления');
+      toast.error(result.error || 'Ошибка планирования уведомления');
     }
   };
 
@@ -95,7 +95,7 @@ export default function ScheduledNotificationsPanel({ employeeId }: ScheduledNot
     if (result.success) {
       toast.success(`Уведомление запланировано через ${example.minutes} минут`);
     } else {
-      toast.error('Ошибка планирования');
+      toast.error(result.error || 'Ошибка планирования');
     }
   };
 
