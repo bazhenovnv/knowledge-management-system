@@ -15,6 +15,14 @@ interface ScanStatistics {
   issuesList: string[];
 }
 
+interface BackupData {
+  html: string;
+  timestamp: string;
+  url: string;
+}
+
+const BACKUP_KEY = 'admin-console-backup';
+
 export const scanForJunkCode = () => {
   const results: string[] = [];
   const issues: string[] = [];
@@ -189,6 +197,103 @@ ${result.statistics.issuesList.length > 0 ? '## Список проблем:\n' 
   jsonLink.download = `scan-report-${new Date().toISOString().slice(0, 10)}.json`;
   jsonLink.click();
   URL.revokeObjectURL(jsonUrl);
+};
+
+export const createBackup = () => {
+  try {
+    const backup: BackupData = {
+      html: document.documentElement.outerHTML,
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+    };
+    
+    localStorage.setItem(BACKUP_KEY, JSON.stringify(backup));
+    
+    const blob = new Blob([backup.html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.html`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    toast.success('Резервная копия создана', {
+      description: 'Сохранена в localStorage и скачана файлом'
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Ошибка создания резервной копии:', error);
+    toast.error('Не удалось создать резервную копию');
+    return false;
+  }
+};
+
+export const hasBackup = (): boolean => {
+  const backup = localStorage.getItem(BACKUP_KEY);
+  return backup !== null;
+};
+
+export const getBackupInfo = (): { timestamp: string; size: number } | null => {
+  try {
+    const backup = localStorage.getItem(BACKUP_KEY);
+    if (!backup) return null;
+    
+    const data: BackupData = JSON.parse(backup);
+    return {
+      timestamp: data.timestamp,
+      size: new Blob([data.html]).size,
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const restoreBackup = () => {
+  try {
+    const backup = localStorage.getItem(BACKUP_KEY);
+    if (!backup) {
+      toast.error('Резервная копия не найдена');
+      return false;
+    }
+    
+    const data: BackupData = JSON.parse(backup);
+    
+    const confirmed = confirm(
+      `Восстановить резервную копию от ${new Date(data.timestamp).toLocaleString('ru-RU')}?\n\n` +
+      `⚠️ ВНИМАНИЕ: Это действие перезагрузит страницу и восстановит HTML код.\n` +
+      `Все несохранённые изменения будут потеряны.`
+    );
+    
+    if (!confirmed) {
+      return false;
+    }
+    
+    document.open();
+    document.write(data.html);
+    document.close();
+    
+    toast.success('Резервная копия восстановлена', {
+      description: 'Страница перезагружена из резервной копии'
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Ошибка восстановления:', error);
+    toast.error('Не удалось восстановить резервную копию');
+    return false;
+  }
+};
+
+export const deleteBackup = () => {
+  try {
+    localStorage.removeItem(BACKUP_KEY);
+    toast.success('Резервная копия удалена');
+    return true;
+  } catch (error) {
+    toast.error('Не удалось удалить резервную копию');
+    return false;
+  }
 };
 
 export const fixJunkCode = () => {
