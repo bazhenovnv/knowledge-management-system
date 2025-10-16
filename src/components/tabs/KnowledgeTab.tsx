@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,11 @@ import Icon from "@/components/ui/icon";
 import { databaseService, DatabaseKnowledgeMaterial, FileAttachment } from "@/utils/databaseService";
 import { toast } from "sonner";
 import { useDepartments } from "@/hooks/useDepartments";
-import { KnowledgeTabProps, getDifficultyColor, getDifficultyLabel } from "@/components/knowledge/types";
-import { useKnowledgeState } from "@/components/knowledge/useKnowledgeState";
+import { KnowledgeTabProps, getDifficultyColor, getDifficultyLabel, FormData } from "@/components/knowledge/types";
+import { useImageHandlers } from "@/components/knowledge/useImageHandlers";
+import { ImagePreviewModal } from "@/components/knowledge/ImagePreviewModal";
+import { MaterialViewModal } from "@/components/knowledge/MaterialViewModal";
+import { MaterialFormModal } from "@/components/knowledge/MaterialFormModal";
 
 export const KnowledgeTab = ({
   searchQuery,
@@ -16,11 +19,33 @@ export const KnowledgeTab = ({
   userRole,
   currentUserId,
 }: KnowledgeTabProps) => {
-  const departmentsFromHook = useDepartments();
-  const state = useKnowledgeState();
-  const imageContainerRef = useRef<HTMLDivElement>(null);
-  
-  const departments = departmentsFromHook;
+  const departments = useDepartments();
+  const [materials, setMaterials] = useState<DatabaseKnowledgeMaterial[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState<string[]>([]);
+  const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
+  const [editingMaterial, setEditingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
+
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    description: '',
+    content: '',
+    category: '',
+    difficulty: 'medium',
+    duration: '',
+    tags: '',
+    is_published: true,
+    cover_image: '',
+    attachments: [],
+  });
+
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [coverImagePreview, setCoverImagePreview] = useState<string>('');
+
+  const imageHandlers = useImageHandlers();
 
   useEffect(() => {
     loadMaterials();
@@ -28,73 +53,201 @@ export const KnowledgeTab = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!state.previewImage) return;
+      if (!imageHandlers.previewImage) return;
       
       if (e.key === 'Escape') {
-        closeImagePreview();
-      } else if (e.key === 'ArrowLeft' && state.imageGallery.length > 0) {
-        const prevIndex = state.currentImageIndex === 0 ? state.imageGallery.length - 1 : state.currentImageIndex - 1;
-        state.setCurrentImageIndex(prevIndex);
-        state.setPreviewImage(state.imageGallery[prevIndex].url);
-        resetZoom();
-      } else if (e.key === 'ArrowRight' && state.imageGallery.length > 0) {
-        const nextIndex = (state.currentImageIndex + 1) % state.imageGallery.length;
-        state.setCurrentImageIndex(nextIndex);
-        state.setPreviewImage(state.imageGallery[nextIndex].url);
-        resetZoom();
+        imageHandlers.closeImagePreview();
+      } else if (e.key === 'ArrowLeft') {
+        imageHandlers.handlePrevImage();
+      } else if (e.key === 'ArrowRight') {
+        imageHandlers.handleNextImage();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [state.previewImage, state.currentImageIndex, state.imageGallery]);
+  }, [imageHandlers.previewImage, imageHandlers.currentImageIndex, imageHandlers.imageGallery]);
 
   const loadMaterials = async () => {
-    state.setLoading(true);
+    setLoading(true);
     try {
       const data = await databaseService.getKnowledgeMaterials();
-      state.setMaterials(data);
+      setMaterials(data);
     } catch (error) {
       toast.error("Не удалось загрузить материалы");
     } finally {
-      state.setLoading(false);
+      setLoading(false);
     }
   };
 
-  const closeImagePreview = () => {
-    state.setPreviewImage(null);
-    state.setImageGallery([]);
-    state.setCurrentImageIndex(0);
-    state.setIsPreviewMode(false);
-    resetZoom();
-    state.setIsEditing(false);
-    state.setEditRotation(0);
-    state.setEditFilter('none');
+  const handleCreateMaterial = async () => {
+    try {
+      await databaseService.createKnowledgeMaterial({
+        ...formData,
+        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+        departments: selectedDepartments,
+      });
+      toast.success("Материал создан");
+      setIsCreating(false);
+      resetForm();
+      loadMaterials();
+    } catch (error) {
+      toast.error("Не удалось создать материал");
+    }
   };
 
-  const resetZoom = () => {
-    state.setZoomLevel(1);
-    state.setImagePosition({ x: 0, y: 0 });
+  const handleUpdateMaterial = async () => {
+    if (!editingMaterial) return;
+    
+    try {
+      await databaseService.updateKnowledgeMaterial(editingMaterial.id, {
+        ...formData,
+        tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+        departments: selectedDepartments,
+      });
+      toast.success("Материал обновлен");
+      setEditingMaterial(null);
+      resetForm();
+      loadMaterials();
+    } catch (error) {
+      toast.error("Не удалось обновить материал");
+    }
   };
 
-  const filteredMaterials = state.materials.filter((material) => {
+  const handleDeleteMaterial = async (id: number) => {
+    if (!confirm("Вы уверены, что хотите удалить этот материал?")) return;
+    
+    try {
+      await databaseService.deleteKnowledgeMaterial(id);
+      toast.success("Материал удален");
+      setViewingMaterial(null);
+      loadMaterials();
+    } catch (error) {
+      toast.error("Не удалось удалить материал");
+    }
+  };
+
+  const handleCoverImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const url = await databaseService.uploadFile(file);
+      setFormData(prev => ({ ...prev, cover_image: url }));
+      setCoverImagePreview(url);
+      toast.success("Обложка загружена");
+    } catch (error) {
+      toast.error("Не удалось загрузить обложку");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setUploadingCount(files.length);
+    const uploadedFiles: FileAttachment[] = [];
+
+    for (const file of files) {
+      try {
+        const url = await databaseService.uploadFile(file);
+        uploadedFiles.push({
+          name: file.name,
+          url,
+          type: file.type,
+          size: file.size,
+        });
+      } catch (error) {
+        toast.error(`Не удалось загрузить ${file.name}`);
+      }
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...uploadedFiles],
+    }));
+    setUploadingCount(0);
+    toast.success(`Загружено файлов: ${uploadedFiles.length}`);
+  };
+
+  const handleRemoveAttachment = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleRemoveCoverImage = () => {
+    setFormData(prev => ({ ...prev, cover_image: '' }));
+    setCoverImagePreview('');
+  };
+
+  const handleFormChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDepartmentToggle = (deptId: string) => {
+    setSelectedDepartments(prev =>
+      prev.includes(deptId)
+        ? prev.filter(id => id !== deptId)
+        : [...prev, deptId]
+    );
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      content: '',
+      category: '',
+      difficulty: 'medium',
+      duration: '',
+      tags: '',
+      is_published: true,
+      cover_image: '',
+      attachments: [],
+    });
+    setSelectedDepartments([]);
+    setCoverImagePreview('');
+  };
+
+  const handleEditMaterial = (material: DatabaseKnowledgeMaterial) => {
+    setEditingMaterial(material);
+    setFormData({
+      title: material.title,
+      description: material.description,
+      content: material.content,
+      category: material.category,
+      difficulty: material.difficulty,
+      duration: material.duration,
+      tags: Array.isArray(material.tags) ? material.tags.join(', ') : '',
+      is_published: material.is_published,
+      cover_image: material.cover_image || '',
+      attachments: material.attachments || [],
+    });
+    setSelectedDepartments(material.departments || []);
+    setCoverImagePreview(material.cover_image || '');
+    setViewingMaterial(null);
+  };
+
+  const filteredMaterials = materials.filter((material) => {
     const matchesSearch = material.title
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const matchesCategory =
-      state.selectedCategory === "all" || material.category === state.selectedCategory;
+      selectedCategory === "all" || material.category === selectedCategory;
     const matchesDepartment =
-      state.selectedDepartmentFilter.length === 0 ||
+      selectedDepartmentFilter.length === 0 ||
       material.departments?.some((dept: string) =>
-        state.selectedDepartmentFilter.includes(dept)
+        selectedDepartmentFilter.includes(dept)
       );
     return matchesSearch && matchesCategory && matchesDepartment;
   });
 
   const categories = Array.from(
-    new Set(state.materials.map((m) => m.category))
+    new Set(materials.map((m) => m.category))
   ).filter(Boolean);
 
-  if (state.loading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-400">Загрузка материалов...</div>
@@ -114,8 +267,8 @@ export const KnowledgeTab = ({
             className="max-w-md"
           />
           <select
-            value={state.selectedCategory}
-            onChange={(e) => state.setSelectedCategory(e.target.value)}
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 border rounded-lg bg-white"
           >
             <option value="all">Все категории</option>
@@ -127,7 +280,7 @@ export const KnowledgeTab = ({
           </select>
         </div>
         {(userRole === "admin" || userRole === "teacher") && (
-          <Button onClick={() => state.setIsCreating(true)}>
+          <Button onClick={() => setIsCreating(true)}>
             <Icon name="Plus" size={16} />
             Создать материал
           </Button>
@@ -139,7 +292,7 @@ export const KnowledgeTab = ({
           <Card
             key={material.id}
             className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => state.setViewingMaterial(material)}
+            onClick={() => setViewingMaterial(material)}
           >
             {material.cover_image && (
               <div className="aspect-video overflow-hidden rounded-t-lg">
@@ -183,6 +336,69 @@ export const KnowledgeTab = ({
           <p>Материалы не найдены</p>
         </div>
       )}
+
+      <MaterialViewModal
+        material={viewingMaterial}
+        userRole={userRole}
+        currentUserId={currentUserId}
+        onClose={() => setViewingMaterial(null)}
+        onEdit={() => handleEditMaterial(viewingMaterial!)}
+        onDelete={() => handleDeleteMaterial(viewingMaterial!.id)}
+        onImageClick={imageHandlers.openImagePreview}
+      />
+
+      <MaterialFormModal
+        isOpen={isCreating || !!editingMaterial}
+        isEditing={!!editingMaterial}
+        formData={formData}
+        selectedDepartments={selectedDepartments}
+        departments={departments}
+        coverImagePreview={coverImagePreview}
+        uploadingCount={uploadingCount}
+        onClose={() => {
+          setIsCreating(false);
+          setEditingMaterial(null);
+          resetForm();
+        }}
+        onSubmit={editingMaterial ? handleUpdateMaterial : handleCreateMaterial}
+        onFormChange={handleFormChange}
+        onDepartmentToggle={handleDepartmentToggle}
+        onCoverImageUpload={handleCoverImageUpload}
+        onFileUpload={handleFileUpload}
+        onRemoveAttachment={handleRemoveAttachment}
+        onRemoveCoverImage={handleRemoveCoverImage}
+      />
+
+      <ImagePreviewModal
+        previewImage={imageHandlers.previewImage}
+        imageGallery={imageHandlers.imageGallery}
+        currentImageIndex={imageHandlers.currentImageIndex}
+        zoomLevel={imageHandlers.zoomLevel}
+        imagePosition={imageHandlers.imagePosition}
+        isEditing={imageHandlers.isEditing}
+        editRotation={imageHandlers.editRotation}
+        editFilter={imageHandlers.editFilter}
+        onClose={imageHandlers.closeImagePreview}
+        onNext={imageHandlers.handleNextImage}
+        onPrev={imageHandlers.handlePrevImage}
+        onZoomIn={imageHandlers.handleZoomIn}
+        onZoomOut={imageHandlers.handleZoomOut}
+        onResetZoom={imageHandlers.resetZoom}
+        onDownload={imageHandlers.handleDownloadImage}
+        onCopy={imageHandlers.handleCopyImage}
+        onShare={imageHandlers.handleShareImage}
+        onPrint={imageHandlers.handlePrintImage}
+        onToggleEdit={() => imageHandlers.setIsEditing(!imageHandlers.isEditing)}
+        onRotate={imageHandlers.handleRotate}
+        onFilterChange={imageHandlers.setEditFilter}
+        onSaveEdit={() => toast.info('Функция сохранения в разработке')}
+        onStartCrop={() => toast.info('Функция обрезки в разработке')}
+        onStartDraw={() => toast.info('Функция рисования в разработке')}
+        onStartBlur={() => toast.info('Функция размытия в разработке')}
+        setImagePosition={imageHandlers.setImagePosition}
+        setIsDragging={() => {}}
+        setDragStart={() => {}}
+      />
     </div>
   );
 };
