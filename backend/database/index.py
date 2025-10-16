@@ -1265,6 +1265,68 @@ def mark_support_messages_read(cursor, conn, employee_id: int) -> Dict[str, Any]
         conn.rollback()
         return {'error': f'Ошибка пометки прочитанных: {str(e)}'}
 
+def search_wikipedia(query: str) -> List[Dict[str, Any]]:
+    """Поиск в Wikipedia"""
+    try:
+        search_url = f"https://ru.wikipedia.org/w/api.php?action=opensearch&search={query}&limit=3&format=json"
+        response = requests.get(search_url, timeout=10)
+        data = response.json()
+        
+        materials = []
+        if len(data) >= 4:
+            titles = data[1]
+            descriptions = data[2]
+            urls = data[3]
+            
+            for i in range(len(titles)):
+                if i >= 3:
+                    break
+                    
+                page_url = f"https://ru.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&titles={titles[i]}&format=json&explaintext=1"
+                page_response = requests.get(page_url, timeout=10)
+                page_data = page_response.json()
+                
+                pages = page_data.get('query', {}).get('pages', {})
+                content = ''
+                for page_id, page_info in pages.items():
+                    content = page_info.get('extract', descriptions[i])[:1000]
+                
+                materials.append({
+                    'title': titles[i],
+                    'description': descriptions[i] if descriptions[i] else 'Материал из Wikipedia',
+                    'content': content,
+                    'source_url': urls[i],
+                    'tags': [query, 'Wikipedia']
+                })
+        
+        return materials
+    except Exception as e:
+        print(f'Wikipedia search error: {str(e)}')
+        return []
+
+def search_educational_sites(query: str) -> List[Dict[str, Any]]:
+    """Поиск образовательных видео на YouTube"""
+    try:
+        materials = []
+        
+        search_url = f"https://www.youtube.com/results?search_query={query}+обучение"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        response = requests.get(search_url, headers=headers, timeout=10)
+        
+        if 'watch?v=' in response.text:
+            materials.append({
+                'title': f'Видеоуроки по теме: {query}',
+                'description': f'Образовательные видео на YouTube по запросу "{query}"',
+                'content': f'Рекомендуем посмотреть видеоуроки на YouTube для лучшего понимания темы.\n\nПоиск: {query} обучение\n\nВидеоформат помогает лучше усваивать материал и видеть практические примеры.',
+                'source_url': search_url,
+                'tags': [query, 'YouTube', 'Видеоуроки']
+            })
+        
+        return materials
+    except Exception as e:
+        print(f'Educational sites search error: {str(e)}')
+        return []
+
 def ai_search_knowledge(body_data: Dict[str, Any]) -> Dict[str, Any]:
     """AI поиск образовательных материалов из интернета"""
     try:
@@ -1276,22 +1338,33 @@ def ai_search_knowledge(body_data: Dict[str, Any]) -> Dict[str, Any]:
         if not query:
             return {'error': 'Поле query обязательно'}
         
-        search_prompt = f"""Найди образовательные материалы по запросу: "{query}"
+        all_materials = []
+        
+        wiki_materials = search_wikipedia(query)
+        all_materials.extend(wiki_materials)
+        
+        video_materials = search_educational_sites(query)
+        all_materials.extend(video_materials)
+        
+        search_prompt = f"""Найди и создай образовательные материалы по запросу: "{query}"
 
-Верни результат в формате JSON со следующей структурой:
+Уже найдено из других источников: {len(all_materials)} материалов
+
+Создай ещё 2 дополнительных качественных образовательных материала на русском языке.
+Материалы должны быть практичными и содержать конкретные знания.
+
+Верни результат СТРОГО в формате JSON:
 {{
   "materials": [
     {{
       "title": "Название материала",
       "description": "Краткое описание (2-3 предложения)",
-      "content": "Основное содержание материала (минимум 3 абзаца)",
-      "source_url": "URL источника или 'AI Generated'",
+      "content": "Основное содержание материала (минимум 3 абзаца с практическими примерами)",
+      "source_url": "AI Generated",
       "tags": ["тег1", "тег2", "тег3"]
     }}
   ]
-}}
-
-Создай 2-3 качественных образовательных материала."""
+}}"""
 
         response = requests.post(
             'https://api.openai.com/v1/chat/completions',
@@ -1328,18 +1401,26 @@ def ai_search_knowledge(body_data: Dict[str, Any]) -> Dict[str, Any]:
             content_clean = content_clean.strip()
             
             materials_data = json.loads(content_clean)
+            if 'materials' in materials_data:
+                all_materials.extend(materials_data['materials'])
         except json.JSONDecodeError:
-            materials_data = {
-                'materials': [{
-                    'title': f'Материал по теме: {query}',
-                    'description': 'AI сгенерированный материал',
-                    'content': content,
-                    'source_url': 'AI Generated',
-                    'tags': [query.lower()]
-                }]
-            }
+            all_materials.append({
+                'title': f'Материал по теме: {query}',
+                'description': 'AI сгенерированный материал',
+                'content': content,
+                'source_url': 'AI Generated',
+                'tags': [query.lower()]
+            })
         
-        return materials_data
+        return {
+            'materials': all_materials,
+            'sources': {
+                'wikipedia': len(wiki_materials),
+                'videos': len(video_materials),
+                'ai_generated': len(all_materials) - len(wiki_materials) - len(video_materials),
+                'total': len(all_materials)
+            }
+        }
         
     except Exception as e:
         return {'error': f'Ошибка AI поиска: {str(e)}'}

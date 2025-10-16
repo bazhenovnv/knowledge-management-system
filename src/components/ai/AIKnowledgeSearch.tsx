@@ -49,7 +49,14 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
 
       if (data.materials && data.materials.length > 0) {
         setMaterials(data.materials);
-        toast.success(`Найдено ${data.materials.length} материалов`);
+        
+        const sources = data.sources || {};
+        const sourceText = [];
+        if (sources.wikipedia > 0) sourceText.push(`Wikipedia: ${sources.wikipedia}`);
+        if (sources.videos > 0) sourceText.push(`Видео: ${sources.videos}`);
+        if (sources.ai_generated > 0) sourceText.push(`AI: ${sources.ai_generated}`);
+        
+        toast.success(`Найдено ${data.materials.length} материалов (${sourceText.join(', ')})`);
       } else {
         toast.warning('Материалы не найдены');
         setMaterials([]);
@@ -147,11 +154,28 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
 
                       {material.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {material.tags.map((tag, i) => (
-                            <Badge key={i} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
+                          {material.tags.map((tag, i) => {
+                            const isWikipedia = tag === 'Wikipedia';
+                            const isYouTube = tag === 'YouTube' || tag === 'Видеоуроки';
+                            const isAI = tag === 'AI Generated';
+                            
+                            return (
+                              <Badge 
+                                key={i} 
+                                variant="secondary" 
+                                className={`text-xs ${
+                                  isWikipedia ? 'bg-blue-100 text-blue-700' :
+                                  isYouTube ? 'bg-red-100 text-red-700' :
+                                  isAI ? 'bg-purple-100 text-purple-700' : ''
+                                }`}
+                              >
+                                {isWikipedia && '📚 '}
+                                {isYouTube && '🎥 '}
+                                {isAI && '✨ '}
+                                {tag}
+                              </Badge>
+                            );
+                          })}
                         </div>
                       )}
 
