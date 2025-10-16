@@ -1004,6 +1004,93 @@ export const KnowledgeTab = ({
     }
   };
 
+  const handleSaveAsNewAttachment = async () => {
+    if (!viewingMaterial || imageGallery.length === 0 || !imageGallery[currentImageIndex]) {
+      toast.error('Материал не найден');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    const currentImage = imageGallery[currentImageIndex];
+    
+    try {
+      const response = await fetch(currentImage.url);
+      const blob = await response.blob();
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+      
+      const rotation = editRotation;
+      if (rotation === 90 || rotation === 270) {
+        canvas.width = img.height;
+        canvas.height = img.width;
+      } else {
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+      
+      if (ctx) {
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.translate(-img.width / 2, -img.height / 2);
+        
+        if (editFilter !== 'none') {
+          ctx.filter = getFilterCSS(editFilter);
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
+      }
+      
+      const base64 = canvas.toDataURL('image/png');
+      
+      const timestamp = Date.now();
+      const originalName = currentImage.name.replace(/\.[^/.]+$/, '');
+      const newFileName = `${originalName}_edited_${timestamp}.png`;
+      
+      const newAttachment: FileAttachment = {
+        name: newFileName,
+        url: base64,
+        type: 'image/png',
+        size: Math.round((base64.length * 3) / 4),
+      };
+
+      const updatedAttachments = [...viewingMaterial.attachments, newAttachment];
+
+      const updated = await databaseService.updateKnowledgeMaterial(
+        viewingMaterial.id,
+        { attachments: updatedAttachments }
+      );
+
+      if (updated) {
+        setViewingMaterial(updated);
+        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        setImageGallery(newGallery);
+        setCurrentImageIndex(newGallery.length - 1);
+        handleCancelEdit();
+        toast.success('Изображение добавлено в материал!');
+      } else {
+        throw new Error('Failed to update material');
+      }
+      
+    } catch (error) {
+      console.error('Ошибка сохранения:', error);
+      toast.error('Не удалось сохранить изображение');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditRotation(0);
@@ -2374,6 +2461,7 @@ export const KnowledgeTab = ({
                       <input
                         type="file"
                         multiple
+                        accept="*/*"
                         className="hidden"
                         onChange={handleFileUpload}
                       />
@@ -2425,7 +2513,7 @@ export const KnowledgeTab = ({
 
       {previewImage && (
         <div 
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={closeImagePreview}
         >
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
@@ -2541,19 +2629,22 @@ export const KnowledgeTab = ({
 
             {isEditing && (
               <div 
-                className="absolute top-20 right-4 bg-white/10 backdrop-blur-md text-white p-4 rounded-xl z-20 w-64 animate-in slide-in-from-right duration-200"
+                className="absolute top-20 right-4 bg-white/10 backdrop-blur-md text-white p-4 rounded-xl z-[110] w-64 animate-in slide-in-from-right duration-200"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-sm">Редактирование</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 hover:bg-white/20"
-                    onClick={handleCancelEdit}
-                  >
-                    <Icon name="X" size={16} />
-                  </Button>
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-semibold text-sm">Редактирование</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-white/20"
+                      onClick={handleCancelEdit}
+                    >
+                      <Icon name="X" size={16} />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-white/60">Сохранить = заменить • Добавить = новое фото</p>
                 </div>
 
                 <div className="space-y-4">
@@ -2982,42 +3073,67 @@ export const KnowledgeTab = ({
                   </div>
 
                   {!isCropping && !isDrawing && !isBlurring && (
-                    <div className="pt-2 border-t border-white/20 flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleCancelEdit();
-                        }}
-                      >
-                        Отмена
+                    <div className="pt-2 border-t border-white/20 space-y-2">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancelEdit();
+                          }}
+                        >
+                          Отмена
+                        </Button>
+                        <Button
+                          size="sm"
+                          className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white ${
+                            isSavingEdit ? 'opacity-50' : ''
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSaveEdit();
+                          }}
+                          disabled={isSavingEdit}
+                        >
+                          {isSavingEdit ? (
+                            <>
+                              <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                              ...
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="Check" size={16} className="mr-2" />
+                            Сохранить
+                          </>
+                        )}
                       </Button>
+                      </div>
                       <Button
                         size="sm"
-                        className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white ${
+                        className={`w-full bg-green-600 hover:bg-green-700 text-white ${
                           isSavingEdit ? 'opacity-50' : ''
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSaveEdit();
+                          handleSaveAsNewAttachment();
                         }}
                         disabled={isSavingEdit}
                       >
                         {isSavingEdit ? (
                           <>
                             <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                            Сохранение...
+                            Добавление...
                         </>
                       ) : (
                         <>
-                          <Icon name="Check" size={16} className="mr-2" />
-                          Сохранить
+                          <Icon name="Plus" size={16} className="mr-2" />
+                          Добавить как новое фото
                         </>
                       )}
-                    </Button>
-                  </div>
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
