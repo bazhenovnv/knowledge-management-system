@@ -305,23 +305,32 @@ export const KnowledgeTab = ({
       }
       
       try {
-        const response = await fetch(currentImage.url);
-        const blob = await response.blob();
+        let blob: Blob;
+        
+        if (currentImage.url.startsWith('data:')) {
+          const base64Response = await fetch(currentImage.url);
+          blob = await base64Response.blob();
+        } else {
+          const response = await fetch(currentImage.url);
+          blob = await response.blob();
+        }
+        
+        const mimeType = blob.type || 'image/png';
         
         await navigator.clipboard.write([
           new ClipboardItem({
-            [blob.type]: blob
+            [mimeType]: blob
           })
         ]);
         
         setTimeout(() => {
           setIsCopying(false);
-          toast.success('Изображение скопировано! Можно вставлять (Ctrl+V)');
-        }, 500);
+          toast.success('Изображение скопировано в буфер обмена!');
+        }, 300);
       } catch (error) {
         console.error('Ошибка копирования:', error);
         setIsCopying(false);
-        toast.error('Не удалось скопировать. Попробуйте скачать (S)');
+        toast.error('Не удалось скопировать изображение');
       }
     }
   };
