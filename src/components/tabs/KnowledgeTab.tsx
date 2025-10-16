@@ -2514,7 +2514,11 @@ export const KnowledgeTab = ({
       {previewImage && (
         <div 
           className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={closeImagePreview}
+          onClick={() => {
+            if (!isCropping && !isDrawing && !isBlurring) {
+              closeImagePreview();
+            }
+          }}
         >
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
             <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10">
@@ -3284,6 +3288,7 @@ export const KnowledgeTab = ({
                 isBlurring ? 'cursor-crosshair' :
                 (zoomLevel > 1 && !isCropping ? 'cursor-move' : 'cursor-default')
               }`}
+              onClick={(e) => e.stopPropagation()}
               onWheel={!isCropping && !isDrawing && !isBlurring ? handleWheel : undefined}
               onMouseDown={
                 isCropping ? handleCropMouseDown : 
@@ -3352,6 +3357,8 @@ export const KnowledgeTab = ({
                       height: cropArea.height,
                       cursor: 'move'
                     }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <div className="absolute top-0 left-0 w-full h-full grid grid-cols-3 grid-rows-3 pointer-events-none">
                       {[...Array(9)].map((_, i) => (
@@ -3359,10 +3366,30 @@ export const KnowledgeTab = ({
                       ))}
                     </div>
                     
-                    <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-white rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
-                    <div className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-white rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
-                    <div className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-white rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
-                    <div className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-white rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
+                    <div 
+                      className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-white rounded-full cursor-nwse-resize" 
+                      style={{pointerEvents: 'auto'}}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div 
+                      className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-white rounded-full cursor-nesw-resize" 
+                      style={{pointerEvents: 'auto'}}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div 
+                      className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-white rounded-full cursor-nesw-resize" 
+                      style={{pointerEvents: 'auto'}}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <div 
+                      className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-white rounded-full cursor-nwse-resize" 
+                      style={{pointerEvents: 'auto'}}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </div>
                   <div 
                     className="absolute bg-white/10 backdrop-blur-sm text-white px-2 py-1 rounded text-xs pointer-events-none"
@@ -3557,12 +3584,34 @@ export const KnowledgeTab = ({
                         cursor: 'move'
                       }}
                       onContextMenu={(e) => handleBlurRightClick(e, index)}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()}
                       title="Правый клик для удаления"
                     >
-                      <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
-                      <div className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
-                      <div className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
-                      <div className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
+                      <div 
+                        className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize hover:scale-125 transition-transform" 
+                        style={{pointerEvents: 'auto'}}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div 
+                        className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize hover:scale-125 transition-transform" 
+                        style={{pointerEvents: 'auto'}}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div 
+                        className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize hover:scale-125 transition-transform" 
+                        style={{pointerEvents: 'auto'}}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div 
+                        className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize hover:scale-125 transition-transform" 
+                        style={{pointerEvents: 'auto'}}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                      />
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                         <div className="bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
                           ПКМ для удаления
