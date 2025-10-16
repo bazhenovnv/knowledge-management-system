@@ -230,10 +230,10 @@ const Index = () => {
       <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
       
       {/* Чат технической поддержки */}
-      {user && (
+      {isLoggedIn && userId && (
         <SupportChat 
-          employeeId={user.id} 
-          isAdmin={user.role === 'admin'} 
+          employeeId={userId} 
+          isAdmin={userRole === 'admin'} 
         />
       )}
     </div>
