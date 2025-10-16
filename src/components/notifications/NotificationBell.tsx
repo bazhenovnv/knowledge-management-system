@@ -10,6 +10,7 @@ import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import NotificationList from './NotificationList';
 import { database } from '@/utils/database';
+import { databaseService } from '@/utils/databaseService';
 
 interface NotificationBellProps {
   employeeId: number;
@@ -22,7 +23,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   const [supportCount, setSupportCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [prevSupportCount, setPrevSupportCount] = useState(0);
-  const BACKEND_URL = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
 
   const playNotificationSound = () => {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -67,9 +67,8 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
 
   const loadSupportCount = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}?action=get_unread_support_count`);
-      const data = await response.json();
-      const newCount = data.count || 0;
+      const result = await databaseService.getUnreadSupportCount();
+      const newCount = result?.count || 0;
       
       if (newCount > prevSupportCount && prevSupportCount !== 0) {
         playNotificationSound();

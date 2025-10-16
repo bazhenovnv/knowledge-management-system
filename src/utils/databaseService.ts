@@ -488,6 +488,28 @@ class DatabaseService {
       return null;
     }
   }
+
+  async getUnreadSupportCount(): Promise<{ count: number } | null> {
+    try {
+      const response = await this.makeRequest<{ count: number }>('?action=get_unread_support_count', { method: 'GET' });
+      
+      if (response.error) {
+        console.error('Get unread support count error:', response.error);
+        return { count: 0 };
+      }
+      
+      if ('count' in response) {
+        return response as any;
+      } else if (response.data && 'count' in response.data) {
+        return response.data;
+      }
+      
+      return { count: 0 };
+    } catch (error) {
+      console.error('Get unread support count error:', error);
+      return { count: 0 };
+    }
+  }
 }
 
 // Создаем единственный экземпляр сервиса
