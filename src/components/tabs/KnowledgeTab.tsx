@@ -91,6 +91,10 @@ export const KnowledgeTab = ({
   const [editRotation, setEditRotation] = useState(0);
   const [editFilter, setEditFilter] = useState('none');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isCropping, setIsCropping] = useState(false);
+  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingCrop, setIsDraggingCrop] = useState(false);
   
   const departments = departmentsFromHook;
 
@@ -429,6 +433,133 @@ export const KnowledgeTab = ({
     setEditFilter(filter);
   };
 
+  const handleStartCrop = () => {
+    setIsCropping(true);
+    setCropArea({ x: 0, y: 0, width: 0, height: 0 });
+  };
+
+  const handleCancelCrop = () => {
+    setIsCropping(false);
+    setCropArea({ x: 0, y: 0, width: 0, height: 0 });
+    setCropStart(null);
+    setIsDraggingCrop(false);
+  };
+
+  const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCropping) return;
+    e.stopPropagation();
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setCropStart({ x, y });
+    setIsDraggingCrop(true);
+    setCropArea({ x, y, width: 0, height: 0 });
+  };
+
+  const handleCropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCropping || !isDraggingCrop || !cropStart) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    
+    const width = currentX - cropStart.x;
+    const height = currentY - cropStart.y;
+    
+    setCropArea({
+      x: width < 0 ? currentX : cropStart.x,
+      y: height < 0 ? currentY : cropStart.y,
+      width: Math.abs(width),
+      height: Math.abs(height)
+    });
+  };
+
+  const handleCropMouseUp = () => {
+    if (isDraggingCrop) {
+      setIsDraggingCrop(false);
+      setCropStart(null);
+    }
+  };
+
+  const handleApplyCrop = async () => {
+    if (cropArea.width === 0 || cropArea.height === 0) {
+      toast.error('Выделите область для обрезки');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    const currentImage = imageGallery[currentImageIndex];
+    
+    try {
+      const response = await fetch(currentImage.url);
+      const blob = await response.blob();
+      
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+
+      const imgElement = document.querySelector('.preview-image') as HTMLImageElement;
+      if (!imgElement) return;
+
+      const displayRect = imgElement.getBoundingClientRect();
+      const scaleX = img.naturalWidth / displayRect.width;
+      const scaleY = img.naturalHeight / displayRect.height;
+
+      const cropX = cropArea.x * scaleX;
+      const cropY = cropArea.y * scaleY;
+      const cropWidth = cropArea.width * scaleX;
+      const cropHeight = cropArea.height * scaleY;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        ctx.drawImage(
+          img,
+          cropX,
+          cropY,
+          cropWidth,
+          cropHeight,
+          0,
+          0,
+          cropWidth,
+          cropHeight
+        );
+      }
+
+      canvas.toBlob((croppedBlob) => {
+        if (croppedBlob) {
+          const url = URL.createObjectURL(croppedBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `cropped-${currentImage.name || 'image.png'}`;
+          link.click();
+          URL.revokeObjectURL(url);
+          
+          setTimeout(() => {
+            setIsSavingEdit(false);
+            handleCancelCrop();
+            toast.success('Изображение обрезано!');
+          }, 500);
+        }
+      }, 'image/png');
+      
+    } catch (error) {
+      console.error('Ошибка обрезки:', error);
+      setIsSavingEdit(false);
+      toast.error('Не удалось обрезать изображение');
+    }
+  };
+
   const handleSaveEdit = async () => {
     if (imageGallery.length > 0 && imageGallery[currentImageIndex]) {
       setIsSavingEdit(true);
@@ -503,6 +634,7 @@ export const KnowledgeTab = ({
     setIsEditing(false);
     setEditRotation(0);
     setEditFilter('none');
+    handleCancelCrop();
   };
 
   const getFilterCSS = (filter: string): string => {
@@ -1772,6 +1904,62 @@ export const KnowledgeTab = ({
 
                 <div className="space-y-4">
                   <div>
+                    <p className="text-xs text-white/70 mb-2">Обрезка</p>
+                    {!isCropping ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full bg-white/5 hover:bg-white/20 text-white border-white/20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartCrop();
+                        }}
+                      >
+                        <Icon name="Crop" size={16} className="mr-2" />
+                        Обрезать
+                      </Button>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs text-white/90">Выделите область мышью</p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelCrop();
+                            }}
+                          >
+                            Отмена
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleApplyCrop();
+                            }}
+                            disabled={isSavingEdit || cropArea.width === 0}
+                          >
+                            {isSavingEdit ? (
+                              <>
+                                <Icon name="Loader2" size={14} className="mr-1 animate-spin" />
+                                ...
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="Check" size={14} className="mr-1" />
+                                Готово
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
                     <p className="text-xs text-white/70 mb-2">Поворот</p>
                     <Button
                       variant="outline"
@@ -1781,6 +1969,7 @@ export const KnowledgeTab = ({
                         e.stopPropagation();
                         handleRotateImage();
                       }}
+                      disabled={isCropping}
                     >
                       <Icon name="RotateCw" size={16} className="mr-2" />
                       Повернуть 90°
@@ -1871,33 +2060,34 @@ export const KnowledgeTab = ({
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-white/20 flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCancelEdit();
-                      }}
-                    >
-                      Отмена
-                    </Button>
-                    <Button
-                      size="sm"
-                      className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white ${
-                        isSavingEdit ? 'opacity-50' : ''
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSaveEdit();
-                      }}
-                      disabled={isSavingEdit}
-                    >
-                      {isSavingEdit ? (
-                        <>
-                          <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                          Сохранение...
+                  {!isCropping && (
+                    <div className="pt-2 border-t border-white/20 flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCancelEdit();
+                        }}
+                      >
+                        Отмена
+                      </Button>
+                      <Button
+                        size="sm"
+                        className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white ${
+                          isSavingEdit ? 'opacity-50' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSaveEdit();
+                        }}
+                        disabled={isSavingEdit}
+                      >
+                        {isSavingEdit ? (
+                          <>
+                            <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                            Сохранение...
                         </>
                       ) : (
                         <>
@@ -1907,11 +2097,18 @@ export const KnowledgeTab = ({
                       )}
                     </Button>
                   </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {imageGallery.length > 1 && (
+            {isCropping && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-blue-400/50 animate-pulse">
+                🖱️ Выделите область для обрезки мышью
+              </div>
+            )}
+
+            {!isCropping && imageGallery.length > 1 && (
               <>
                 <Button
                   variant="ghost"
@@ -1972,7 +2169,7 @@ export const KnowledgeTab = ({
               </>
             )}
 
-            {imageGallery.length === 1 && (
+            {!isCropping && imageGallery.length === 1 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-sm text-white/70 px-3 py-1 rounded-full text-xs flex items-center gap-2">
                 <span>2× клик</span>
                 <span>зум</span>
@@ -2044,26 +2241,72 @@ export const KnowledgeTab = ({
             </div>
             
             <div 
-              className={`overflow-hidden ${zoomLevel > 1 ? 'cursor-move' : 'cursor-default'}`}
-              onWheel={handleWheel}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
+              className={`overflow-hidden relative ${zoomLevel > 1 && !isCropping ? 'cursor-move' : 'cursor-default'}`}
+              onWheel={!isCropping ? handleWheel : undefined}
+              onMouseDown={isCropping ? handleCropMouseDown : handleMouseDown}
+              onMouseMove={isCropping ? handleCropMouseMove : handleMouseMove}
+              onMouseUp={isCropping ? handleCropMouseUp : handleMouseUp}
+              onMouseLeave={isCropping ? handleCropMouseUp : handleMouseUp}
             >
               <img 
                 src={previewImage} 
                 alt="Предпросмотр" 
-                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-all duration-300"
+                className="preview-image max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-all duration-300"
                 style={{
                   transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px) rotate(${editRotation}deg)`,
                   filter: getFilterCSS(editFilter),
-                  cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
+                  cursor: isCropping ? 'crosshair' : (zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default')
                 }}
-                onDoubleClick={handleDoubleClick}
+                onDoubleClick={!isCropping ? handleDoubleClick : undefined}
                 onClick={(e) => e.stopPropagation()}
                 draggable={false}
               />
+              
+              {isCropping && cropArea.width > 0 && cropArea.height > 0 && (
+                <>
+                  <div 
+                    className="absolute inset-0 bg-black/50 pointer-events-none"
+                    style={{
+                      clipPath: `polygon(
+                        0% 0%,
+                        0% 100%,
+                        ${cropArea.x}px 100%,
+                        ${cropArea.x}px ${cropArea.y}px,
+                        ${cropArea.x + cropArea.width}px ${cropArea.y}px,
+                        ${cropArea.x + cropArea.width}px ${cropArea.y + cropArea.height}px,
+                        ${cropArea.x}px ${cropArea.y + cropArea.height}px,
+                        ${cropArea.x}px 100%,
+                        100% 100%,
+                        100% 0%
+                      )`
+                    }}
+                  />
+                  <div
+                    className="absolute border-2 border-white border-dashed pointer-events-none"
+                    style={{
+                      left: cropArea.x,
+                      top: cropArea.y,
+                      width: cropArea.width,
+                      height: cropArea.height
+                    }}
+                  >
+                    <div className="absolute top-0 left-0 w-full h-full grid grid-cols-3 grid-rows-3">
+                      {[...Array(9)].map((_, i) => (
+                        <div key={i} className="border border-white/30" />
+                      ))}
+                    </div>
+                  </div>
+                  <div 
+                    className="absolute bg-white/10 backdrop-blur-sm text-white px-2 py-1 rounded text-xs pointer-events-none"
+                    style={{
+                      left: cropArea.x + cropArea.width + 8,
+                      top: cropArea.y
+                    }}
+                  >
+                    {Math.round(cropArea.width)} × {Math.round(cropArea.height)}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
