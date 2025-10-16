@@ -1,5 +1,20 @@
 import { toast } from 'sonner';
 
+interface ScanStatistics {
+  totalElements: number;
+  scripts: number;
+  inlineStyles: number;
+  comments: number;
+  issues: number;
+  emptyDivs: number;
+  deprecatedTags: number;
+  elementsWithManyClasses: number;
+  longDataAttrs: number;
+  hiddenElements: number;
+  timestamp: string;
+  issuesList: string[];
+}
+
 export const scanForJunkCode = () => {
   const results: string[] = [];
   const issues: string[] = [];
@@ -17,9 +32,11 @@ export const scanForJunkCode = () => {
   });
   
   const deprecatedTags = ['marquee', 'blink', 'center', 'font', 'frame', 'frameset'];
+  let deprecatedTagsCount = 0;
   deprecatedTags.forEach(tag => {
     const elements = document.querySelectorAll(tag);
     if (elements.length > 0) {
+      deprecatedTagsCount += elements.length;
       issues.push(`Устаревший тег <${tag}>: найдено ${elements.length} шт.`);
     }
   });
@@ -27,8 +44,9 @@ export const scanForJunkCode = () => {
   const emptyDivs = Array.from(document.querySelectorAll('div')).filter(
     div => !div.textContent?.trim() && !div.querySelector('img, svg, video, iframe') && div.children.length === 0
   );
-  if (emptyDivs.length > 5) {
-    issues.push(`Пустые <div>: найдено ${emptyDivs.length} шт.`);
+  const emptyDivsCount = emptyDivs.length;
+  if (emptyDivsCount > 5) {
+    issues.push(`Пустые <div>: найдено ${emptyDivsCount} шт.`);
   }
   
   const inlineStyles = document.querySelectorAll('[style]');
@@ -93,16 +111,84 @@ export const scanForJunkCode = () => {
     });
   }
   
+  const statistics: ScanStatistics = {
+    totalElements: document.querySelectorAll('*').length,
+    scripts: scripts.length,
+    inlineStyles: inlineStyles.length,
+    comments: comments.length,
+    issues: issues.length,
+    emptyDivs: emptyDivsCount,
+    deprecatedTags: deprecatedTagsCount,
+    elementsWithManyClasses: elementsWithManyClasses.length,
+    longDataAttrs: longDataAttrs.length,
+    hiddenElements: hiddenElements.length,
+    timestamp: new Date().toISOString(),
+    issuesList: issues,
+  };
+
   console.log(`
 📊 Статистика сканирования:
-- Всего элементов: ${document.querySelectorAll('*').length}
-- Скриптов: ${scripts.length}
-- Стилей (инлайн): ${inlineStyles.length}
-- Комментариев: ${comments.length}
-- Проблем: ${issues.length}
+- Всего элементов: ${statistics.totalElements}
+- Скриптов: ${statistics.scripts}
+- Стилей (инлайн): ${statistics.inlineStyles}
+- Комментариев: ${statistics.comments}
+- Проблем: ${statistics.issues}
   `);
   
-  return issues.length;
+  return { issuesCount: issues.length, statistics };
+};
+
+export const exportScanStatistics = () => {
+  const result = scanForJunkCode();
+  
+  if (!result.statistics) {
+    toast.error('Сначала запустите сканирование');
+    return;
+  }
+
+  const report = `
+# Отчёт сканирования кода
+Дата: ${new Date(result.statistics.timestamp).toLocaleString('ru-RU')}
+
+## Общая статистика
+- Всего элементов: ${result.statistics.totalElements}
+- Скриптов: ${result.statistics.scripts}
+- Инлайн-стилей: ${result.statistics.inlineStyles}
+- HTML комментариев: ${result.statistics.comments}
+- Пустых <div>: ${result.statistics.emptyDivs}
+- Устаревших тегов: ${result.statistics.deprecatedTags}
+- Элементов с избыточными классами: ${result.statistics.elementsWithManyClasses}
+- Data-атрибутов >500 символов: ${result.statistics.longDataAttrs}
+- Скрытых элементов: ${result.statistics.hiddenElements}
+
+## Найдено проблем: ${result.statistics.issues}
+
+${result.statistics.issuesList.length > 0 ? '## Список проблем:\n' + result.statistics.issuesList.map(issue => `- ${issue}`).join('\n') : '✓ Проблем не обнаружено'}
+
+---
+Отчёт создан автоматически системой сканирования кода
+`.trim();
+
+  const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `scan-report-${new Date().toISOString().slice(0, 10)}.md`;
+  link.click();
+  URL.revokeObjectURL(url);
+
+  toast.success('Отчёт экспортирован', {
+    description: 'Сохранён как Markdown файл'
+  });
+
+  const jsonData = JSON.stringify(result.statistics, null, 2);
+  const jsonBlob = new Blob([jsonData], { type: 'application/json;charset=utf-8' });
+  const jsonUrl = URL.createObjectURL(jsonBlob);
+  const jsonLink = document.createElement('a');
+  jsonLink.href = jsonUrl;
+  jsonLink.download = `scan-report-${new Date().toISOString().slice(0, 10)}.json`;
+  jsonLink.click();
+  URL.revokeObjectURL(jsonUrl);
 };
 
 export const fixJunkCode = () => {
@@ -158,7 +244,12 @@ export const fixJunkCode = () => {
     });
     
     setTimeout(() => {
-      scanForJunkCode();
+      const result = scanForJunkCode();
+      if (result.statistics && result.statistics.issues === 0) {
+        setTimeout(() => {
+          exportScanStatistics();
+        }, 1000);
+      }
     }, 500);
   } else {
     toast.info('Нет проблем для автоматического исправления');

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { scanForJunkCode, fixJunkCode } from './codeScanner';
+import { scanForJunkCode, fixJunkCode, exportScanStatistics } from './codeScanner';
 
 interface ConsoleHeaderProps {
   onClearLogs: () => void;
@@ -40,6 +40,15 @@ export const ConsoleHeader = ({ onClearLogs, onExportLogs, onTestErrors }: Conso
             Исправить проблемы
           </Button>
           <Button 
+            onClick={exportScanStatistics}
+            variant="outline" 
+            size="sm"
+            className="gap-2 border-orange-500 text-orange-400 hover:bg-orange-950"
+          >
+            <Icon name="FileText" size={16} />
+            Экспорт отчёта
+          </Button>
+          <Button 
             onClick={onTestErrors}
             variant="outline" 
             size="sm"
@@ -55,7 +64,7 @@ export const ConsoleHeader = ({ onClearLogs, onExportLogs, onTestErrors }: Conso
             className="gap-2"
           >
             <Icon name="Download" size={16} />
-            Экспорт
+            Экспорт логов
           </Button>
           <Button 
             onClick={onClearLogs}
