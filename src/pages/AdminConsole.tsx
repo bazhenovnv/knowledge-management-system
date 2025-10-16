@@ -168,6 +168,24 @@ const AdminConsole = () => {
     );
   };
 
+  const copyLogToClipboard = (log: LogEntry) => {
+    const logText = `
+[${log.level.toUpperCase()}] ${log.timestamp.toLocaleString('ru-RU')}
+${log.source ? `Source: ${log.source}` : ''}
+
+Message:
+${log.message}
+
+${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Trace:\n${log.stackTrace}` : ''}
+    `.trim();
+    
+    navigator.clipboard.writeText(logText).then(() => {
+      toast.success('Лог скопирован в буфер обмена');
+    }).catch(() => {
+      toast.error('Не удалось скопировать');
+    });
+  };
+
   const testSystemErrors = () => {
     console.error('Test Error: This is a test error message');
     console.warn('Test Warning: This is a test warning');
@@ -264,17 +282,19 @@ const AdminConsole = () => {
                 filteredLogs.map(log => (
                   <Card 
                     key={log.id} 
-                    className={`border-l-4 cursor-pointer transition-all ${
+                    className={`border-l-4 transition-all ${
                       log.level === 'error' ? 'border-l-red-500 bg-red-950/20' :
                       log.level === 'warning' ? 'border-l-yellow-500 bg-yellow-950/20' :
                       log.level === 'success' ? 'border-l-green-500 bg-green-950/20' :
                       'border-l-blue-500 bg-slate-900/30'
                     }`}
-                    onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer"
+                          onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
+                        >
                           <div className="flex items-center gap-2 mb-2">
                             {getLevelBadge(log.level)}
                             <span className="text-xs text-slate-400">
@@ -309,11 +329,35 @@ const AdminConsole = () => {
                           )}
                         </div>
                         
-                        <Icon 
-                          name={expandedLog === log.id ? "ChevronUp" : "ChevronDown"} 
-                          size={20} 
-                          className="text-slate-400 flex-shrink-0"
-                        />
+                        <div className="flex flex-col gap-2 flex-shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              copyLogToClipboard(log);
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-slate-700"
+                            title="Скопировать лог"
+                          >
+                            <Icon name="Copy" size={16} className="text-slate-400" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExpandedLog(expandedLog === log.id ? null : log.id);
+                            }}
+                            className="h-8 w-8 p-0 hover:bg-slate-700"
+                          >
+                            <Icon 
+                              name={expandedLog === log.id ? "ChevronUp" : "ChevronDown"} 
+                              size={20} 
+                              className="text-slate-400"
+                            />
+                          </Button>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
