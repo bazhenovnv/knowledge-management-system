@@ -79,6 +79,10 @@ export const KnowledgeTab = ({
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageGallery, setImageGallery] = useState<FileAttachment[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   
   const departments = departmentsFromHook;
 
@@ -91,12 +95,17 @@ export const KnowledgeTab = ({
       if (!previewImage) return;
       
       if (e.key === 'Escape') {
-        setPreviewImage(null);
-        setImageGallery([]);
-      } else if (e.key === 'ArrowLeft') {
-        handlePrevImage();
-      } else if (e.key === 'ArrowRight') {
-        handleNextImage();
+        closeImagePreview();
+      } else if (e.key === 'ArrowLeft' && imageGallery.length > 0) {
+        const prevIndex = currentImageIndex === 0 ? imageGallery.length - 1 : currentImageIndex - 1;
+        setCurrentImageIndex(prevIndex);
+        setPreviewImage(imageGallery[prevIndex].url);
+        resetZoom();
+      } else if (e.key === 'ArrowRight' && imageGallery.length > 0) {
+        const nextIndex = (currentImageIndex + 1) % imageGallery.length;
+        setCurrentImageIndex(nextIndex);
+        setPreviewImage(imageGallery[nextIndex].url);
+        resetZoom();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -109,6 +118,7 @@ export const KnowledgeTab = ({
     setImageGallery(images);
     setCurrentImageIndex(index >= 0 ? index : 0);
     setPreviewImage(imageUrl);
+    resetZoom();
   };
 
   const handleNextImage = () => {
@@ -116,6 +126,7 @@ export const KnowledgeTab = ({
     const nextIndex = (currentImageIndex + 1) % imageGallery.length;
     setCurrentImageIndex(nextIndex);
     setPreviewImage(imageGallery[nextIndex].url);
+    resetZoom();
   };
 
   const handlePrevImage = () => {
@@ -123,12 +134,71 @@ export const KnowledgeTab = ({
     const prevIndex = currentImageIndex === 0 ? imageGallery.length - 1 : currentImageIndex - 1;
     setCurrentImageIndex(prevIndex);
     setPreviewImage(imageGallery[prevIndex].url);
+    resetZoom();
   };
 
   const closeImagePreview = () => {
     setPreviewImage(null);
     setImageGallery([]);
     setCurrentImageIndex(0);
+    resetZoom();
+  };
+
+  const resetZoom = () => {
+    setZoomLevel(1);
+    setImagePosition({ x: 0, y: 0 });
+    setIsDragging(false);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.5, 5));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => {
+      const newZoom = Math.max(prev - 0.5, 1);
+      if (newZoom === 1) {
+        setImagePosition({ x: 0, y: 0 });
+      }
+      return newZoom;
+    });
+  };
+
+  const handleDoubleClick = () => {
+    if (zoomLevel === 1) {
+      setZoomLevel(2);
+    } else {
+      resetZoom();
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      handleZoomIn();
+    } else {
+      handleZoomOut();
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoomLevel > 1) {
+      setImagePosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   const loadMaterials = async () => {
@@ -1306,19 +1376,93 @@ export const KnowledgeTab = ({
                     <span>← →</span>
                     <span>листать</span>
                     <span className="mx-1">•</span>
+                    <span>2× клик</span>
+                    <span>зум</span>
+                    <span className="mx-1">•</span>
                     <span>Esc</span>
                     <span>закрыть</span>
                   </div>
                 </div>
               </>
             )}
+
+            {imageGallery.length === 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-sm text-white/70 px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                <span>2× клик</span>
+                <span>зум</span>
+                <span className="mx-1">•</span>
+                <span>Esc</span>
+                <span>закрыть</span>
+              </div>
+            )}
+
+            <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleZoomOut();
+                }}
+                disabled={zoomLevel <= 1}
+                title="Уменьшить (колесо мыши)"
+              >
+                <Icon name="ZoomOut" size={20} />
+              </Button>
+              <div className="bg-white/10 backdrop-blur-sm text-white px-3 py-1 rounded text-sm min-w-[60px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleZoomIn();
+                }}
+                disabled={zoomLevel >= 5}
+                title="Увеличить (колесо мыши)"
+              >
+                <Icon name="ZoomIn" size={20} />
+              </Button>
+              {zoomLevel > 1 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    resetZoom();
+                  }}
+                  title="Сбросить зум"
+                >
+                  <Icon name="Minimize2" size={20} />
+                </Button>
+              )}
+            </div>
             
-            <img 
-              src={previewImage} 
-              alt="Предпросмотр" 
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            />
+            <div 
+              className={`overflow-hidden ${zoomLevel > 1 ? 'cursor-move' : 'cursor-default'}`}
+              onWheel={handleWheel}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            >
+              <img 
+                src={previewImage} 
+                alt="Предпросмотр" 
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-transform duration-200"
+                style={{
+                  transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
+                  cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
+                }}
+                onDoubleClick={handleDoubleClick}
+                onClick={(e) => e.stopPropagation()}
+                draggable={false}
+              />
+            </div>
           </div>
         </div>
       )}
