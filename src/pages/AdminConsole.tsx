@@ -188,6 +188,98 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
     });
   };
 
+  const scanForJunkCode = () => {
+    const results: string[] = [];
+    const issues: string[] = [];
+    
+    // Сканируем HTML на наличие подозрительных тегов и кодов
+    const htmlContent = document.documentElement.outerHTML;
+    
+    // Проверка на лишние скрипты
+    const scripts = document.querySelectorAll('script');
+    scripts.forEach((script, index) => {
+      if (script.src && !script.src.includes(window.location.hostname)) {
+        issues.push(`Внешний скрипт #${index + 1}: ${script.src}`);
+      }
+      if (script.innerHTML && script.innerHTML.length > 1000) {
+        issues.push(`Большой инлайн-скрипт #${index + 1}: ${script.innerHTML.length} символов`);
+      }
+    });
+    
+    // Проверка на старые/неиспользуемые теги
+    const deprecatedTags = ['marquee', 'blink', 'center', 'font', 'frame', 'frameset'];
+    deprecatedTags.forEach(tag => {
+      const elements = document.querySelectorAll(tag);
+      if (elements.length > 0) {
+        issues.push(`Устаревший тег <${tag}>: найдено ${elements.length} шт.`);
+      }
+    });
+    
+    // Проверка на пустые элементы
+    const emptyDivs = Array.from(document.querySelectorAll('div')).filter(
+      div => !div.textContent?.trim() && !div.querySelector('img, svg, video, iframe') && div.children.length === 0
+    );
+    if (emptyDivs.length > 5) {
+      issues.push(`Пустые <div>: найдено ${emptyDivs.length} шт.`);
+    }
+    
+    // Проверка на инлайн-стили
+    const inlineStyles = document.querySelectorAll('[style]');
+    if (inlineStyles.length > 50) {
+      issues.push(`Много инлайн-стилей: ${inlineStyles.length} элементов`);
+    }
+    
+    // Проверка на множественные классы
+    const elementsWithManyClasses = Array.from(document.querySelectorAll('*')).filter(
+      el => el.className && el.className.split(' ').length > 15
+    );
+    if (elementsWithManyClasses.length > 0) {
+      issues.push(`Элементы с >15 классами: ${elementsWithManyClasses.length} шт.`);
+    }
+    
+    // Проверка на комментарии HTML
+    const comments = htmlContent.match(/<!--[\s\S]*?-->/g) || [];
+    if (comments.length > 10) {
+      issues.push(`HTML комментарии: ${comments.length} шт.`);
+    }
+    
+    // Проверка на data-атрибуты с длинными значениями
+    const longDataAttrs = Array.from(document.querySelectorAll('*')).filter(el => {
+      return Array.from(el.attributes).some(attr => 
+        attr.name.startsWith('data-') && attr.value.length > 500
+      );
+    });
+    if (longDataAttrs.length > 0) {
+      issues.push(`Data-атрибуты >500 символов: ${longDataAttrs.length} шт.`);
+    }
+    
+    // Проверка на скрытые элементы
+    const hiddenElements = document.querySelectorAll('[hidden], [style*="display: none"], [style*="visibility: hidden"]');
+    if (hiddenElements.length > 20) {
+      issues.push(`Скрытые элементы: ${hiddenElements.length} шт.`);
+    }
+    
+    // Вывод результатов
+    if (issues.length === 0) {
+      console.log('✓ Сканирование завершено: проблем не найдено');
+      toast.success('Код чистый! Проблем не найдено');
+    } else {
+      console.warn(`⚠️ Найдено проблем: ${issues.length}`);
+      issues.forEach(issue => console.warn(`  • ${issue}`));
+      toast.warning(`Найдено проблем: ${issues.length}`);
+    }
+    
+    // Статистика
+    console.log(`
+📊 Статистика сканирования:
+- Всего элементов: ${document.querySelectorAll('*').length}
+- Скриптов: ${scripts.length}
+- Стилей (инлайн): ${inlineStyles.length}
+- Комментариев: ${comments.length}
+- Проблем: ${issues.length}
+    `);
+  };
+
   const testSystemErrors = () => {
     console.error('Test Error: This is a test error message');
     console.warn('Test Warning: This is a test warning');
@@ -208,7 +300,16 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
                   <p className="text-sm text-slate-400 mt-1">Мониторинг ошибок и логов системы в реальном времени</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
+                <Button 
+                  onClick={scanForJunkCode}
+                  variant="outline" 
+                  size="sm"
+                  className="gap-2 border-purple-500 text-purple-400 hover:bg-purple-950"
+                >
+                  <Icon name="Search" size={16} />
+                  Сканировать код
+                </Button>
                 <Button 
                   onClick={testSystemErrors}
                   variant="outline" 
