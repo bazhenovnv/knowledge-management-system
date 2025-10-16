@@ -515,6 +515,11 @@ export const KnowledgeTab = ({
       return;
     }
 
+    if (!viewingMaterial) {
+      toast.error('Материал не найден');
+      return;
+    }
+
     setIsSavingEdit(true);
     const currentImage = imageGallery[currentImageIndex];
     
@@ -562,97 +567,134 @@ export const KnowledgeTab = ({
         );
       }
 
-      canvas.toBlob((croppedBlob) => {
-        if (croppedBlob) {
-          const url = URL.createObjectURL(croppedBlob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `cropped-${currentImage.name || 'image.png'}`;
-          link.click();
-          URL.revokeObjectURL(url);
-          
-          setTimeout(() => {
-            setIsSavingEdit(false);
-            handleCancelCrop();
-            toast.success('Изображение обрезано!');
-          }, 500);
-        }
-      }, 'image/png');
+      const base64 = canvas.toDataURL('image/png');
+      
+      const attachmentIndex = viewingMaterial.attachments.findIndex(
+        att => att.url === currentImage.url && att.name === currentImage.name
+      );
+      
+      if (attachmentIndex === -1) {
+        throw new Error('Image not found in attachments');
+      }
+
+      const updatedAttachments = [...viewingMaterial.attachments];
+      updatedAttachments[attachmentIndex] = {
+        ...currentImage,
+        url: base64,
+      };
+
+      const updated = await databaseService.updateKnowledgeMaterial(
+        viewingMaterial.id,
+        { attachments: updatedAttachments }
+      );
+
+      if (updated) {
+        setViewingMaterial(updated);
+        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        setImageGallery(newGallery);
+        setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+        handleCancelCrop();
+        toast.success('Изображение обрезано и сохранено!');
+      } else {
+        throw new Error('Failed to update material');
+      }
       
     } catch (error) {
       console.error('Ошибка обрезки:', error);
-      setIsSavingEdit(false);
       toast.error('Не удалось обрезать изображение');
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
   const handleSaveEdit = async () => {
-    if (imageGallery.length > 0 && imageGallery[currentImageIndex]) {
-      setIsSavingEdit(true);
-      const currentImage = imageGallery[currentImageIndex];
+    if (!viewingMaterial || imageGallery.length === 0 || !imageGallery[currentImageIndex]) {
+      toast.error('Материал не найден');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    const currentImage = imageGallery[currentImageIndex];
+    
+    try {
+      const response = await fetch(currentImage.url);
+      const blob = await response.blob();
       
-      try {
-        const response = await fetch(currentImage.url);
-        const blob = await response.blob();
-        
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = URL.createObjectURL(blob);
-        });
-        
-        const rotation = editRotation;
-        if (rotation === 90 || rotation === 270) {
-          canvas.width = img.height;
-          canvas.height = img.width;
-        } else {
-          canvas.width = img.width;
-          canvas.height = img.height;
-        }
-        
-        if (ctx) {
-          ctx.save();
-          ctx.translate(canvas.width / 2, canvas.height / 2);
-          ctx.rotate((rotation * Math.PI) / 180);
-          ctx.translate(-img.width / 2, -img.height / 2);
-          
-          if (editFilter !== 'none') {
-            ctx.filter = getFilterCSS(editFilter);
-          }
-          
-          ctx.drawImage(img, 0, 0);
-          ctx.restore();
-        }
-        
-        canvas.toBlob((editedBlob) => {
-          if (editedBlob) {
-            const url = URL.createObjectURL(editedBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `edited-${currentImage.name || 'image.png'}`;
-            link.click();
-            URL.revokeObjectURL(url);
-            
-            setTimeout(() => {
-              setIsSavingEdit(false);
-              setIsEditing(false);
-              setEditRotation(0);
-              setEditFilter('none');
-              toast.success('Изображение сохранено!');
-            }, 500);
-          }
-        }, 'image/png');
-        
-      } catch (error) {
-        console.error('Ошибка редактирования:', error);
-        setIsSavingEdit(false);
-        toast.error('Не удалось сохранить изменения');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+      
+      const rotation = editRotation;
+      if (rotation === 90 || rotation === 270) {
+        canvas.width = img.height;
+        canvas.height = img.width;
+      } else {
+        canvas.width = img.width;
+        canvas.height = img.height;
       }
+      
+      if (ctx) {
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((rotation * Math.PI) / 180);
+        ctx.translate(-img.width / 2, -img.height / 2);
+        
+        if (editFilter !== 'none') {
+          ctx.filter = getFilterCSS(editFilter);
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
+      }
+      
+      const base64 = canvas.toDataURL('image/png');
+      
+      const attachmentIndex = viewingMaterial.attachments.findIndex(
+        att => att.url === currentImage.url && att.name === currentImage.name
+      );
+      
+      if (attachmentIndex === -1) {
+        throw new Error('Image not found in attachments');
+      }
+
+      const updatedAttachments = [...viewingMaterial.attachments];
+      updatedAttachments[attachmentIndex] = {
+        ...currentImage,
+        url: base64,
+      };
+
+      const updated = await databaseService.updateKnowledgeMaterial(
+        viewingMaterial.id,
+        { attachments: updatedAttachments }
+      );
+
+      if (updated) {
+        setViewingMaterial(updated);
+        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        setImageGallery(newGallery);
+        setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+        setIsEditing(false);
+        setEditRotation(0);
+        setEditFilter('none');
+        toast.success('Изображение сохранено!');
+      } else {
+        throw new Error('Failed to update material');
+      }
+      
+    } catch (error) {
+      console.error('Ошибка редактирования:', error);
+      toast.error('Не удалось сохранить изменения');
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -845,27 +887,50 @@ export const KnowledgeTab = ({
         });
       }
 
-      canvas.toBlob((annotatedBlob) => {
-        if (annotatedBlob) {
-          const url = URL.createObjectURL(annotatedBlob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `annotated-${currentImage.name || 'image.png'}`;
-          link.click();
-          URL.revokeObjectURL(url);
-          
-          setTimeout(() => {
-            setIsSavingEdit(false);
-            handleCancelDrawing();
-            toast.success('Изображение с аннотациями сохранено!');
-          }, 500);
-        }
-      }, 'image/png');
+      const base64 = canvas.toDataURL('image/png');
+      
+      if (!viewingMaterial) {
+        toast.error('Материал не найден');
+        setIsSavingEdit(false);
+        return;
+      }
+
+      const attachmentIndex = viewingMaterial.attachments.findIndex(
+        att => att.url === currentImage.url && att.name === currentImage.name
+      );
+      
+      if (attachmentIndex === -1) {
+        throw new Error('Image not found in attachments');
+      }
+
+      const updatedAttachments = [...viewingMaterial.attachments];
+      updatedAttachments[attachmentIndex] = {
+        ...currentImage,
+        url: base64,
+      };
+
+      const updated = await databaseService.updateKnowledgeMaterial(
+        viewingMaterial.id,
+        { attachments: updatedAttachments }
+      );
+
+      if (updated) {
+        setViewingMaterial(updated);
+        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        setImageGallery(newGallery);
+        setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+        handleCancelDrawing();
+        toast.success('Изображение с аннотациями сохранено!');
+      } else {
+        throw new Error('Failed to update material');
+      }
       
     } catch (error) {
       console.error('Ошибка сохранения аннотаций:', error);
-      setIsSavingEdit(false);
       toast.error('Не удалось сохранить аннотации');
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -982,27 +1047,50 @@ export const KnowledgeTab = ({
         });
       }
 
-      canvas.toBlob((blurredBlob) => {
-        if (blurredBlob) {
-          const url = URL.createObjectURL(blurredBlob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `blurred-${currentImage.name || 'image.png'}`;
-          link.click();
-          URL.revokeObjectURL(url);
-          
-          setTimeout(() => {
-            setIsSavingEdit(false);
-            handleCancelBlur();
-            toast.success('Изображение с размытием сохранено!');
-          }, 500);
-        }
-      }, 'image/png');
+      const base64 = canvas.toDataURL('image/png');
+      
+      if (!viewingMaterial) {
+        toast.error('Материал не найден');
+        setIsSavingEdit(false);
+        return;
+      }
+
+      const attachmentIndex = viewingMaterial.attachments.findIndex(
+        att => att.url === currentImage.url && att.name === currentImage.name
+      );
+      
+      if (attachmentIndex === -1) {
+        throw new Error('Image not found in attachments');
+      }
+
+      const updatedAttachments = [...viewingMaterial.attachments];
+      updatedAttachments[attachmentIndex] = {
+        ...currentImage,
+        url: base64,
+      };
+
+      const updated = await databaseService.updateKnowledgeMaterial(
+        viewingMaterial.id,
+        { attachments: updatedAttachments }
+      );
+
+      if (updated) {
+        setViewingMaterial(updated);
+        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        setImageGallery(newGallery);
+        setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+        handleCancelBlur();
+        toast.success('Изображение с размытием сохранено!');
+      } else {
+        throw new Error('Failed to update material');
+      }
       
     } catch (error) {
       console.error('Ошибка размытия:', error);
-      setIsSavingEdit(false);
       toast.error('Не удалось применить размытие');
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
