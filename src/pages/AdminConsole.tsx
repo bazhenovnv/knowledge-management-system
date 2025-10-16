@@ -25,22 +25,60 @@ const AdminConsole = () => {
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
   useEffect(() => {
+    const savedLogs = localStorage.getItem('admin-console-logs');
+    if (savedLogs) {
+      try {
+        const parsed = JSON.parse(savedLogs);
+        setLogs(parsed.map((log: any) => ({
+          ...log,
+          timestamp: new Date(log.timestamp)
+        })));
+      } catch (e) {
+        console.warn('Failed to load saved logs');
+      }
+    }
+    
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
     const originalConsoleLog = console.log;
 
     const addLog = (level: LogEntry['level'], message: string, details?: any) => {
+      let detailsText = '';
+      
+      if (details) {
+        try {
+          if (Array.isArray(details) && details.length > 0) {
+            detailsText = details.map(d => {
+              if (d instanceof Error) {
+                return `${d.name}: ${d.message}\n${d.stack}`;
+              }
+              return typeof d === 'object' ? JSON.stringify(d, null, 2) : String(d);
+            }).join('\n\n');
+          } else if (details instanceof Error) {
+            detailsText = `${details.name}: ${details.message}\n${details.stack}`;
+          } else if (typeof details === 'object') {
+            detailsText = JSON.stringify(details, null, 2);
+          } else {
+            detailsText = String(details);
+          }
+        } catch (e) {
+          detailsText = String(details);
+        }
+      }
+      
       const logEntry: LogEntry = {
         id: Date.now().toString() + Math.random(),
         timestamp: new Date(),
         level,
         message: String(message),
-        details: details ? JSON.stringify(details, null, 2) : undefined,
+        details: detailsText || undefined,
         source: 'Browser Console',
         stackTrace: new Error().stack,
       };
       
       setLogs(prev => [logEntry, ...prev].slice(0, 500));
+      
+      localStorage.setItem('admin-console-logs', JSON.stringify([logEntry, ...prev].slice(0, 500)));
     };
 
     console.error = (...args) => {
@@ -91,6 +129,7 @@ const AdminConsole = () => {
 
   const clearLogs = () => {
     setLogs([]);
+    localStorage.removeItem('admin-console-logs');
     toast.success('Логи очищены');
   };
 
