@@ -87,6 +87,10 @@ export const KnowledgeTab = ({
   const [isCopying, setIsCopying] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editRotation, setEditRotation] = useState(0);
+  const [editFilter, setEditFilter] = useState('none');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   
   const departments = departmentsFromHook;
 
@@ -122,6 +126,9 @@ export const KnowledgeTab = ({
       } else if ((e.key === 'p' || e.key === 'P' || e.key === 'з' || e.key === 'З') && imageGallery.length > 0) {
         e.preventDefault();
         handlePrintImage();
+      } else if ((e.key === 'e' || e.key === 'E' || e.key === 'у' || e.key === 'У') && imageGallery.length > 0) {
+        e.preventDefault();
+        setIsEditing(!isEditing);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -135,6 +142,9 @@ export const KnowledgeTab = ({
     setCurrentImageIndex(index >= 0 ? index : 0);
     setPreviewImage(imageUrl);
     resetZoom();
+    setIsEditing(false);
+    setEditRotation(0);
+    setEditFilter('none');
   };
 
   const handleNextImage = () => {
@@ -143,6 +153,9 @@ export const KnowledgeTab = ({
     setCurrentImageIndex(nextIndex);
     setPreviewImage(imageGallery[nextIndex].url);
     resetZoom();
+    setIsEditing(false);
+    setEditRotation(0);
+    setEditFilter('none');
   };
 
   const handlePrevImage = () => {
@@ -151,6 +164,9 @@ export const KnowledgeTab = ({
     setCurrentImageIndex(prevIndex);
     setPreviewImage(imageGallery[prevIndex].url);
     resetZoom();
+    setIsEditing(false);
+    setEditRotation(0);
+    setEditFilter('none');
   };
 
   const closeImagePreview = () => {
@@ -158,6 +174,9 @@ export const KnowledgeTab = ({
     setImageGallery([]);
     setCurrentImageIndex(0);
     resetZoom();
+    setIsEditing(false);
+    setEditRotation(0);
+    setEditFilter('none');
   };
 
   const resetZoom = () => {
@@ -399,6 +418,109 @@ export const KnowledgeTab = ({
         setIsPrinting(false);
         toast.error('Не удалось открыть окно печати. Попробуйте скачать (S)');
       }
+    }
+  };
+
+  const handleRotateImage = () => {
+    setEditRotation((prev) => (prev + 90) % 360);
+  };
+
+  const handleApplyFilter = (filter: string) => {
+    setEditFilter(filter);
+  };
+
+  const handleSaveEdit = async () => {
+    if (imageGallery.length > 0 && imageGallery[currentImageIndex]) {
+      setIsSavingEdit(true);
+      const currentImage = imageGallery[currentImageIndex];
+      
+      try {
+        const response = await fetch(currentImage.url);
+        const blob = await response.blob();
+        
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = URL.createObjectURL(blob);
+        });
+        
+        const rotation = editRotation;
+        if (rotation === 90 || rotation === 270) {
+          canvas.width = img.height;
+          canvas.height = img.width;
+        } else {
+          canvas.width = img.width;
+          canvas.height = img.height;
+        }
+        
+        if (ctx) {
+          ctx.save();
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.rotate((rotation * Math.PI) / 180);
+          ctx.translate(-img.width / 2, -img.height / 2);
+          
+          if (editFilter !== 'none') {
+            ctx.filter = getFilterCSS(editFilter);
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          ctx.restore();
+        }
+        
+        canvas.toBlob((editedBlob) => {
+          if (editedBlob) {
+            const url = URL.createObjectURL(editedBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `edited-${currentImage.name || 'image.png'}`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            setTimeout(() => {
+              setIsSavingEdit(false);
+              setIsEditing(false);
+              setEditRotation(0);
+              setEditFilter('none');
+              toast.success('Изображение сохранено!');
+            }, 500);
+          }
+        }, 'image/png');
+        
+      } catch (error) {
+        console.error('Ошибка редактирования:', error);
+        setIsSavingEdit(false);
+        toast.error('Не удалось сохранить изменения');
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditRotation(0);
+    setEditFilter('none');
+  };
+
+  const getFilterCSS = (filter: string): string => {
+    switch (filter) {
+      case 'grayscale':
+        return 'grayscale(100%)';
+      case 'sepia':
+        return 'sepia(100%)';
+      case 'blur':
+        return 'blur(3px)';
+      case 'brightness':
+        return 'brightness(150%)';
+      case 'contrast':
+        return 'contrast(150%)';
+      case 'invert':
+        return 'invert(100%)';
+      default:
+        return 'none';
     }
   };
 
@@ -1611,6 +1733,18 @@ export const KnowledgeTab = ({
                   variant="ghost"
                   size="sm"
                   className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(!isEditing);
+                  }}
+                  title="Редактировать (E)"
+                >
+                  <Icon name="Edit" size={20} />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
                   onClick={closeImagePreview}
                   title="Закрыть (Esc)"
                 >
@@ -1618,6 +1752,164 @@ export const KnowledgeTab = ({
                 </Button>
               </div>
             </div>
+
+            {isEditing && (
+              <div 
+                className="absolute top-20 right-4 bg-white/10 backdrop-blur-md text-white p-4 rounded-xl z-20 w-64 animate-in slide-in-from-right duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm">Редактирование</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 hover:bg-white/20"
+                    onClick={handleCancelEdit}
+                  >
+                    <Icon name="X" size={16} />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs text-white/70 mb-2">Поворот</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full bg-white/5 hover:bg-white/20 text-white border-white/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRotateImage();
+                      }}
+                    >
+                      <Icon name="RotateCw" size={16} className="mr-2" />
+                      Повернуть 90°
+                    </Button>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-white/70 mb-2">Фильтры</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                          editFilter === 'none' ? 'bg-white/20' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApplyFilter('none');
+                        }}
+                      >
+                        Оригинал
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                          editFilter === 'grayscale' ? 'bg-white/20' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApplyFilter('grayscale');
+                        }}
+                      >
+                        Ч/Б
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                          editFilter === 'sepia' ? 'bg-white/20' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApplyFilter('sepia');
+                        }}
+                      >
+                        Сепия
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                          editFilter === 'brightness' ? 'bg-white/20' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApplyFilter('brightness');
+                        }}
+                      >
+                        Яркость
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                          editFilter === 'contrast' ? 'bg-white/20' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApplyFilter('contrast');
+                        }}
+                      >
+                        Контраст
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`text-xs bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                          editFilter === 'invert' ? 'bg-white/20' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleApplyFilter('invert');
+                        }}
+                      >
+                        Негатив
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-white/20 flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelEdit();
+                      }}
+                    >
+                      Отмена
+                    </Button>
+                    <Button
+                      size="sm"
+                      className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white ${
+                        isSavingEdit ? 'opacity-50' : ''
+                      }`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSaveEdit();
+                      }}
+                      disabled={isSavingEdit}
+                    >
+                      {isSavingEdit ? (
+                        <>
+                          <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                          Сохранение...
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="Check" size={16} className="mr-2" />
+                          Сохранить
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {imageGallery.length > 1 && (
               <>
@@ -1667,6 +1959,9 @@ export const KnowledgeTab = ({
                     <span>P</span>
                     <span>печать</span>
                     <span className="mx-1">•</span>
+                    <span>E</span>
+                    <span>редактор</span>
+                    <span className="mx-1">•</span>
                     <span>S</span>
                     <span>скачать</span>
                     <span className="mx-1">•</span>
@@ -1690,6 +1985,9 @@ export const KnowledgeTab = ({
                 <span className="mx-1">•</span>
                 <span>P</span>
                 <span>печать</span>
+                <span className="mx-1">•</span>
+                <span>E</span>
+                <span>редактор</span>
                 <span className="mx-1">•</span>
                 <span>S</span>
                 <span>скачать</span>
@@ -1756,9 +2054,10 @@ export const KnowledgeTab = ({
               <img 
                 src={previewImage} 
                 alt="Предпросмотр" 
-                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-transform duration-200"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-all duration-300"
                 style={{
-                  transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
+                  transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px) rotate(${editRotation}deg)`,
+                  filter: getFilterCSS(editFilter),
                   cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default'
                 }}
                 onDoubleClick={handleDoubleClick}
