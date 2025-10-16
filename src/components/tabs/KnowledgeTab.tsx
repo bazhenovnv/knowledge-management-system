@@ -2538,6 +2538,12 @@ export const KnowledgeTab = ({
                       <div className="space-y-3">
                         <p className="text-xs text-white/90">Выделите области для размытия</p>
                         
+                        {blurAreas.length > 0 && (
+                          <div className="text-xs text-white/70">
+                            Областей: {blurAreas.length}
+                          </div>
+                        )}
+                        
                         <div>
                           <p className="text-xs text-white/70 mb-1">Интенсивность: {blurIntensity}</p>
                           <input
@@ -2553,6 +2559,21 @@ export const KnowledgeTab = ({
                             onClick={(e) => e.stopPropagation()}
                           />
                         </div>
+
+                        {blurAreas.length > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200 border-red-400/30"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setBlurAreas((prev) => prev.slice(0, -1));
+                            }}
+                          >
+                            <Icon name="Undo" size={14} className="mr-1" />
+                            Удалить последнюю
+                          </Button>
+                        )}
 
                         <div className="flex gap-2">
                           <Button
