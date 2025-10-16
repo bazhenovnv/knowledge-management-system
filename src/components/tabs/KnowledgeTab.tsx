@@ -73,6 +73,9 @@ export const KnowledgeTab = ({
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [coverImagePreview, setCoverImagePreview] = useState<string>('');
   const [draggedFileIndex, setDraggedFileIndex] = useState<number | null>(null);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  const [isDraggingCover, setIsDraggingCover] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
   
   const departments = departmentsFromHook;
 
@@ -167,13 +170,24 @@ export const KnowledgeTab = ({
     const files = e.target.files;
     if (!files) return;
 
+    setUploadingCount(files.length);
     const newAttachments: FileAttachment[] = [];
     let processedFiles = 0;
+    const errorFiles: string[] = [];
 
     Array.from(files).forEach((file) => {
       if (file.size > 10 * 1024 * 1024) {
-        toast.error(`Файл ${file.name} превышает 10 МБ`);
+        errorFiles.push(`${file.name} (превышает 10 МБ)`);
         processedFiles++;
+        if (processedFiles === files.length) {
+          setUploadingCount(0);
+          if (newAttachments.length > 0) {
+            toast.success(`Загружено файлов: ${newAttachments.length}`);
+          }
+          if (errorFiles.length > 0) {
+            toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
+          }
+        }
         return;
       }
 
@@ -193,6 +207,26 @@ export const KnowledgeTab = ({
             ...prev,
             attachments: [...prev.attachments, ...newAttachments],
           }));
+          setUploadingCount(0);
+          if (newAttachments.length > 0) {
+            toast.success(`Загружено файлов: ${newAttachments.length}`);
+          }
+          if (errorFiles.length > 0) {
+            toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
+          }
+        }
+      };
+      reader.onerror = () => {
+        errorFiles.push(`${file.name} (ошибка загрузки)`);
+        processedFiles++;
+        if (processedFiles === files.length) {
+          setUploadingCount(0);
+          if (newAttachments.length > 0) {
+            toast.success(`Загружено файлов: ${newAttachments.length}`);
+          }
+          if (errorFiles.length > 0) {
+            toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
+          }
         }
       };
       reader.readAsDataURL(file);
@@ -233,6 +267,114 @@ export const KnowledgeTab = ({
 
   const handleDragEnd = () => {
     setDraggedFileIndex(null);
+  };
+
+  const handleFileDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFiles(true);
+  };
+
+  const handleFileDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget === e.target) {
+      setIsDraggingFiles(false);
+    }
+  };
+
+  const handleFileDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleFileDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFiles(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    setUploadingCount(files.length);
+    let successCount = 0;
+    const errorFiles: string[] = [];
+
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        errorFiles.push(`${file.name} (превышает 10 МБ)`);
+        continue;
+      }
+
+      try {
+        const base64 = await fileToBase64(file);
+        const newFile: AttachmentFile = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: base64,
+        };
+        setFormData((prev) => ({
+          ...prev,
+          attachments: [...prev.attachments, newFile],
+        }));
+        successCount++;
+      } catch (error) {
+        errorFiles.push(`${file.name} (ошибка загрузки)`);
+      }
+    }
+
+    setUploadingCount(0);
+
+    if (successCount > 0) {
+      toast.success(`Загружено файлов: ${successCount}`);
+    }
+    if (errorFiles.length > 0) {
+      toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
+    }
+  };
+
+  const handleCoverDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingCover(true);
+  };
+
+  const handleCoverDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget === e.target) {
+      setIsDraggingCover(false);
+    }
+  };
+
+  const handleCoverDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleCoverDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingCover(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Пожалуйста, загрузите изображение');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Размер изображения не должен превышать 5 МБ');
+      return;
+    }
+
+    const base64 = await fileToBase64(file);
+    setCoverImagePreview(base64);
+    setFormData({ ...formData, cover_image: base64 });
   };
 
   const handlePreviewMaterial = () => {
@@ -678,7 +820,17 @@ export const KnowledgeTab = ({
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Обложка материала</label>
-                <div className="border-2 border-dashed rounded-lg p-4">
+                <div
+                  className={`border-2 border-dashed rounded-lg p-4 transition-all ${
+                    isDraggingCover
+                      ? 'border-blue-500 bg-blue-50 scale-105'
+                      : 'border-gray-300 hover:border-blue-400'
+                  }`}
+                  onDragEnter={handleCoverDragEnter}
+                  onDragLeave={handleCoverDragLeave}
+                  onDragOver={handleCoverDragOver}
+                  onDrop={handleCoverDrop}
+                >
                   {coverImagePreview ? (
                     <div className="relative">
                       <img
@@ -700,9 +852,21 @@ export const KnowledgeTab = ({
                     </div>
                   ) : (
                     <div className="text-center">
-                      <Icon name="Image" size={32} className="mx-auto mb-2 text-gray-400" />
-                      <label className="cursor-pointer text-blue-600 hover:text-blue-700">
-                        Загрузить обложку (до 5 МБ)
+                      <Icon
+                        name={isDraggingCover ? 'Upload' : 'Image'}
+                        size={32}
+                        className={`mx-auto mb-2 ${
+                          isDraggingCover ? 'text-blue-500 animate-bounce' : 'text-gray-400'
+                        }`}
+                      />
+                      <p className={`mb-2 font-medium ${
+                        isDraggingCover ? 'text-blue-600' : 'text-gray-700'
+                      }`}>
+                        {isDraggingCover ? 'Отпустите изображение здесь' : 'Перетащите изображение сюда'}
+                      </p>
+                      <p className="text-sm text-gray-500 mb-2">или</p>
+                      <label className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium">
+                        Выберите файл
                         <input
                           type="file"
                           accept="image/*"
@@ -710,6 +874,7 @@ export const KnowledgeTab = ({
                           onChange={handleCoverImageUpload}
                         />
                       </label>
+                      <p className="text-xs text-gray-400 mt-2">До 5 МБ</p>
                     </div>
                   )}
                 </div>
@@ -804,7 +969,13 @@ export const KnowledgeTab = ({
 
               <div>
                 <label className="block text-sm font-medium mb-2">Прикрепленные файлы</label>
-                {formData.attachments.length > 0 && (
+                {uploadingCount > 0 && (
+                  <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-sm text-green-700">
+                    <Icon name="Loader" size={16} className="animate-spin" />
+                    <span>Загрузка {uploadingCount} файл(ов)...</span>
+                  </div>
+                )}
+                {formData.attachments.length > 0 && uploadingCount === 0 && (
                   <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-2 text-sm text-blue-700">
                     <Icon name="Info" size={16} />
                     <span>Перетаскивайте файлы мышкой для изменения порядка или используйте кнопки ▲▼</span>
@@ -868,10 +1039,32 @@ export const KnowledgeTab = ({
                       </div>
                     </div>
                   ))}
-                  <div className="border-2 border-dashed rounded-lg p-4 text-center">
-                    <Icon name="Paperclip" size={24} className="mx-auto mb-2 text-gray-400" />
-                    <label className="cursor-pointer text-blue-600 hover:text-blue-700">
-                      Добавить файлы (до 10 МБ каждый)
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-all ${
+                      isDraggingFiles
+                        ? 'border-blue-500 bg-blue-50 scale-105'
+                        : 'border-gray-300 hover:border-blue-400'
+                    }`}
+                    onDragEnter={handleFileDragEnter}
+                    onDragLeave={handleFileDragLeave}
+                    onDragOver={handleFileDragOver}
+                    onDrop={handleFileDrop}
+                  >
+                    <Icon
+                      name={isDraggingFiles ? 'Upload' : 'Paperclip'}
+                      size={32}
+                      className={`mx-auto mb-3 ${
+                        isDraggingFiles ? 'text-blue-500 animate-bounce' : 'text-gray-400'
+                      }`}
+                    />
+                    <p className={`mb-2 font-medium ${
+                      isDraggingFiles ? 'text-blue-600' : 'text-gray-700'
+                    }`}>
+                      {isDraggingFiles ? 'Отпустите файлы здесь' : 'Перетащите файлы сюда'}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-3">или</p>
+                    <label className="cursor-pointer text-blue-600 hover:text-blue-700 font-medium">
+                      Выберите файлы
                       <input
                         type="file"
                         multiple
@@ -879,6 +1072,7 @@ export const KnowledgeTab = ({
                         onChange={handleFileUpload}
                       />
                     </label>
+                    <p className="text-xs text-gray-400 mt-2">До 10 МБ каждый</p>
                   </div>
                 </div>
               </div>
