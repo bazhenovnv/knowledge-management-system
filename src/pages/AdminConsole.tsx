@@ -286,9 +286,11 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
       console.log('✓ Сканирование завершено: проблем не найдено');
       toast.success('Код чистый! Проблем не найдено');
     } else {
-      console.warn(`⚠️ Найдено проблем: ${issues.length}`);
-      issues.forEach(issue => console.warn(`  • ${issue}`));
-      toast.warning(`Найдено проблем: ${issues.length}`);
+      const issuesList = issues.map(issue => `  • ${issue}`).join('\n');
+      console.warn(`⚠️ Найдено проблем: ${issues.length}\n${issuesList}`);
+      toast.warning(`Найдено проблем: ${issues.length}`, {
+        description: 'Подробности в консоли браузера'
+      });
     }
     
     // Статистика
