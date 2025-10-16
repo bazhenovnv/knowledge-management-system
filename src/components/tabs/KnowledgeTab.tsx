@@ -215,6 +215,11 @@ export const KnowledgeTab = ({
     setEditFilter('none');
   };
 
+  const handleApplyAndClose = () => {
+    closeImagePreview();
+    toast.success('Изменения применены!');
+  };
+
   const resetZoom = () => {
     setZoomLevel(1);
     setImagePosition({ x: 0, y: 0 });
@@ -2654,14 +2659,14 @@ export const KnowledgeTab = ({
 
       {previewImage && (
         <div 
-          className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center animate-in fade-in duration-200"
           onClick={() => {
             if (!isCropping && !isDrawing && !isBlurring) {
               closeImagePreview();
             }
           }}
         >
-          <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
+          <div className={`relative w-full h-full flex items-center justify-center ${isEditing ? 'pr-80' : 'px-4'} transition-all duration-200`}>
             <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10">
               {imageGallery.length > 0 && imageGallery[currentImageIndex] && (
                 <div className="bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-lg max-w-md">
@@ -2774,22 +2779,25 @@ export const KnowledgeTab = ({
 
             {isEditing && (
               <div 
-                className="absolute top-20 right-4 bg-white/10 backdrop-blur-md text-white p-4 rounded-xl z-[110] w-64 animate-in slide-in-from-right duration-200"
+                className="fixed top-4 right-4 bottom-4 bg-white/10 backdrop-blur-md text-white p-4 rounded-xl z-[110] w-80 animate-in slide-in-from-right duration-200 overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-semibold text-sm">Редактирование</h3>
+                    <h3 className="font-semibold text-lg">Редактор фото</h3>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 w-6 p-0 hover:bg-white/20"
-                      onClick={handleCancelEdit}
+                      className="h-8 w-8 p-0 hover:bg-white/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelEdit();
+                      }}
                     >
-                      <Icon name="X" size={16} />
+                      <Icon name="X" size={18} />
                     </Button>
                   </div>
-                  <p className="text-xs text-white/60">Сохранить = заменить • Добавить = новое фото</p>
+                  <p className="text-xs text-white/70">Внесите изменения и нажмите "Применить"</p>
                 </div>
 
                 <div className="space-y-4">
@@ -3218,65 +3226,17 @@ export const KnowledgeTab = ({
                   </div>
 
                   {!isCropping && !isDrawing && !isBlurring && (
-                    <div className="pt-2 border-t border-white/20 space-y-2">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCancelEdit();
-                          }}
-                        >
-                          Отмена
-                        </Button>
-                        <Button
-                          size="sm"
-                          className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white ${
-                            isSavingEdit ? 'opacity-50' : ''
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSaveEdit();
-                          }}
-                          disabled={isSavingEdit}
-                        >
-                          {isSavingEdit ? (
-                            <>
-                              <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                              ...
-                          </>
-                        ) : (
-                          <>
-                            <Icon name="Check" size={16} className="mr-2" />
-                            Сохранить
-                          </>
-                        )}
-                      </Button>
-                      </div>
+                    <div className="pt-4 border-t border-white/20 mt-4">
                       <Button
-                        size="sm"
-                        className={`w-full bg-green-600 hover:bg-green-700 text-white ${
-                          isSavingEdit ? 'opacity-50' : ''
-                        }`}
+                        size="lg"
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleSaveAsNewAttachment();
+                          handleApplyAndClose();
                         }}
-                        disabled={isSavingEdit}
                       >
-                        {isSavingEdit ? (
-                          <>
-                            <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                            Добавление...
-                        </>
-                      ) : (
-                        <>
-                          <Icon name="Plus" size={16} className="mr-2" />
-                          Добавить как новое фото
-                        </>
-                      )}
+                        <Icon name="Check" size={20} className="mr-2" />
+                        Применить
                       </Button>
                     </div>
                   )}
