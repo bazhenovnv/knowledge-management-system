@@ -212,6 +212,19 @@ export const Navigation = ({
                       </Button>
                     </>
                   )}
+                  {userRole === "admin" && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start border-blue-500 text-blue-600 hover:bg-blue-50"
+                      onClick={() => {
+                        window.open('/admin-console', '_blank');
+                        setSidebarOpen(false);
+                      }}
+                    >
+                      <Icon name="Terminal" size={16} className="mr-2" />
+                      Консоль ошибок
+                    </Button>
+                  )}
                   <Button
                     variant={activeTab === "settings" ? "default" : "ghost"}
                     className="w-full justify-start"
@@ -224,17 +237,30 @@ export const Navigation = ({
                     Настройки
                   </Button>
                   {userRole === "admin" && (
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start bg-orange-50 hover:bg-orange-100"
-                      onClick={() => {
-                        window.location.href = '/admin-settings';
-                        setSidebarOpen(false);
-                      }}
-                    >
-                      <Icon name="Wrench" size={16} className="mr-2" />
-                      Настройки проекта
-                    </Button>
+                    <>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start bg-orange-50 hover:bg-orange-100"
+                        onClick={() => {
+                          window.location.href = '/admin-settings';
+                          setSidebarOpen(false);
+                        }}
+                      >
+                        <Icon name="Wrench" size={16} className="mr-2" />
+                        Настройки проекта
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start border-blue-500 text-blue-600 hover:bg-blue-50"
+                        onClick={() => {
+                          window.open('/admin-console', '_blank');
+                          setSidebarOpen(false);
+                        }}
+                      >
+                        <Icon name="Terminal" size={16} className="mr-2" />
+                        Консоль ошибок
+                      </Button>
+                    </>
                   )}
                   <Button
                     variant="ghost"
