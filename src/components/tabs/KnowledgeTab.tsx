@@ -1602,7 +1602,7 @@ export const KnowledgeTab = ({
     e.stopPropagation();
   };
 
-  const handleFileDrop = async (e: React.DragEvent) => {
+  const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingFiles(false);
@@ -1611,41 +1611,74 @@ export const KnowledgeTab = ({
     if (files.length === 0) return;
 
     setUploadingCount(files.length);
-    let successCount = 0;
+    const newAttachments: FileAttachment[] = [];
+    let processedFiles = 0;
     const errorFiles: string[] = [];
 
-    for (const file of files) {
+    files.forEach((file) => {
       if (file.size > 10 * 1024 * 1024) {
         errorFiles.push(`${file.name} (превышает 10 МБ)`);
-        continue;
+        processedFiles++;
+        if (processedFiles === files.length) {
+          setUploadingCount(0);
+          if (newAttachments.length > 0) {
+            setFormData(prev => ({
+              ...prev,
+              attachments: [...prev.attachments, ...newAttachments],
+            }));
+            toast.success(`Загружено файлов: ${newAttachments.length}`);
+          }
+          if (errorFiles.length > 0) {
+            toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
+          }
+        }
+        return;
       }
 
-      try {
-        const base64 = await fileToBase64(file);
-        const newFile: AttachmentFile = {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        newAttachments.push({
           name: file.name,
-          size: file.size,
-          type: file.type,
           url: base64,
-        };
-        setFormData((prev) => ({
-          ...prev,
-          attachments: [...prev.attachments, newFile],
-        }));
-        successCount++;
-      } catch (error) {
+          type: file.type,
+          size: file.size,
+        });
+        processedFiles++;
+
+        if (processedFiles === files.length) {
+          setFormData(prev => ({
+            ...prev,
+            attachments: [...prev.attachments, ...newAttachments],
+          }));
+          setUploadingCount(0);
+          if (newAttachments.length > 0) {
+            toast.success(`Загружено файлов: ${newAttachments.length}`);
+          }
+          if (errorFiles.length > 0) {
+            toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
+          }
+        }
+      };
+      reader.onerror = () => {
         errorFiles.push(`${file.name} (ошибка загрузки)`);
-      }
-    }
-
-    setUploadingCount(0);
-
-    if (successCount > 0) {
-      toast.success(`Загружено файлов: ${successCount}`);
-    }
-    if (errorFiles.length > 0) {
-      toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
-    }
+        processedFiles++;
+        if (processedFiles === files.length) {
+          setUploadingCount(0);
+          if (newAttachments.length > 0) {
+            setFormData(prev => ({
+              ...prev,
+              attachments: [...prev.attachments, ...newAttachments],
+            }));
+            toast.success(`Загружено файлов: ${newAttachments.length}`);
+          }
+          if (errorFiles.length > 0) {
+            toast.error(`Не удалось загрузить: ${errorFiles.join(', ')}`);
+          }
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleCoverDragEnter = (e: React.DragEvent) => {
@@ -1667,7 +1700,7 @@ export const KnowledgeTab = ({
     e.stopPropagation();
   };
 
-  const handleCoverDrop = async (e: React.DragEvent) => {
+  const handleCoverDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingCover(false);
@@ -1677,18 +1710,25 @@ export const KnowledgeTab = ({
 
     const file = files[0];
     if (!file.type.startsWith('image/')) {
-      alert('Пожалуйста, загрузите изображение');
+      toast.error('Пожалуйста, загрузите изображение');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Размер изображения не должен превышать 5 МБ');
+      toast.error('Размер изображения не должен превышать 5 МБ');
       return;
     }
 
-    const base64 = await fileToBase64(file);
-    setCoverImagePreview(base64);
-    setFormData({ ...formData, cover_image: base64 });
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setCoverImagePreview(base64);
+      setFormData({ ...formData, cover_image: base64 });
+    };
+    reader.onerror = () => {
+      toast.error('Ошибка при загрузке изображения');
+    };
+    reader.readAsDataURL(file);
   };
 
   const handlePreviewMaterial = () => {
