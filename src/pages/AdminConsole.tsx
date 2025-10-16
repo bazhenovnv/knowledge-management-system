@@ -76,9 +76,11 @@ const AdminConsole = () => {
         stackTrace: new Error().stack,
       };
       
-      setLogs(prev => [logEntry, ...prev].slice(0, 500));
-      
-      localStorage.setItem('admin-console-logs', JSON.stringify([logEntry, ...prev].slice(0, 500)));
+      setLogs(prev => {
+        const updatedLogs = [logEntry, ...prev].slice(0, 500);
+        localStorage.setItem('admin-console-logs', JSON.stringify(updatedLogs));
+        return updatedLogs;
+      });
     };
 
     console.error = (...args) => {
