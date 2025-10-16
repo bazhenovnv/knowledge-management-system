@@ -77,6 +77,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = get_database_stats(cursor)
             elif action == 'get_db_stats':
                 result = get_db_request_stats(cursor)
+            elif action == 'get_support_messages':
+                employee_id = params.get('employee_id')
+                result = get_support_messages(cursor, int(employee_id) if employee_id else None)
+            elif action == 'get_unread_support_count':
+                result = get_unread_support_count(cursor)
             else:
                 result = {'error': 'Неизвестное действие'}
                 
@@ -96,6 +101,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             elif action == 'mark_all_read':
                 employee_id = body_data.get('employee_id')
                 result = mark_all_notifications_read(cursor, conn, employee_id)
+            elif action == 'create_support_message':
+                result = create_support_message(cursor, conn, body_data)
+            elif action == 'mark_support_read':
+                employee_id = body_data.get('employee_id')
+                result = mark_support_messages_read(cursor, conn, int(employee_id))
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -1161,3 +1171,93 @@ def get_db_request_stats(cursor) -> Dict[str, Any]:
         
     except Exception as e:
         return {'error': f'Ошибка получения статистики: {str(e)}'}
+
+def get_support_messages(cursor, employee_id: Optional[int] = None) -> Dict[str, Any]:
+    """Получить сообщения поддержки для сотрудника или все для администратора"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        if employee_id:
+            cursor.execute(f"""
+                SELECT sm.*, e.full_name as employee_name, e.email
+                FROM {schema}.support_messages sm
+                JOIN {schema}.employees e ON sm.employee_id = e.id
+                WHERE sm.employee_id = %s
+                ORDER BY sm.created_at ASC
+            """, (employee_id,))
+        else:
+            cursor.execute(f"""
+                SELECT sm.*, e.full_name as employee_name, e.email
+                FROM {schema}.support_messages sm
+                JOIN {schema}.employees e ON sm.employee_id = e.id
+                ORDER BY sm.created_at DESC
+            """)
+        
+        messages = [dict(row) for row in cursor.fetchall()]
+        return {'messages': messages}
+        
+    except Exception as e:
+        return {'error': f'Ошибка получения сообщений: {str(e)}'}
+
+def create_support_message(cursor, conn, message_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создать новое сообщение в чате поддержки"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        employee_id = message_data.get('employee_id')
+        message = message_data.get('message')
+        is_admin_response = message_data.get('is_admin_response', False)
+        
+        if not employee_id or not message:
+            return {'error': 'employee_id и message обязательны'}
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.support_messages 
+                (employee_id, message, is_admin_response, is_read)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id, employee_id, message, is_admin_response, is_read, created_at
+        """, (employee_id, message, is_admin_response, False))
+        
+        new_message = dict(cursor.fetchone())
+        conn.commit()
+        
+        return {'message': new_message, 'success': True}
+        
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка создания сообщения: {str(e)}'}
+
+def get_unread_support_count(cursor) -> Dict[str, Any]:
+    """Получить количество непрочитанных сообщений поддержки (от сотрудников администратору)"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            SELECT COUNT(*) as count
+            FROM {schema}.support_messages
+            WHERE is_admin_response = FALSE AND is_read = FALSE
+        """)
+        
+        result = cursor.fetchone()
+        return {'count': result['count'] if result else 0}
+        
+    except Exception as e:
+        return {'error': f'Ошибка подсчёта непрочитанных: {str(e)}'}
+
+def mark_support_messages_read(cursor, conn, employee_id: int) -> Dict[str, Any]:
+    """Пометить все сообщения как прочитанные"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            UPDATE {schema}.support_messages
+            SET is_read = TRUE
+            WHERE employee_id = %s AND is_read = FALSE
+        """, (employee_id,))
+        
+        conn.commit()
+        return {'success': True, 'updated': cursor.rowcount}
+        
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка пометки прочитанных: {str(e)}'}

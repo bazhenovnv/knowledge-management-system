@@ -19,6 +19,7 @@ import AssignmentManager from "@/components/assignments/AssignmentManager";
 import MyAssignments from "@/components/assignments/MyAssignments";
 import UserSettings from "@/components/settings/UserSettings";
 import { DatabaseSetup } from "@/components/setup/DatabaseSetup";
+import SupportChat from "@/components/support/SupportChat";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -227,6 +228,14 @@ const Index = () => {
 
       {/* AI Помощник Алиса */}
       <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
+      
+      {/* Чат технической поддержки */}
+      {user && (
+        <SupportChat 
+          employeeId={user.id} 
+          isAdmin={user.role === 'admin'} 
+        />
+      )}
     </div>
   );
 };

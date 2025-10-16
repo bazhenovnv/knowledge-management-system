@@ -14,21 +14,29 @@ import { database } from '@/utils/database';
 interface NotificationBellProps {
   employeeId: number;
   className?: string;
+  isAdmin?: boolean;
 }
 
-const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, className }) => {
+const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, className, isAdmin = false }) => {
   const [unreadCount, setUnreadCount] = useState(0);
+  const [supportCount, setSupportCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const BACKEND_URL = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
 
   useEffect(() => {
     loadUnreadCount();
-    const interval = setInterval(loadUnreadCount, 5000); // Обновляем каждые 5 секунд
+    if (isAdmin) {
+      loadSupportCount();
+    }
+    const interval = setInterval(() => {
+      loadUnreadCount();
+      if (isAdmin) loadSupportCount();
+    }, 5000);
     return () => clearInterval(interval);
-  }, [employeeId]);
+  }, [employeeId, isAdmin]);
 
   const loadUnreadCount = () => {
     try {
-      // Получаем непрочитанные уведомления из локальной БД
       const unreadNotifications = database.getUnreadNotificationsForUser(employeeId);
       setUnreadCount(unreadNotifications.length);
     } catch (error) {
@@ -37,10 +45,23 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
     }
   };
 
+  const loadSupportCount = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}?action=get_unread_support_count`);
+      const data = await response.json();
+      setSupportCount(data.count || 0);
+    } catch (error) {
+      console.error('Error loading support count:', error);
+      setSupportCount(0);
+    }
+  };
+
   const handleNotificationsRead = () => {
     // Перезагружаем счётчик после чтения уведомлений
     loadUnreadCount();
   };
+
+  const totalCount = unreadCount + (isAdmin ? supportCount : 0);
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -51,17 +72,33 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
           className={cn("relative", className)}
         >
           <Icon name="Bell" size={20} />
-          {unreadCount > 0 && (
+          {totalCount > 0 && (
             <Badge 
               variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 text-xs"
+              className={cn(
+                "absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-0 text-xs",
+                isAdmin && supportCount > 0 && "animate-pulse"
+              )}
             >
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {totalCount > 99 ? '99+' : totalCount}
             </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-96 p-0">
+        {isAdmin && supportCount > 0 && (
+          <div className="bg-red-50 border-b border-red-200 p-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-red-700">
+              <Icon name="MessageCircle" size={16} />
+              <span className="text-sm font-medium">
+                {supportCount} {supportCount === 1 ? 'новое обращение' : 'новых обращений'} в поддержку
+              </span>
+            </div>
+            <Badge variant="destructive" className="animate-pulse">
+              {supportCount}
+            </Badge>
+          </div>
+        )}
         <NotificationList 
           employeeId={employeeId} 
           onNotificationsRead={handleNotificationsRead}

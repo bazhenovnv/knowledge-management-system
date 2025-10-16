@@ -94,7 +94,7 @@ export const Navigation = ({
         </div>
         <div className="flex items-center space-x-2">
           <ServerStatusIndicator compact />
-          <NotificationBell employeeId={employeeId} />
+          <NotificationBell employeeId={employeeId} isAdmin={userRole === 'admin'} />
           <Button
             variant="outline"
             size="sm"
