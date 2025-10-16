@@ -95,6 +95,25 @@ export const KnowledgeTab = ({
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawMode, setDrawMode] = useState<'pen' | 'arrow' | 'rect' | 'text'>('pen');
+  const [drawColor, setDrawColor] = useState('#ff0000');
+  const [drawSize, setDrawSize] = useState(3);
+  const [drawings, setDrawings] = useState<Array<{
+    type: 'pen' | 'arrow' | 'rect' | 'text';
+    points?: Array<{ x: number; y: number }>;
+    start?: { x: number; y: number };
+    end?: { x: number; y: number };
+    text?: string;
+    color: string;
+    size: number;
+  }>>([]);
+  const [currentPath, setCurrentPath] = useState<Array<{ x: number; y: number }>>([]);
+  const [isDrawingShape, setIsDrawingShape] = useState(false);
+  const [shapeStart, setShapeStart] = useState<{ x: number; y: number } | null>(null);
+  const [textInput, setTextInput] = useState('');
+  const [textPosition, setTextPosition] = useState<{ x: number; y: number } | null>(null);
+  const [showTextInput, setShowTextInput] = useState(false);
   
   const departments = departmentsFromHook;
 
@@ -630,11 +649,225 @@ export const KnowledgeTab = ({
     }
   };
 
+  const handleStartDrawing = () => {
+    setIsDrawing(true);
+    setDrawings([]);
+    setCurrentPath([]);
+  };
+
+  const handleCancelDrawing = () => {
+    setIsDrawing(false);
+    setDrawings([]);
+    setCurrentPath([]);
+    setIsDrawingShape(false);
+    setShapeStart(null);
+    setShowTextInput(false);
+    setTextInput('');
+    setTextPosition(null);
+  };
+
+  const handleDrawMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDrawing) return;
+    e.stopPropagation();
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    if (drawMode === 'pen') {
+      setCurrentPath([{ x, y }]);
+    } else if (drawMode === 'text') {
+      setTextPosition({ x, y });
+      setShowTextInput(true);
+    } else {
+      setShapeStart({ x, y });
+      setIsDrawingShape(true);
+    }
+  };
+
+  const handleDrawMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDrawing) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    if (drawMode === 'pen' && currentPath.length > 0) {
+      setCurrentPath([...currentPath, { x, y }]);
+    } else if (isDrawingShape && shapeStart) {
+      // Обновляем конечную точку для preview
+    }
+  };
+
+  const handleDrawMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDrawing) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    if (drawMode === 'pen' && currentPath.length > 0) {
+      setDrawings([...drawings, {
+        type: 'pen',
+        points: currentPath,
+        color: drawColor,
+        size: drawSize
+      }]);
+      setCurrentPath([]);
+    } else if (isDrawingShape && shapeStart) {
+      setDrawings([...drawings, {
+        type: drawMode,
+        start: shapeStart,
+        end: { x, y },
+        color: drawColor,
+        size: drawSize
+      }]);
+      setIsDrawingShape(false);
+      setShapeStart(null);
+    }
+  };
+
+  const handleAddText = () => {
+    if (textInput.trim() && textPosition) {
+      setDrawings([...drawings, {
+        type: 'text',
+        start: textPosition,
+        text: textInput,
+        color: drawColor,
+        size: drawSize * 8
+      }]);
+      setTextInput('');
+      setShowTextInput(false);
+      setTextPosition(null);
+    }
+  };
+
+  const handleSaveDrawing = async () => {
+    if (drawings.length === 0) {
+      toast.error('Нарисуйте что-нибудь перед сохранением');
+      return;
+    }
+
+    setIsSavingEdit(true);
+    const currentImage = imageGallery[currentImageIndex];
+    
+    try {
+      const response = await fetch(currentImage.url);
+      const blob = await response.blob();
+      
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+
+      const imgElement = document.querySelector('.preview-image') as HTMLImageElement;
+      if (!imgElement) return;
+
+      const displayRect = imgElement.getBoundingClientRect();
+      const scaleX = img.naturalWidth / displayRect.width;
+      const scaleY = img.naturalHeight / displayRect.height;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        
+        drawings.forEach(drawing => {
+          ctx.strokeStyle = drawing.color;
+          ctx.fillStyle = drawing.color;
+          ctx.lineWidth = drawing.size * scaleX;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          
+          if (drawing.type === 'pen' && drawing.points) {
+            ctx.beginPath();
+            drawing.points.forEach((point, index) => {
+              const scaledX = point.x * scaleX;
+              const scaledY = point.y * scaleY;
+              if (index === 0) {
+                ctx.moveTo(scaledX, scaledY);
+              } else {
+                ctx.lineTo(scaledX, scaledY);
+              }
+            });
+            ctx.stroke();
+          } else if (drawing.type === 'arrow' && drawing.start && drawing.end) {
+            const startX = drawing.start.x * scaleX;
+            const startY = drawing.start.y * scaleY;
+            const endX = drawing.end.x * scaleX;
+            const endY = drawing.end.y * scaleY;
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const arrowLength = 20 * scaleX;
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+              endX - arrowLength * Math.cos(angle - Math.PI / 6),
+              endY - arrowLength * Math.sin(angle - Math.PI / 6)
+            );
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
+              endX - arrowLength * Math.cos(angle + Math.PI / 6),
+              endY - arrowLength * Math.sin(angle + Math.PI / 6)
+            );
+            ctx.stroke();
+          } else if (drawing.type === 'rect' && drawing.start && drawing.end) {
+            const startX = drawing.start.x * scaleX;
+            const startY = drawing.start.y * scaleY;
+            const width = (drawing.end.x - drawing.start.x) * scaleX;
+            const height = (drawing.end.y - drawing.start.y) * scaleY;
+            ctx.strokeRect(startX, startY, width, height);
+          } else if (drawing.type === 'text' && drawing.start && drawing.text) {
+            const textX = drawing.start.x * scaleX;
+            const textY = drawing.start.y * scaleY;
+            ctx.font = `${drawing.size * scaleX}px Arial`;
+            ctx.fillText(drawing.text, textX, textY);
+          }
+        });
+      }
+
+      canvas.toBlob((annotatedBlob) => {
+        if (annotatedBlob) {
+          const url = URL.createObjectURL(annotatedBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `annotated-${currentImage.name || 'image.png'}`;
+          link.click();
+          URL.revokeObjectURL(url);
+          
+          setTimeout(() => {
+            setIsSavingEdit(false);
+            handleCancelDrawing();
+            toast.success('Изображение с аннотациями сохранено!');
+          }, 500);
+        }
+      }, 'image/png');
+      
+    } catch (error) {
+      console.error('Ошибка сохранения аннотаций:', error);
+      setIsSavingEdit(false);
+      toast.error('Не удалось сохранить аннотации');
+    }
+  };
+
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditRotation(0);
     setEditFilter('none');
     handleCancelCrop();
+    handleCancelDrawing();
   };
 
   const getFilterCSS = (filter: string): string => {
@@ -1960,6 +2193,156 @@ export const KnowledgeTab = ({
                   </div>
 
                   <div>
+                    <p className="text-xs text-white/70 mb-2">Рисование</p>
+                    {!isDrawing ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full bg-white/5 hover:bg-white/20 text-white border-white/20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartDrawing();
+                        }}
+                        disabled={isCropping}
+                      >
+                        <Icon name="Pencil" size={16} className="mr-2" />
+                        Аннотации
+                      </Button>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-4 gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`p-2 bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                              drawMode === 'pen' ? 'bg-white/20' : ''
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDrawMode('pen');
+                            }}
+                            title="Карандаш"
+                          >
+                            <Icon name="Pencil" size={14} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`p-2 bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                              drawMode === 'arrow' ? 'bg-white/20' : ''
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDrawMode('arrow');
+                            }}
+                            title="Стрелка"
+                          >
+                            <Icon name="ArrowRight" size={14} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`p-2 bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                              drawMode === 'rect' ? 'bg-white/20' : ''
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDrawMode('rect');
+                            }}
+                            title="Прямоугольник"
+                          >
+                            <Icon name="Square" size={14} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={`p-2 bg-white/5 hover:bg-white/20 text-white border-white/20 ${
+                              drawMode === 'text' ? 'bg-white/20' : ''
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDrawMode('text');
+                            }}
+                            title="Текст"
+                          >
+                            <Icon name="Type" size={14} />
+                          </Button>
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-white/70 mb-1">Цвет</p>
+                          <div className="grid grid-cols-6 gap-1">
+                            {['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#ffffff'].map(color => (
+                              <button
+                                key={color}
+                                className={`w-8 h-8 rounded border-2 ${
+                                  drawColor === color ? 'border-white' : 'border-white/20'
+                                }`}
+                                style={{ backgroundColor: color }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDrawColor(color);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-xs text-white/70 mb-1">Толщина: {drawSize}px</p>
+                          <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            value={drawSize}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setDrawSize(Number(e.target.value));
+                            }}
+                            className="w-full"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelDrawing();
+                            }}
+                          >
+                            Отмена
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveDrawing();
+                            }}
+                            disabled={isSavingEdit || drawings.length === 0}
+                          >
+                            {isSavingEdit ? (
+                              <>
+                                <Icon name="Loader2" size={14} className="mr-1 animate-spin" />
+                                ...
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="Check" size={14} className="mr-1" />
+                                Готово
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
                     <p className="text-xs text-white/70 mb-2">Поворот</p>
                     <Button
                       variant="outline"
@@ -2108,7 +2491,7 @@ export const KnowledgeTab = ({
               </div>
             )}
 
-            {!isCropping && imageGallery.length > 1 && (
+            {!isCropping && !isDrawing && imageGallery.length > 1 && (
               <>
                 <Button
                   variant="ghost"
@@ -2169,7 +2552,7 @@ export const KnowledgeTab = ({
               </>
             )}
 
-            {!isCropping && imageGallery.length === 1 && (
+            {!isCropping && !isDrawing && imageGallery.length === 1 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-sm text-white/70 px-3 py-1 rounded-full text-xs flex items-center gap-2">
                 <span>2× клик</span>
                 <span>зум</span>
@@ -2241,12 +2624,31 @@ export const KnowledgeTab = ({
             </div>
             
             <div 
-              className={`overflow-hidden relative ${zoomLevel > 1 && !isCropping ? 'cursor-move' : 'cursor-default'}`}
-              onWheel={!isCropping ? handleWheel : undefined}
-              onMouseDown={isCropping ? handleCropMouseDown : handleMouseDown}
-              onMouseMove={isCropping ? handleCropMouseMove : handleMouseMove}
-              onMouseUp={isCropping ? handleCropMouseUp : handleMouseUp}
-              onMouseLeave={isCropping ? handleCropMouseUp : handleMouseUp}
+              className={`overflow-hidden relative ${
+                isDrawing ? 'cursor-crosshair' : 
+                (zoomLevel > 1 && !isCropping ? 'cursor-move' : 'cursor-default')
+              }`}
+              onWheel={!isCropping && !isDrawing ? handleWheel : undefined}
+              onMouseDown={
+                isCropping ? handleCropMouseDown : 
+                isDrawing ? handleDrawMouseDown : 
+                handleMouseDown
+              }
+              onMouseMove={
+                isCropping ? handleCropMouseMove : 
+                isDrawing ? handleDrawMouseMove : 
+                handleMouseMove
+              }
+              onMouseUp={
+                isCropping ? handleCropMouseUp : 
+                isDrawing ? handleDrawMouseUp : 
+                handleMouseUp
+              }
+              onMouseLeave={
+                isCropping ? handleCropMouseUp : 
+                isDrawing ? handleDrawMouseUp : 
+                handleMouseUp
+              }
             >
               <img 
                 src={previewImage} 
@@ -2304,6 +2706,173 @@ export const KnowledgeTab = ({
                     }}
                   >
                     {Math.round(cropArea.width)} × {Math.round(cropArea.height)}
+                  </div>
+                </>
+              )}
+
+              {isDrawing && (
+                <>
+                  <svg
+                    className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                    style={{ zIndex: 10 }}
+                  >
+                    {drawings.map((drawing, index) => {
+                      if (drawing.type === 'pen' && drawing.points) {
+                        const pathData = drawing.points
+                          .map((point, i) => `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+                          .join(' ');
+                        return (
+                          <path
+                            key={index}
+                            d={pathData}
+                            stroke={drawing.color}
+                            strokeWidth={drawing.size}
+                            fill="none"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        );
+                      } else if (drawing.type === 'arrow' && drawing.start && drawing.end) {
+                        const angle = Math.atan2(
+                          drawing.end.y - drawing.start.y,
+                          drawing.end.x - drawing.start.x
+                        );
+                        const arrowLength = 15;
+                        return (
+                          <g key={index}>
+                            <line
+                              x1={drawing.start.x}
+                              y1={drawing.start.y}
+                              x2={drawing.end.x}
+                              y2={drawing.end.y}
+                              stroke={drawing.color}
+                              strokeWidth={drawing.size}
+                              strokeLinecap="round"
+                            />
+                            <line
+                              x1={drawing.end.x}
+                              y1={drawing.end.y}
+                              x2={drawing.end.x - arrowLength * Math.cos(angle - Math.PI / 6)}
+                              y2={drawing.end.y - arrowLength * Math.sin(angle - Math.PI / 6)}
+                              stroke={drawing.color}
+                              strokeWidth={drawing.size}
+                              strokeLinecap="round"
+                            />
+                            <line
+                              x1={drawing.end.x}
+                              y1={drawing.end.y}
+                              x2={drawing.end.x - arrowLength * Math.cos(angle + Math.PI / 6)}
+                              y2={drawing.end.y - arrowLength * Math.sin(angle + Math.PI / 6)}
+                              stroke={drawing.color}
+                              strokeWidth={drawing.size}
+                              strokeLinecap="round"
+                            />
+                          </g>
+                        );
+                      } else if (drawing.type === 'rect' && drawing.start && drawing.end) {
+                        return (
+                          <rect
+                            key={index}
+                            x={drawing.start.x}
+                            y={drawing.start.y}
+                            width={drawing.end.x - drawing.start.x}
+                            height={drawing.end.y - drawing.start.y}
+                            stroke={drawing.color}
+                            strokeWidth={drawing.size}
+                            fill="none"
+                          />
+                        );
+                      } else if (drawing.type === 'text' && drawing.start && drawing.text) {
+                        return (
+                          <text
+                            key={index}
+                            x={drawing.start.x}
+                            y={drawing.start.y}
+                            fill={drawing.color}
+                            fontSize={drawing.size}
+                            fontFamily="Arial"
+                          >
+                            {drawing.text}
+                          </text>
+                        );
+                      }
+                      return null;
+                    })}
+
+                    {currentPath.length > 0 && drawMode === 'pen' && (
+                      <path
+                        d={currentPath
+                          .map((point, i) => `${i === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+                          .join(' ')}
+                        stroke={drawColor}
+                        strokeWidth={drawSize}
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    )}
+                  </svg>
+
+                  {showTextInput && textPosition && (
+                    <div
+                      className="absolute bg-white p-2 rounded shadow-lg z-20"
+                      style={{
+                        left: textPosition.x,
+                        top: textPosition.y
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Input
+                        type="text"
+                        value={textInput}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          setTextInput(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          e.stopPropagation();
+                          if (e.key === 'Enter') {
+                            handleAddText();
+                          } else if (e.key === 'Escape') {
+                            setShowTextInput(false);
+                            setTextInput('');
+                            setTextPosition(null);
+                          }
+                        }}
+                        placeholder="Введите текст..."
+                        className="w-48 text-black"
+                        autoFocus
+                      />
+                      <div className="flex gap-1 mt-1">
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddText();
+                          }}
+                          className="flex-1"
+                        >
+                          OK
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowTextInput(false);
+                            setTextInput('');
+                            setTextPosition(null);
+                          }}
+                          className="flex-1"
+                        >
+                          Отмена
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-blue-400/50 z-20">
+                    ✏️ {drawMode === 'pen' ? 'Рисуйте' : drawMode === 'arrow' ? 'Нарисуйте стрелку' : drawMode === 'rect' ? 'Нарисуйте прямоугольник' : 'Кликните для текста'}
                   </div>
                 </>
               )}
