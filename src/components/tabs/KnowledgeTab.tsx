@@ -95,6 +95,8 @@ export const KnowledgeTab = ({
   const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [cropStart, setCropStart] = useState<{ x: number; y: number } | null>(null);
   const [isDraggingCrop, setIsDraggingCrop] = useState(false);
+  const [resizingCrop, setResizingCrop] = useState<'tl' | 'tr' | 'bl' | 'br' | 'move' | null>(null);
+  const [cropDragStart, setCropDragStart] = useState<{ x: number; y: number; cropX: number; cropY: number; cropWidth: number; cropHeight: number } | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawMode, setDrawMode] = useState<'pen' | 'arrow' | 'rect' | 'text'>('pen');
   const [drawColor, setDrawColor] = useState('#ff0000');
@@ -119,6 +121,8 @@ export const KnowledgeTab = ({
   const [blurIntensity, setBlurIntensity] = useState(20);
   const [currentBlurArea, setCurrentBlurArea] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [isDrawingBlur, setIsDrawingBlur] = useState(false);
+  const [resizingBlur, setResizingBlur] = useState<{ index: number; handle: 'tl' | 'tr' | 'bl' | 'br' | 'move' } | null>(null);
+  const [blurDragStart, setBlurDragStart] = useState<{ x: number; y: number; areaX: number; areaY: number; areaWidth: number; areaHeight: number } | null>(null);
   
   const imageContainerRef = useRef<HTMLDivElement>(null);
   
@@ -471,6 +475,22 @@ export const KnowledgeTab = ({
     setIsDraggingCrop(false);
   };
 
+  const getCropHandleAtPoint = (x: number, y: number): 'tl' | 'tr' | 'bl' | 'br' | 'move' | null => {
+    if (cropArea.width === 0 || cropArea.height === 0) return null;
+    
+    const handleSize = 12;
+    const { x: cropX, y: cropY, width, height } = cropArea;
+    
+    if (Math.abs(x - cropX) < handleSize && Math.abs(y - cropY) < handleSize) return 'tl';
+    if (Math.abs(x - (cropX + width)) < handleSize && Math.abs(y - cropY) < handleSize) return 'tr';
+    if (Math.abs(x - cropX) < handleSize && Math.abs(y - (cropY + height)) < handleSize) return 'bl';
+    if (Math.abs(x - (cropX + width)) < handleSize && Math.abs(y - (cropY + height)) < handleSize) return 'br';
+    
+    if (x >= cropX && x <= cropX + width && y >= cropY && y <= cropY + height) return 'move';
+    
+    return null;
+  };
+
   const handleCropMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isCropping) return;
     e.stopPropagation();
@@ -479,34 +499,84 @@ export const KnowledgeTab = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    setCropStart({ x, y });
-    setIsDraggingCrop(true);
-    setCropArea({ x, y, width: 0, height: 0 });
+    const handle = getCropHandleAtPoint(x, y);
+    
+    if (handle) {
+      setResizingCrop(handle);
+      setCropDragStart({ 
+        x, 
+        y, 
+        cropX: cropArea.x, 
+        cropY: cropArea.y, 
+        cropWidth: cropArea.width, 
+        cropHeight: cropArea.height 
+      });
+    } else {
+      setCropStart({ x, y });
+      setIsDraggingCrop(true);
+      setCropArea({ x, y, width: 0, height: 0 });
+    }
   };
 
   const handleCropMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isCropping || !isDraggingCrop || !cropStart) return;
+    if (!isCropping) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
     
-    const width = currentX - cropStart.x;
-    const height = currentY - cropStart.y;
-    
-    setCropArea({
-      x: width < 0 ? currentX : cropStart.x,
-      y: height < 0 ? currentY : cropStart.y,
-      width: Math.abs(width),
-      height: Math.abs(height)
-    });
+    if (resizingCrop && cropDragStart) {
+      const dx = currentX - cropDragStart.x;
+      const dy = currentY - cropDragStart.y;
+      
+      const newArea = { ...cropArea };
+      
+      if (resizingCrop === 'move') {
+        newArea.x = Math.max(0, Math.min(rect.width - cropArea.width, cropDragStart.cropX + dx));
+        newArea.y = Math.max(0, Math.min(rect.height - cropArea.height, cropDragStart.cropY + dy));
+      } else if (resizingCrop === 'tl') {
+        const newX = Math.max(0, cropDragStart.cropX + dx);
+        const newY = Math.max(0, cropDragStart.cropY + dy);
+        newArea.width = cropDragStart.cropWidth + (cropDragStart.cropX - newX);
+        newArea.height = cropDragStart.cropHeight + (cropDragStart.cropY - newY);
+        newArea.x = newX;
+        newArea.y = newY;
+      } else if (resizingCrop === 'tr') {
+        const newY = Math.max(0, cropDragStart.cropY + dy);
+        newArea.width = Math.max(10, cropDragStart.cropWidth + dx);
+        newArea.height = cropDragStart.cropHeight + (cropDragStart.cropY - newY);
+        newArea.y = newY;
+      } else if (resizingCrop === 'bl') {
+        const newX = Math.max(0, cropDragStart.cropX + dx);
+        newArea.width = cropDragStart.cropWidth + (cropDragStart.cropX - newX);
+        newArea.height = Math.max(10, cropDragStart.cropHeight + dy);
+        newArea.x = newX;
+      } else if (resizingCrop === 'br') {
+        newArea.width = Math.max(10, cropDragStart.cropWidth + dx);
+        newArea.height = Math.max(10, cropDragStart.cropHeight + dy);
+      }
+      
+      if (newArea.width >= 10 && newArea.height >= 10) {
+        setCropArea(newArea);
+      }
+    } else if (isDraggingCrop && cropStart) {
+      const width = currentX - cropStart.x;
+      const height = currentY - cropStart.y;
+      
+      setCropArea({
+        x: width < 0 ? currentX : cropStart.x,
+        y: height < 0 ? currentY : cropStart.y,
+        width: Math.abs(width),
+        height: Math.abs(height)
+      });
+    }
   };
 
   const handleCropMouseUp = () => {
-    if (isDraggingCrop) {
-      setIsDraggingCrop(false);
-      setCropStart(null);
-    }
+    setIsDraggingCrop(false);
+    setResizingCrop(null);
+    setCropDragStart(null);
+    setCropStart(null);
   };
 
   const handleApplyCrop = async () => {
@@ -957,6 +1027,20 @@ export const KnowledgeTab = ({
     setIsDrawingBlur(false);
   };
 
+  const getBlurHandleAtPoint = (x: number, y: number, area: { x: number; y: number; width: number; height: number }): 'tl' | 'tr' | 'bl' | 'br' | 'move' | null => {
+    const handleSize = 12;
+    const { x: areaX, y: areaY, width, height } = area;
+    
+    if (Math.abs(x - areaX) < handleSize && Math.abs(y - areaY) < handleSize) return 'tl';
+    if (Math.abs(x - (areaX + width)) < handleSize && Math.abs(y - areaY) < handleSize) return 'tr';
+    if (Math.abs(x - areaX) < handleSize && Math.abs(y - (areaY + height)) < handleSize) return 'bl';
+    if (Math.abs(x - (areaX + width)) < handleSize && Math.abs(y - (areaY + height)) < handleSize) return 'br';
+    
+    if (x >= areaX && x <= areaX + width && y >= areaY && y <= areaY + height) return 'move';
+    
+    return null;
+  };
+
   const handleBlurMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isBlurring || showTextInput) return;
     
@@ -964,26 +1048,89 @@ export const KnowledgeTab = ({
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    setIsDrawingBlur(true);
-    setCurrentBlurArea({ x, y, width: 0, height: 0 });
+    let foundHandle = false;
+    for (let i = blurAreas.length - 1; i >= 0; i--) {
+      const handle = getBlurHandleAtPoint(x, y, blurAreas[i]);
+      if (handle) {
+        setResizingBlur({ index: i, handle });
+        setBlurDragStart({
+          x,
+          y,
+          areaX: blurAreas[i].x,
+          areaY: blurAreas[i].y,
+          areaWidth: blurAreas[i].width,
+          areaHeight: blurAreas[i].height
+        });
+        foundHandle = true;
+        break;
+      }
+    }
+    
+    if (!foundHandle) {
+      setIsDrawingBlur(true);
+      setCurrentBlurArea({ x, y, width: 0, height: 0 });
+    }
   };
 
   const handleBlurMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDrawingBlur || !currentBlurArea) return;
+    if (!isBlurring) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
     
-    setCurrentBlurArea({
-      x: currentBlurArea.x,
-      y: currentBlurArea.y,
-      width: currentX - currentBlurArea.x,
-      height: currentY - currentBlurArea.y
-    });
+    if (resizingBlur && blurDragStart) {
+      const dx = currentX - blurDragStart.x;
+      const dy = currentY - blurDragStart.y;
+      
+      const updatedAreas = [...blurAreas];
+      const area = updatedAreas[resizingBlur.index];
+      
+      if (resizingBlur.handle === 'move') {
+        area.x = Math.max(0, Math.min(rect.width - area.width, blurDragStart.areaX + dx));
+        area.y = Math.max(0, Math.min(rect.height - area.height, blurDragStart.areaY + dy));
+      } else if (resizingBlur.handle === 'tl') {
+        const newX = Math.max(0, blurDragStart.areaX + dx);
+        const newY = Math.max(0, blurDragStart.areaY + dy);
+        area.width = blurDragStart.areaWidth + (blurDragStart.areaX - newX);
+        area.height = blurDragStart.areaHeight + (blurDragStart.areaY - newY);
+        area.x = newX;
+        area.y = newY;
+      } else if (resizingBlur.handle === 'tr') {
+        const newY = Math.max(0, blurDragStart.areaY + dy);
+        area.width = Math.max(10, blurDragStart.areaWidth + dx);
+        area.height = blurDragStart.areaHeight + (blurDragStart.areaY - newY);
+        area.y = newY;
+      } else if (resizingBlur.handle === 'bl') {
+        const newX = Math.max(0, blurDragStart.areaX + dx);
+        area.width = blurDragStart.areaWidth + (blurDragStart.areaX - newX);
+        area.height = Math.max(10, blurDragStart.areaHeight + dy);
+        area.x = newX;
+      } else if (resizingBlur.handle === 'br') {
+        area.width = Math.max(10, blurDragStart.areaWidth + dx);
+        area.height = Math.max(10, blurDragStart.areaHeight + dy);
+      }
+      
+      if (area.width >= 10 && area.height >= 10) {
+        setBlurAreas(updatedAreas);
+      }
+    } else if (isDrawingBlur && currentBlurArea) {
+      setCurrentBlurArea({
+        x: currentBlurArea.x,
+        y: currentBlurArea.y,
+        width: currentX - currentBlurArea.x,
+        height: currentY - currentBlurArea.y
+      });
+    }
   };
 
   const handleBlurMouseUp = () => {
+    if (resizingBlur) {
+      setResizingBlur(null);
+      setBlurDragStart(null);
+      return;
+    }
+    
     if (!isDrawingBlur || !currentBlurArea) return;
     
     if (Math.abs(currentBlurArea.width) > 10 && Math.abs(currentBlurArea.height) > 10) {
@@ -2417,7 +2564,7 @@ export const KnowledgeTab = ({
                       </Button>
                     ) : (
                       <div className="space-y-2">
-                        <p className="text-xs text-white/90">Выделите область мышью</p>
+                        <p className="text-xs text-white/90">Двигайте область и углы</p>
                         <div className="flex gap-2">
                           <Button
                             variant="outline"
@@ -2867,8 +3014,8 @@ export const KnowledgeTab = ({
             )}
 
             {isCropping && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-blue-400/50 animate-pulse">
-                🖱️ Выделите область для обрезки мышью
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-blue-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-blue-400/50">
+                ✂️ Выделите область → перемещайте и меняйте размер за углы
               </div>
             )}
 
@@ -3071,19 +3218,25 @@ export const KnowledgeTab = ({
                     }}
                   />
                   <div
-                    className="absolute border-2 border-white border-dashed pointer-events-none"
+                    className="absolute border-2 border-white border-dashed"
                     style={{
                       left: cropArea.x,
                       top: cropArea.y,
                       width: cropArea.width,
-                      height: cropArea.height
+                      height: cropArea.height,
+                      cursor: 'move'
                     }}
                   >
-                    <div className="absolute top-0 left-0 w-full h-full grid grid-cols-3 grid-rows-3">
+                    <div className="absolute top-0 left-0 w-full h-full grid grid-cols-3 grid-rows-3 pointer-events-none">
                       {[...Array(9)].map((_, i) => (
                         <div key={i} className="border border-white/30" />
                       ))}
                     </div>
+                    
+                    <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-white rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
+                    <div className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-white rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
+                    <div className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-white rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
+                    <div className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-white rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
                   </div>
                   <div 
                     className="absolute bg-white/10 backdrop-blur-sm text-white px-2 py-1 rounded text-xs pointer-events-none"
@@ -3269,14 +3422,20 @@ export const KnowledgeTab = ({
                   {blurAreas.map((area, index) => (
                     <div
                       key={index}
-                      className="absolute border-2 border-red-500 bg-red-500/20 pointer-events-none"
+                      className="absolute border-2 border-red-500 bg-red-500/20"
                       style={{
                         left: area.x,
                         top: area.y,
                         width: area.width,
-                        height: area.height
+                        height: area.height,
+                        cursor: 'move'
                       }}
-                    />
+                    >
+                      <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
+                    </div>
                   ))}
 
                   {currentBlurArea && currentBlurArea.width !== 0 && currentBlurArea.height !== 0 && (
@@ -3292,7 +3451,7 @@ export const KnowledgeTab = ({
                   )}
 
                   <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-red-400/50 z-20">
-                    🔒 Выделите области для размытия
+                    🔒 Выделите области → перемещайте и меняйте размер за углы
                   </div>
                 </>
               )}
