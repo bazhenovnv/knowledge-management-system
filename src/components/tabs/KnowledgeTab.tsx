@@ -1041,8 +1041,18 @@ export const KnowledgeTab = ({
     return null;
   };
 
+  const handleBlurRightClick = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const updatedAreas = blurAreas.filter((_, i) => i !== index);
+    setBlurAreas(updatedAreas);
+    toast.success('Область размытия удалена');
+  };
+
   const handleBlurMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isBlurring || showTextInput) return;
+    
+    if (e.button === 2) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -2771,7 +2781,7 @@ export const KnowledgeTab = ({
                       </Button>
                     ) : (
                       <div className="space-y-3">
-                        <p className="text-xs text-white/90">Выделите области для размытия</p>
+                        <p className="text-xs text-white/90">ПКМ на области для удаления</p>
                         
                         {blurAreas.length > 0 && (
                           <div className="text-xs text-white/70">
@@ -3422,7 +3432,7 @@ export const KnowledgeTab = ({
                   {blurAreas.map((area, index) => (
                     <div
                       key={index}
-                      className="absolute border-2 border-red-500 bg-red-500/20"
+                      className="absolute border-2 border-red-500 bg-red-500/20 group hover:bg-red-500/30 transition-colors"
                       style={{
                         left: area.x,
                         top: area.y,
@@ -3430,11 +3440,18 @@ export const KnowledgeTab = ({
                         height: area.height,
                         cursor: 'move'
                       }}
+                      onContextMenu={(e) => handleBlurRightClick(e, index)}
+                      title="Правый клик для удаления"
                     >
-                      <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
-                      <div className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
-                      <div className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize" style={{pointerEvents: 'auto'}} />
-                      <div className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute -right-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute -left-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nesw-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-red-500 rounded-full cursor-nwse-resize hover:scale-125 transition-transform" style={{pointerEvents: 'auto'}} />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <div className="bg-red-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                          ПКМ для удаления
+                        </div>
+                      </div>
                     </div>
                   ))}
 
@@ -3451,7 +3468,7 @@ export const KnowledgeTab = ({
                   )}
 
                   <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-red-400/50 z-20">
-                    🔒 Выделите области → перемещайте и меняйте размер за углы
+                    🔒 Выделите области → двигайте за углы → ПКМ для удаления
                   </div>
                 </>
               )}
