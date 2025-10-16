@@ -38,8 +38,7 @@ export const AdminDashboard = ({
   const [notificationFormOpen, setNotificationFormOpen] = useState(false);
   const [selectedEmployeeForNotification, setSelectedEmployeeForNotification] = useState<any>(null);
 
-  useEffect(() => {
-    const loadStats = async () => {
+  const loadStats = async () => {
       try {
         setLoading(true);
         
@@ -102,6 +101,7 @@ export const AdminDashboard = ({
       }
     };
 
+  useEffect(() => {
     loadStats();
     
     const interval = setInterval(loadStats, 30000);
