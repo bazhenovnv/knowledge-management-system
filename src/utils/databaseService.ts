@@ -464,27 +464,42 @@ class DatabaseService {
     previous_month: { month_year: string; request_count: number; updated_at?: string };
   } | null> {
     try {
-      const response = await this.makeRequest<{
-        current_month: { month_year: string; request_count: number; updated_at?: string };
-        previous_month: { month_year: string; request_count: number; updated_at?: string };
-      }>('?action=get_db_stats', { method: 'GET' });
+      console.log('[databaseService] Fetching DB stats from:', `${this.baseUrl}?action=get_db_stats`);
       
-      if (response.error) {
-        console.error('Get DB stats error:', response.error);
+      // Делаем запрос напрямую, минуя makeRequest, т.к. backend возвращает данные в другом формате
+      const url = `${this.baseUrl}?action=get_db_stats`;
+      const response = await fetch(url, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Database API error (${response.status}):`, errorText);
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('[databaseService] DB stats response:', data);
+      
+      if (data.error) {
+        console.error('[databaseService] Get DB stats error:', data.error);
         return null;
       }
       
-      // Backend возвращает данные напрямую, не обёрнутые в data
-      // Проверяем, есть ли current_month напрямую в response или в response.data
-      if ('current_month' in response) {
-        return response as any;
-      } else if (response.data && 'current_month' in response.data) {
-        return response.data;
+      // Backend возвращает данные напрямую в формате { current_month: {...}, previous_month: {...} }
+      if ('current_month' in data && 'previous_month' in data) {
+        console.log('[databaseService] Valid stats structure found');
+        return data;
       }
       
+      console.error('[databaseService] Invalid stats structure:', data);
       return null;
     } catch (error) {
-      console.error('Get DB stats error:', error);
+      console.error('[databaseService] Get DB stats error:', error);
       return null;
     }
   }
