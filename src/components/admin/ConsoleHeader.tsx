@@ -125,7 +125,10 @@ export const ConsoleHeader = ({ onClearLogs, onExportLogs, onTestErrors }: Conso
 
           <div className="flex gap-2">
             <Button 
-              onClick={scanForJunkCode}
+              onClick={() => {
+                scanForJunkCode();
+                updateBackupStatus();
+              }}
               variant="outline" 
               size="sm"
               className="gap-2 border-purple-500 text-purple-400 hover:bg-purple-950"
