@@ -84,6 +84,7 @@ export const KnowledgeTab = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isCopying, setIsCopying] = useState(false);
   
   const departments = departmentsFromHook;
 
@@ -110,6 +111,9 @@ export const KnowledgeTab = ({
       } else if ((e.key === 's' || e.key === 'S' || e.key === 'ы' || e.key === 'Ы') && imageGallery.length > 0) {
         e.preventDefault();
         handleDownloadImage();
+      } else if ((e.key === 'c' || e.key === 'C' || e.key === 'с' || e.key === 'С') && imageGallery.length > 0) {
+        e.preventDefault();
+        handleCopyImage();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -218,6 +222,39 @@ export const KnowledgeTab = ({
         setIsDownloading(false);
         toast.success(`Скачан: ${currentImage.name}`);
       }, 500);
+    }
+  };
+
+  const handleCopyImage = async () => {
+    if (imageGallery.length > 0 && imageGallery[currentImageIndex]) {
+      setIsCopying(true);
+      const currentImage = imageGallery[currentImageIndex];
+      
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        setIsCopying(false);
+        toast.error('Ваш браузер не поддерживает копирование изображений');
+        return;
+      }
+      
+      try {
+        const response = await fetch(currentImage.url);
+        const blob = await response.blob();
+        
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            [blob.type]: blob
+          })
+        ]);
+        
+        setTimeout(() => {
+          setIsCopying(false);
+          toast.success('Изображение скопировано! Можно вставлять (Ctrl+V)');
+        }, 500);
+      } catch (error) {
+        console.error('Ошибка копирования:', error);
+        setIsCopying(false);
+        toast.error('Не удалось скопировать. Попробуйте скачать (S)');
+      }
     }
   };
 
@@ -1354,6 +1391,25 @@ export const KnowledgeTab = ({
                   variant="ghost"
                   size="sm"
                   className={`bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all ${
+                    isCopying ? 'scale-90 bg-blue-500/30' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyImage();
+                  }}
+                  disabled={isCopying}
+                  title="Копировать в буфер обмена (C)"
+                >
+                  {isCopying ? (
+                    <Icon name="Check" size={20} className="animate-pulse" />
+                  ) : (
+                    <Icon name="Copy" size={20} />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all ${
                     isDownloading ? 'scale-90 bg-green-500/30' : ''
                   }`}
                   onClick={(e) => {
@@ -1420,6 +1476,9 @@ export const KnowledgeTab = ({
                     <span>2× клик</span>
                     <span>зум</span>
                     <span className="mx-1">•</span>
+                    <span>C</span>
+                    <span>копия</span>
+                    <span className="mx-1">•</span>
                     <span>S</span>
                     <span>скачать</span>
                     <span className="mx-1">•</span>
@@ -1434,6 +1493,9 @@ export const KnowledgeTab = ({
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-sm text-white/70 px-3 py-1 rounded-full text-xs flex items-center gap-2">
                 <span>2× клик</span>
                 <span>зум</span>
+                <span className="mx-1">•</span>
+                <span>C</span>
+                <span>копия</span>
                 <span className="mx-1">•</span>
                 <span>S</span>
                 <span>скачать</span>
