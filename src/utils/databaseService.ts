@@ -464,26 +464,32 @@ class DatabaseService {
     previous_month: { month_year: string; request_count: number; updated_at?: string };
   } | null> {
     try {
-      console.log('[databaseService] Fetching DB stats from:', `${this.baseUrl}?action=get_db_stats`);
+      const url = `${this.baseUrl}?action=get_db_stats`;
+      console.log('[databaseService] Fetching DB stats from:', url);
+      console.log('[databaseService] Base URL:', this.baseUrl);
       
       // Делаем запрос напрямую, минуя makeRequest, т.к. backend возвращает данные в другом формате
-      const url = `${this.baseUrl}?action=get_db_stats`;
       const response = await fetch(url, {
         method: 'GET',
         mode: 'cors',
+        credentials: 'omit',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
       });
 
+      console.log('[databaseService] Response status:', response.status);
+      console.log('[databaseService] Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Database API error (${response.status}):`, errorText);
+        console.error(`[databaseService] Database API error (${response.status}):`, errorText);
         return null;
       }
 
       const data = await response.json();
-      console.log('[databaseService] DB stats response:', data);
+      console.log('[databaseService] DB stats response:', JSON.stringify(data, null, 2));
       
       if (data.error) {
         console.error('[databaseService] Get DB stats error:', data.error);
@@ -492,14 +498,19 @@ class DatabaseService {
       
       // Backend возвращает данные напрямую в формате { current_month: {...}, previous_month: {...} }
       if ('current_month' in data && 'previous_month' in data) {
-        console.log('[databaseService] Valid stats structure found');
+        console.log('[databaseService] ✅ Valid stats structure found');
+        console.log('[databaseService] Current month count:', data.current_month.request_count);
         return data;
       }
       
-      console.error('[databaseService] Invalid stats structure:', data);
+      console.error('[databaseService] ❌ Invalid stats structure:', data);
       return null;
     } catch (error) {
-      console.error('[databaseService] Get DB stats error:', error);
+      console.error('[databaseService] ❌ Get DB stats error:', error);
+      if (error instanceof TypeError) {
+        console.error('[databaseService] This is likely a CORS or network error');
+        console.error('[databaseService] Check that the backend URL is correct and accessible');
+      }
       return null;
     }
   }
