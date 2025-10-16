@@ -231,7 +231,11 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
     
     // Проверка на множественные классы
     const elementsWithManyClasses = Array.from(document.querySelectorAll('*')).filter(
-      el => el.className && el.className.split(' ').length > 15
+      el => {
+        if (!el.className) return false;
+        const className = typeof el.className === 'string' ? el.className : el.className.baseVal || '';
+        return className.split(' ').length > 15;
+      }
     );
     if (elementsWithManyClasses.length > 0) {
       issues.push(`Элементы с >15 классами: ${elementsWithManyClasses.length} шт.`);
