@@ -79,6 +79,7 @@ export const KnowledgeTab = ({
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [imageGallery, setImageGallery] = useState<FileAttachment[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -169,12 +170,13 @@ export const KnowledgeTab = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [previewImage, currentImageIndex, imageGallery]);
 
-  const openImagePreview = (imageUrl: string, allImages: FileAttachment[]) => {
+  const openImagePreview = (imageUrl: string, allImages: FileAttachment[], isFromPreview = false) => {
     const images = allImages.filter(file => file.type?.startsWith('image/'));
     const index = images.findIndex(img => img.url === imageUrl);
     setImageGallery(images);
     setCurrentImageIndex(index >= 0 ? index : 0);
     setPreviewImage(imageUrl);
+    setIsPreviewMode(isFromPreview);
     resetZoom();
     setIsEditing(false);
     setEditRotation(0);
@@ -585,11 +587,6 @@ export const KnowledgeTab = ({
       return;
     }
 
-    if (!viewingMaterial) {
-      toast.error('Материал не найден');
-      return;
-    }
-
     setIsSavingEdit(true);
     const currentImage = imageGallery[currentImageIndex];
     
@@ -639,35 +636,63 @@ export const KnowledgeTab = ({
 
       const base64 = canvas.toDataURL('image/png');
       
-      const attachmentIndex = viewingMaterial.attachments.findIndex(
-        att => att.url === currentImage.url && att.name === currentImage.name
-      );
-      
-      if (attachmentIndex === -1) {
-        throw new Error('Image not found in attachments');
-      }
+      if (isPreviewMode) {
+        const attachmentIndex = formData.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
 
-      const updatedAttachments = [...viewingMaterial.attachments];
-      updatedAttachments[attachmentIndex] = {
-        ...currentImage,
-        url: base64,
-      };
-
-      const updated = await databaseService.updateKnowledgeMaterial(
-        viewingMaterial.id,
-        { attachments: updatedAttachments }
-      );
-
-      if (updated) {
-        setViewingMaterial(updated);
-        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
-        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        const updatedAttachments = [...formData.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+        
+        setFormData(prev => ({ ...prev, attachments: updatedAttachments }));
+        const newGallery = updatedAttachments.filter(att => att.type.startsWith('image/'));
         setImageGallery(newGallery);
         setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
         handleCancelCrop();
-        toast.success('Изображение обрезано и сохранено!');
+        toast.success('Изображение обрезано!');
       } else {
-        throw new Error('Failed to update material');
+        if (!viewingMaterial) {
+          toast.error('Материал не найден');
+          return;
+        }
+        
+        const attachmentIndex = viewingMaterial.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
+
+        const updatedAttachments = [...viewingMaterial.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+
+        const updated = await databaseService.updateKnowledgeMaterial(
+          viewingMaterial.id,
+          { attachments: updatedAttachments }
+        );
+
+        if (updated) {
+          setViewingMaterial(updated);
+          setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+          const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+          setImageGallery(newGallery);
+          setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+          handleCancelCrop();
+          toast.success('Изображение обрезано и сохранено!');
+        } else {
+          throw new Error('Failed to update material');
+        }
       }
       
     } catch (error) {
@@ -679,8 +704,8 @@ export const KnowledgeTab = ({
   };
 
   const handleSaveEdit = async () => {
-    if (!viewingMaterial || imageGallery.length === 0 || !imageGallery[currentImageIndex]) {
-      toast.error('Материал не найден');
+    if (imageGallery.length === 0 || !imageGallery[currentImageIndex]) {
+      toast.error('Изображение не найдено');
       return;
     }
 
@@ -727,37 +752,67 @@ export const KnowledgeTab = ({
       
       const base64 = canvas.toDataURL('image/png');
       
-      const attachmentIndex = viewingMaterial.attachments.findIndex(
-        att => att.url === currentImage.url && att.name === currentImage.name
-      );
-      
-      if (attachmentIndex === -1) {
-        throw new Error('Image not found in attachments');
-      }
+      if (isPreviewMode) {
+        const attachmentIndex = formData.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
 
-      const updatedAttachments = [...viewingMaterial.attachments];
-      updatedAttachments[attachmentIndex] = {
-        ...currentImage,
-        url: base64,
-      };
-
-      const updated = await databaseService.updateKnowledgeMaterial(
-        viewingMaterial.id,
-        { attachments: updatedAttachments }
-      );
-
-      if (updated) {
-        setViewingMaterial(updated);
-        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
-        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        const updatedAttachments = [...formData.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+        
+        setFormData(prev => ({ ...prev, attachments: updatedAttachments }));
+        const newGallery = updatedAttachments.filter(att => att.type.startsWith('image/'));
         setImageGallery(newGallery);
         setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
         setIsEditing(false);
         setEditRotation(0);
         setEditFilter('none');
-        toast.success('Изображение сохранено!');
+        toast.success('Изображение обновлено!');
       } else {
-        throw new Error('Failed to update material');
+        if (!viewingMaterial) {
+          toast.error('Материал не найден');
+          return;
+        }
+        
+        const attachmentIndex = viewingMaterial.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
+
+        const updatedAttachments = [...viewingMaterial.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+
+        const updated = await databaseService.updateKnowledgeMaterial(
+          viewingMaterial.id,
+          { attachments: updatedAttachments }
+        );
+
+        if (updated) {
+          setViewingMaterial(updated);
+          setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+          const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+          setImageGallery(newGallery);
+          setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+          setIsEditing(false);
+          setEditRotation(0);
+          setEditFilter('none');
+          toast.success('Изображение сохранено!');
+        } else {
+          throw new Error('Failed to update material');
+        }
       }
       
     } catch (error) {
@@ -959,41 +1014,64 @@ export const KnowledgeTab = ({
 
       const base64 = canvas.toDataURL('image/png');
       
-      if (!viewingMaterial) {
-        toast.error('Материал не найден');
-        setIsSavingEdit(false);
-        return;
-      }
+      if (isPreviewMode) {
+        const attachmentIndex = formData.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
 
-      const attachmentIndex = viewingMaterial.attachments.findIndex(
-        att => att.url === currentImage.url && att.name === currentImage.name
-      );
-      
-      if (attachmentIndex === -1) {
-        throw new Error('Image not found in attachments');
-      }
-
-      const updatedAttachments = [...viewingMaterial.attachments];
-      updatedAttachments[attachmentIndex] = {
-        ...currentImage,
-        url: base64,
-      };
-
-      const updated = await databaseService.updateKnowledgeMaterial(
-        viewingMaterial.id,
-        { attachments: updatedAttachments }
-      );
-
-      if (updated) {
-        setViewingMaterial(updated);
-        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
-        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        const updatedAttachments = [...formData.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+        
+        setFormData(prev => ({ ...prev, attachments: updatedAttachments }));
+        const newGallery = updatedAttachments.filter(att => att.type.startsWith('image/'));
         setImageGallery(newGallery);
         setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
         handleCancelDrawing();
-        toast.success('Изображение с аннотациями сохранено!');
+        toast.success('Аннотации добавлены!');
       } else {
-        throw new Error('Failed to update material');
+        if (!viewingMaterial) {
+          toast.error('Материал не найден');
+          setIsSavingEdit(false);
+          return;
+        }
+
+        const attachmentIndex = viewingMaterial.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
+
+        const updatedAttachments = [...viewingMaterial.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+
+        const updated = await databaseService.updateKnowledgeMaterial(
+          viewingMaterial.id,
+          { attachments: updatedAttachments }
+        );
+
+        if (updated) {
+          setViewingMaterial(updated);
+          setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+          const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+          setImageGallery(newGallery);
+          setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+          handleCancelDrawing();
+          toast.success('Изображение с аннотациями сохранено!');
+        } else {
+          throw new Error('Failed to update material');
+        }
       }
       
     } catch (error) {
@@ -1293,41 +1371,64 @@ export const KnowledgeTab = ({
 
       const base64 = canvas.toDataURL('image/png');
       
-      if (!viewingMaterial) {
-        toast.error('Материал не найден');
-        setIsSavingEdit(false);
-        return;
-      }
+      if (isPreviewMode) {
+        const attachmentIndex = formData.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
 
-      const attachmentIndex = viewingMaterial.attachments.findIndex(
-        att => att.url === currentImage.url && att.name === currentImage.name
-      );
-      
-      if (attachmentIndex === -1) {
-        throw new Error('Image not found in attachments');
-      }
-
-      const updatedAttachments = [...viewingMaterial.attachments];
-      updatedAttachments[attachmentIndex] = {
-        ...currentImage,
-        url: base64,
-      };
-
-      const updated = await databaseService.updateKnowledgeMaterial(
-        viewingMaterial.id,
-        { attachments: updatedAttachments }
-      );
-
-      if (updated) {
-        setViewingMaterial(updated);
-        setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
-        const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+        const updatedAttachments = [...formData.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+        
+        setFormData(prev => ({ ...prev, attachments: updatedAttachments }));
+        const newGallery = updatedAttachments.filter(att => att.type.startsWith('image/'));
         setImageGallery(newGallery);
         setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
         handleCancelBlur();
-        toast.success('Изображение с размытием сохранено!');
+        toast.success('Размытие применено!');
       } else {
-        throw new Error('Failed to update material');
+        if (!viewingMaterial) {
+          toast.error('Материал не найден');
+          setIsSavingEdit(false);
+          return;
+        }
+
+        const attachmentIndex = viewingMaterial.attachments.findIndex(
+          att => att.url === currentImage.url && att.name === currentImage.name
+        );
+        
+        if (attachmentIndex === -1) {
+          throw new Error('Image not found in attachments');
+        }
+
+        const updatedAttachments = [...viewingMaterial.attachments];
+        updatedAttachments[attachmentIndex] = {
+          ...currentImage,
+          url: base64,
+        };
+
+        const updated = await databaseService.updateKnowledgeMaterial(
+          viewingMaterial.id,
+          { attachments: updatedAttachments }
+        );
+
+        if (updated) {
+          setViewingMaterial(updated);
+          setMaterials(prev => prev.map(m => m.id === updated.id ? updated : m));
+          const newGallery = updated.attachments.filter(att => att.type.startsWith('image/'));
+          setImageGallery(newGallery);
+          setCurrentImageIndex(Math.min(currentImageIndex, newGallery.length - 1));
+          handleCancelBlur();
+          toast.success('Изображение с размытием сохранено!');
+        } else {
+          throw new Error('Failed to update material');
+        }
       }
       
     } catch (error) {
@@ -2144,7 +2245,7 @@ export const KnowledgeTab = ({
                           <div>
                             <div 
                               className="relative group cursor-pointer"
-                              onClick={() => openImagePreview(file.url, formData.attachments)}
+                              onClick={() => openImagePreview(file.url, formData.attachments, true)}
                             >
                               <img
                                 src={file.url}
