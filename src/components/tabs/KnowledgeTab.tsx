@@ -76,12 +76,23 @@ export const KnowledgeTab = ({
   const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const [isDraggingCover, setIsDraggingCover] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   
   const departments = departmentsFromHook;
 
   useEffect(() => {
     loadMaterials();
   }, []);
+
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && previewImage) {
+        setPreviewImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [previewImage]);
 
   const loadMaterials = async () => {
     try {
@@ -669,29 +680,72 @@ export const KnowledgeTab = ({
               
               {viewingMaterial.attachments && viewingMaterial.attachments.length > 0 && (
                 <div className="mt-6 border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Прикрепленные файлы</h3>
-                  <div className="space-y-2">
+                  <h3 className="text-lg font-semibold mb-4">Прикрепленные файлы ({viewingMaterial.attachments.length})</h3>
+                  <div className="space-y-4">
                     {viewingMaterial.attachments.map((file, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 border rounded hover:bg-gray-50">
-                        <Icon name="File" size={20} className="text-gray-500" />
-                        <div className="flex-1">
-                          <p className="font-medium">{file.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {(file.size / 1024).toFixed(1)} КБ
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = file.url;
-                            link.download = file.name;
-                            link.click();
-                          }}
-                        >
-                          <Icon name="Download" size={16} />
-                        </Button>
+                      <div key={index} className="border rounded-lg overflow-hidden">
+                        {file.type?.startsWith('image/') ? (
+                          <div>
+                            <div 
+                              className="relative group cursor-pointer"
+                              onClick={() => setPreviewImage(file.url)}
+                            >
+                              <img
+                                src={file.url}
+                                alt={file.name}
+                                className="w-full max-h-96 object-contain bg-gray-50 transition-transform group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="text-white text-center">
+                                  <Icon name="Eye" size={40} className="mx-auto mb-2" />
+                                  <p className="text-sm font-medium">Увеличить</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="p-3 bg-white border-t flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-sm">{file.name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {(file.size / 1024).toFixed(1)} КБ
+                                </p>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = file.url;
+                                  link.download = file.name;
+                                  link.click();
+                                }}
+                              >
+                                <Icon name="Download" size={16} />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3 p-4">
+                            <Icon name="File" size={24} className="text-gray-500" />
+                            <div className="flex-1">
+                              <p className="font-medium">{file.name}</p>
+                              <p className="text-sm text-gray-500">
+                                {(file.size / 1024).toFixed(1)} КБ
+                              </p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = file.url;
+                                link.download = file.name;
+                                link.click();
+                              }}
+                            >
+                              <Icon name="Download" size={16} />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -745,11 +799,22 @@ export const KnowledgeTab = ({
                       <div key={index} className="border rounded-lg overflow-hidden">
                         {file.type?.startsWith('image/') ? (
                           <div>
-                            <img
-                              src={file.url}
-                              alt={file.name}
-                              className="w-full max-h-96 object-contain bg-gray-50"
-                            />
+                            <div 
+                              className="relative group cursor-pointer"
+                              onClick={() => setPreviewImage(file.url)}
+                            >
+                              <img
+                                src={file.url}
+                                alt={file.name}
+                                className="w-full max-h-96 object-contain bg-gray-50 transition-transform group-hover:scale-105"
+                              />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="text-white text-center">
+                                  <Icon name="Eye" size={40} className="mx-auto mb-2" />
+                                  <p className="text-sm font-medium">Увеличить</p>
+                                </div>
+                              </div>
+                            </div>
                             <div className="p-3 bg-white border-t">
                               <p className="font-medium text-sm">{file.name}</p>
                               <p className="text-xs text-gray-500">
@@ -997,7 +1062,19 @@ export const KnowledgeTab = ({
                       <div className="flex items-center gap-2">
                         <Icon name="GripVertical" size={16} className="text-gray-400" />
                         {file.type?.startsWith('image/') ? (
-                          <img src={file.url} alt={file.name} className="w-12 h-12 object-cover rounded" />
+                          <div 
+                            className="relative group cursor-pointer"
+                            onClick={() => setPreviewImage(file.url)}
+                          >
+                            <img 
+                              src={file.url} 
+                              alt={file.name} 
+                              className="w-12 h-12 object-cover rounded transition-transform group-hover:scale-110" 
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Icon name="Eye" size={20} className="text-white" />
+                            </div>
+                          </div>
                         ) : (
                           <Icon name="File" size={20} className="text-gray-500" />
                         )}
@@ -1009,6 +1086,16 @@ export const KnowledgeTab = ({
                         </p>
                       </div>
                       <div className="flex gap-2">
+                        {file.type?.startsWith('image/') && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setPreviewImage(file.url)}
+                            title="Посмотреть изображение"
+                          >
+                            <Icon name="Eye" size={16} />
+                          </Button>
+                        )}
                         {index > 0 && (
                           <Button
                             size="sm"
@@ -1113,6 +1200,30 @@ export const KnowledgeTab = ({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {previewImage && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+              onClick={() => setPreviewImage(null)}
+            >
+              <Icon name="X" size={24} />
+            </Button>
+            <img 
+              src={previewImage} 
+              alt="Предпросмотр" 
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         </div>
       )}
