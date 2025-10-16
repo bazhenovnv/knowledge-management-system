@@ -212,19 +212,6 @@ export const Navigation = ({
                       </Button>
                     </>
                   )}
-                  {userRole === "admin" && (
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start border-blue-500 text-blue-600 hover:bg-blue-50"
-                      onClick={() => {
-                        window.open('/admin-console', '_blank');
-                        setSidebarOpen(false);
-                      }}
-                    >
-                      <Icon name="Terminal" size={16} className="mr-2" />
-                      Консоль ошибок
-                    </Button>
-                  )}
                   <Button
                     variant={activeTab === "settings" ? "default" : "ghost"}
                     className="w-full justify-start"
