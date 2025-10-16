@@ -21,7 +21,27 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   const [unreadCount, setUnreadCount] = useState(0);
   const [supportCount, setSupportCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [prevSupportCount, setPrevSupportCount] = useState(0);
   const BACKEND_URL = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+
+  const playNotificationSound = () => {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+    oscillator.frequency.setValueAtTime(900, audioContext.currentTime + 0.2);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  };
 
   useEffect(() => {
     loadUnreadCount();
@@ -49,7 +69,14 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
     try {
       const response = await fetch(`${BACKEND_URL}?action=get_unread_support_count`);
       const data = await response.json();
-      setSupportCount(data.count || 0);
+      const newCount = data.count || 0;
+      
+      if (newCount > prevSupportCount && prevSupportCount !== 0) {
+        playNotificationSound();
+      }
+      
+      setPrevSupportCount(newCount);
+      setSupportCount(newCount);
     } catch (error) {
       console.error('Error loading support count:', error);
       setSupportCount(0);
