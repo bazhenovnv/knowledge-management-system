@@ -83,6 +83,7 @@ export const KnowledgeTab = ({
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isDownloading, setIsDownloading] = useState(false);
   
   const departments = departmentsFromHook;
 
@@ -106,6 +107,9 @@ export const KnowledgeTab = ({
         setCurrentImageIndex(nextIndex);
         setPreviewImage(imageGallery[nextIndex].url);
         resetZoom();
+      } else if ((e.key === 's' || e.key === 'S' || e.key === 'ы' || e.key === 'Ы') && imageGallery.length > 0) {
+        e.preventDefault();
+        handleDownloadImage();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -199,6 +203,22 @@ export const KnowledgeTab = ({
 
   const handleMouseUp = () => {
     setIsDragging(false);
+  };
+
+  const handleDownloadImage = () => {
+    if (imageGallery.length > 0 && imageGallery[currentImageIndex]) {
+      setIsDownloading(true);
+      const currentImage = imageGallery[currentImageIndex];
+      const link = document.createElement('a');
+      link.href = currentImage.url;
+      link.download = currentImage.name;
+      link.click();
+      
+      setTimeout(() => {
+        setIsDownloading(false);
+        toast.success(`Скачан: ${currentImage.name}`);
+      }, 500);
+    }
   };
 
   const loadMaterials = async () => {
@@ -1329,15 +1349,36 @@ export const KnowledgeTab = ({
                   </p>
                 </div>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm flex-shrink-0 ml-2"
-                onClick={closeImagePreview}
-                title="Закрыть (Esc)"
-              >
-                <Icon name="X" size={24} />
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all ${
+                    isDownloading ? 'scale-90 bg-green-500/30' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadImage();
+                  }}
+                  disabled={isDownloading}
+                  title="Скачать изображение (S)"
+                >
+                  {isDownloading ? (
+                    <Icon name="Check" size={20} className="animate-pulse" />
+                  ) : (
+                    <Icon name="Download" size={20} />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
+                  onClick={closeImagePreview}
+                  title="Закрыть (Esc)"
+                >
+                  <Icon name="X" size={24} />
+                </Button>
+              </div>
             </div>
 
             {imageGallery.length > 1 && (
@@ -1379,6 +1420,9 @@ export const KnowledgeTab = ({
                     <span>2× клик</span>
                     <span>зум</span>
                     <span className="mx-1">•</span>
+                    <span>S</span>
+                    <span>скачать</span>
+                    <span className="mx-1">•</span>
                     <span>Esc</span>
                     <span>закрыть</span>
                   </div>
@@ -1390,6 +1434,9 @@ export const KnowledgeTab = ({
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-sm text-white/70 px-3 py-1 rounded-full text-xs flex items-center gap-2">
                 <span>2× клик</span>
                 <span>зум</span>
+                <span className="mx-1">•</span>
+                <span>S</span>
+                <span>скачать</span>
                 <span className="mx-1">•</span>
                 <span>Esc</span>
                 <span>закрыть</span>
