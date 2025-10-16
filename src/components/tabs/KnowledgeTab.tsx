@@ -2561,18 +2561,32 @@ export const KnowledgeTab = ({
                         </div>
 
                         {blurAreas.length > 0 && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full bg-red-500/20 hover:bg-red-500/30 text-red-200 border-red-400/30"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setBlurAreas((prev) => prev.slice(0, -1));
-                            }}
-                          >
-                            <Icon name="Undo" size={14} className="mr-1" />
-                            Удалить последнюю
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 border-red-400/30"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setBlurAreas((prev) => prev.slice(0, -1));
+                              }}
+                            >
+                              <Icon name="Undo" size={14} className="mr-1" />
+                              Последнюю
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-200 border-red-400/30"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setBlurAreas([]);
+                              }}
+                            >
+                              <Icon name="Trash2" size={14} className="mr-1" />
+                              Все
+                            </Button>
+                          </div>
                         )}
 
                         <div className="flex gap-2">
