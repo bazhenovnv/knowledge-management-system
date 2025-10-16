@@ -9,6 +9,7 @@ import { TopEmployees } from "@/components/employees/TopEmployees";
 import { toast } from "sonner";
 import NotificationForm from "@/components/notifications/NotificationForm";
 import DbRequestCounter from "@/components/database/DbRequestCounter";
+import AIKnowledgeSearch from "@/components/ai/AIKnowledgeSearch";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -342,6 +343,9 @@ export const AdminDashboard = ({
 
       {/* Счётчик обращений к БД */}
       <DbRequestCounter isAdmin={true} />
+
+      {/* AI Поиск материалов */}
+      <AIKnowledgeSearch onMaterialAdd={loadStats} />
 
       {/* Экспорт/Импорт данных */}
       <Card>

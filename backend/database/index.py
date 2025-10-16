@@ -3,6 +3,7 @@ import os
 import psycopg2
 import hashlib
 import secrets
+import requests
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from typing import Dict, List, Any, Optional
@@ -106,6 +107,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             elif action == 'mark_support_read':
                 employee_id = body_data.get('employee_id')
                 result = mark_support_messages_read(cursor, conn, int(employee_id))
+            elif action == 'ai_search_knowledge':
+                result = ai_search_knowledge(body_data)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -1261,3 +1264,82 @@ def mark_support_messages_read(cursor, conn, employee_id: int) -> Dict[str, Any]
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка пометки прочитанных: {str(e)}'}
+
+def ai_search_knowledge(body_data: Dict[str, Any]) -> Dict[str, Any]:
+    """AI поиск образовательных материалов из интернета"""
+    try:
+        openai_api_key = os.environ.get('OPENAI_API_KEY')
+        if not openai_api_key:
+            return {'error': 'OPENAI_API_KEY не настроен в секретах'}
+        
+        query = body_data.get('query', '')
+        if not query:
+            return {'error': 'Поле query обязательно'}
+        
+        search_prompt = f"""Найди образовательные материалы по запросу: "{query}"
+
+Верни результат в формате JSON со следующей структурой:
+{{
+  "materials": [
+    {{
+      "title": "Название материала",
+      "description": "Краткое описание (2-3 предложения)",
+      "content": "Основное содержание материала (минимум 3 абзаца)",
+      "source_url": "URL источника или 'AI Generated'",
+      "tags": ["тег1", "тег2", "тег3"]
+    }}
+  ]
+}}
+
+Создай 2-3 качественных образовательных материала."""
+
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {openai_api_key}',
+                'Content-Type': 'application/json'
+            },
+            json={
+                'model': 'gpt-4o-mini',
+                'messages': [
+                    {'role': 'system', 'content': 'Ты образовательный ассистент. Создавай качественные учебные материалы на русском языке.'},
+                    {'role': 'user', 'content': search_prompt}
+                ],
+                'temperature': 0.7,
+                'max_tokens': 3000
+            },
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            return {'error': f'OpenAI API error: {response.text}'}
+        
+        ai_response = response.json()
+        content = ai_response['choices'][0]['message']['content']
+        
+        try:
+            content_clean = content.strip()
+            if content_clean.startswith('```json'):
+                content_clean = content_clean[7:]
+            if content_clean.startswith('```'):
+                content_clean = content_clean[3:]
+            if content_clean.endswith('```'):
+                content_clean = content_clean[:-3]
+            content_clean = content_clean.strip()
+            
+            materials_data = json.loads(content_clean)
+        except json.JSONDecodeError:
+            materials_data = {
+                'materials': [{
+                    'title': f'Материал по теме: {query}',
+                    'description': 'AI сгенерированный материал',
+                    'content': content,
+                    'source_url': 'AI Generated',
+                    'tags': [query.lower()]
+                }]
+            }
+        
+        return materials_data
+        
+    except Exception as e:
+        return {'error': f'Ошибка AI поиска: {str(e)}'}
