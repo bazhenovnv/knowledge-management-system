@@ -28,13 +28,22 @@ export const DbRequestCounter = ({ isAdmin }: DbRequestCounterProps) => {
 
   const fetchStats = async () => {
     try {
+      console.log('[DbRequestCounter] Fetching DB stats...');
       const stats = await databaseService.getDbRequestStats();
+      console.log('[DbRequestCounter] Stats received:', stats);
+      
       if (stats && !stats.error) {
+        console.log('[DbRequestCounter] Setting stats:', {
+          current: stats.current_month,
+          previous: stats.previous_month
+        });
         setCurrentMonth(stats.current_month);
         setPreviousMonth(stats.previous_month);
+      } else {
+        console.error('[DbRequestCounter] Invalid stats or error:', stats);
       }
     } catch (error) {
-      console.error('Ошибка загрузки статистики БД:', error);
+      console.error('[DbRequestCounter] Ошибка загрузки статистики БД:', error);
     } finally {
       setLoading(false);
     }

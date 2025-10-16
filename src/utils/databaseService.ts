@@ -464,17 +464,25 @@ class DatabaseService {
     previous_month: { month_year: string; request_count: number; updated_at?: string };
   } | null> {
     try {
-      const response = await this.makeRequest(
-        `${this.baseUrl}?action=get_db_stats`,
-        'GET'
-      );
+      const response = await this.makeRequest<{
+        current_month: { month_year: string; request_count: number; updated_at?: string };
+        previous_month: { month_year: string; request_count: number; updated_at?: string };
+      }>('?action=get_db_stats', { method: 'GET' });
       
       if (response.error) {
         console.error('Get DB stats error:', response.error);
         return null;
       }
       
-      return response;
+      // Backend возвращает данные напрямую, не обёрнутые в data
+      // Проверяем, есть ли current_month напрямую в response или в response.data
+      if ('current_month' in response) {
+        return response as any;
+      } else if (response.data && 'current_month' in response.data) {
+        return response.data;
+      }
+      
+      return null;
     } catch (error) {
       console.error('Get DB stats error:', error);
       return null;
