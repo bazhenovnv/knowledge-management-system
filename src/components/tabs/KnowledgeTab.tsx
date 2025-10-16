@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -114,6 +114,13 @@ export const KnowledgeTab = ({
   const [textInput, setTextInput] = useState('');
   const [textPosition, setTextPosition] = useState<{ x: number; y: number } | null>(null);
   const [showTextInput, setShowTextInput] = useState(false);
+  const [blurAreas, setBlurAreas] = useState<Array<{ x: number; y: number; width: number; height: number; intensity: number }>>([]);
+  const [isBlurring, setIsBlurring] = useState(false);
+  const [blurIntensity, setBlurIntensity] = useState(20);
+  const [currentBlurArea, setCurrentBlurArea] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [isDrawingBlur, setIsDrawingBlur] = useState(false);
+  
+  const imageContainerRef = useRef<HTMLDivElement>(null);
   
   const departments = departmentsFromHook;
 
@@ -868,6 +875,175 @@ export const KnowledgeTab = ({
     setEditFilter('none');
     handleCancelCrop();
     handleCancelDrawing();
+    handleCancelBlur();
+  };
+
+  const handleStartBlur = () => {
+    setIsBlurring(true);
+    setIsEditing(false);
+    setIsDrawing(false);
+    setIsCropping(false);
+  };
+
+  const handleCancelBlur = () => {
+    setIsBlurring(false);
+    setBlurAreas([]);
+    setCurrentBlurArea(null);
+    setIsDrawingBlur(false);
+  };
+
+  const handleBlurMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isBlurring || showTextInput) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setIsDrawingBlur(true);
+    setCurrentBlurArea({ x, y, width: 0, height: 0 });
+  };
+
+  const handleBlurMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDrawingBlur || !currentBlurArea) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    
+    setCurrentBlurArea({
+      x: currentBlurArea.x,
+      y: currentBlurArea.y,
+      width: currentX - currentBlurArea.x,
+      height: currentY - currentBlurArea.y
+    });
+  };
+
+  const handleBlurMouseUp = () => {
+    if (!isDrawingBlur || !currentBlurArea) return;
+    
+    if (Math.abs(currentBlurArea.width) > 10 && Math.abs(currentBlurArea.height) > 10) {
+      const normalizedArea = {
+        x: currentBlurArea.width < 0 ? currentBlurArea.x + currentBlurArea.width : currentBlurArea.x,
+        y: currentBlurArea.height < 0 ? currentBlurArea.y + currentBlurArea.height : currentBlurArea.y,
+        width: Math.abs(currentBlurArea.width),
+        height: Math.abs(currentBlurArea.height),
+        intensity: blurIntensity
+      };
+      
+      setBlurAreas([...blurAreas, normalizedArea]);
+    }
+    
+    setCurrentBlurArea(null);
+    setIsDrawingBlur(false);
+  };
+
+  const handleSaveBlur = async () => {
+    if (blurAreas.length === 0 || !imageGallery[currentImageIndex]) return;
+    
+    setIsSavingEdit(true);
+    const currentImage = imageGallery[currentImageIndex];
+    
+    try {
+      const response = await fetch(currentImage.url);
+      const blob = await response.blob();
+      
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = URL.createObjectURL(blob);
+      });
+      
+      canvas.width = img.width;
+      canvas.height = img.height;
+      
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        
+        const displayRect = (imageContainerRef.current as HTMLElement)?.getBoundingClientRect();
+        if (!displayRect) return;
+        
+        const scaleX = img.width / displayRect.width;
+        const scaleY = img.height / displayRect.height;
+        
+        blurAreas.forEach((area) => {
+          const x = Math.round(area.x * scaleX);
+          const y = Math.round(area.y * scaleY);
+          const width = Math.round(area.width * scaleX);
+          const height = Math.round(area.height * scaleY);
+          
+          const imageData = ctx.getImageData(x, y, width, height);
+          const blurredData = applyPixelatedBlur(imageData, area.intensity);
+          ctx.putImageData(blurredData, x, y);
+        });
+      }
+
+      canvas.toBlob((blurredBlob) => {
+        if (blurredBlob) {
+          const url = URL.createObjectURL(blurredBlob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `blurred-${currentImage.name || 'image.png'}`;
+          link.click();
+          URL.revokeObjectURL(url);
+          
+          setTimeout(() => {
+            setIsSavingEdit(false);
+            handleCancelBlur();
+            toast.success('Изображение с размытием сохранено!');
+          }, 500);
+        }
+      }, 'image/png');
+      
+    } catch (error) {
+      console.error('Ошибка размытия:', error);
+      setIsSavingEdit(false);
+      toast.error('Не удалось применить размытие');
+    }
+  };
+
+  const applyPixelatedBlur = (imageData: ImageData, intensity: number): ImageData => {
+    const { width, height, data } = imageData;
+    const output = new ImageData(width, height);
+    const blockSize = Math.max(1, Math.floor(intensity / 5));
+    
+    for (let y = 0; y < height; y += blockSize) {
+      for (let x = 0; x < width; x += blockSize) {
+        let r = 0, g = 0, b = 0, a = 0, count = 0;
+        
+        for (let by = 0; by < blockSize && y + by < height; by++) {
+          for (let bx = 0; bx < blockSize && x + bx < width; bx++) {
+            const i = ((y + by) * width + (x + bx)) * 4;
+            r += data[i];
+            g += data[i + 1];
+            b += data[i + 2];
+            a += data[i + 3];
+            count++;
+          }
+        }
+        
+        r = Math.floor(r / count);
+        g = Math.floor(g / count);
+        b = Math.floor(b / count);
+        a = Math.floor(a / count);
+        
+        for (let by = 0; by < blockSize && y + by < height; by++) {
+          for (let bx = 0; bx < blockSize && x + bx < width; bx++) {
+            const i = ((y + by) * width + (x + bx)) * 4;
+            output.data[i] = r;
+            output.data[i + 1] = g;
+            output.data[i + 2] = b;
+            output.data[i + 3] = a;
+          }
+        }
+      }
+    }
+    
+    return output;
   };
 
   const getFilterCSS = (filter: string): string => {
@@ -2203,7 +2379,7 @@ export const KnowledgeTab = ({
                           e.stopPropagation();
                           handleStartDrawing();
                         }}
-                        disabled={isCropping}
+                        disabled={isCropping || isBlurring}
                       >
                         <Icon name="Pencil" size={16} className="mr-2" />
                         Аннотации
@@ -2343,6 +2519,82 @@ export const KnowledgeTab = ({
                   </div>
 
                   <div>
+                    <p className="text-xs text-white/70 mb-2">Размытие</p>
+                    {!isBlurring ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full bg-white/5 hover:bg-white/20 text-white border-white/20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartBlur();
+                        }}
+                        disabled={isCropping || isDrawing}
+                      >
+                        <Icon name="Scan" size={16} className="mr-2" />
+                        Скрыть данные
+                      </Button>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-xs text-white/90">Выделите области для размытия</p>
+                        
+                        <div>
+                          <p className="text-xs text-white/70 mb-1">Интенсивность: {blurIntensity}</p>
+                          <input
+                            type="range"
+                            min="5"
+                            max="50"
+                            value={blurIntensity}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              setBlurIntensity(Number(e.target.value));
+                            }}
+                            className="w-full"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 bg-white/5 hover:bg-white/20 text-white border-white/20"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCancelBlur();
+                            }}
+                          >
+                            Отмена
+                          </Button>
+                          <Button
+                            size="sm"
+                            className={`flex-1 bg-blue-500 hover:bg-blue-600 text-white ${
+                              isSavingEdit || blurAreas.length === 0 ? 'opacity-50' : ''
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveBlur();
+                            }}
+                            disabled={isSavingEdit || blurAreas.length === 0}
+                          >
+                            {isSavingEdit ? (
+                              <>
+                                <Icon name="Loader2" size={14} className="mr-1 animate-spin" />
+                                ...
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="Check" size={14} className="mr-1" />
+                                Готово
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
                     <p className="text-xs text-white/70 mb-2">Поворот</p>
                     <Button
                       variant="outline"
@@ -2352,7 +2604,7 @@ export const KnowledgeTab = ({
                         e.stopPropagation();
                         handleRotateImage();
                       }}
-                      disabled={isCropping}
+                      disabled={isCropping || isBlurring}
                     >
                       <Icon name="RotateCw" size={16} className="mr-2" />
                       Повернуть 90°
@@ -2372,6 +2624,7 @@ export const KnowledgeTab = ({
                           e.stopPropagation();
                           handleApplyFilter('none');
                         }}
+                        disabled={isBlurring}
                       >
                         Оригинал
                       </Button>
@@ -2385,6 +2638,7 @@ export const KnowledgeTab = ({
                           e.stopPropagation();
                           handleApplyFilter('grayscale');
                         }}
+                        disabled={isBlurring}
                       >
                         Ч/Б
                       </Button>
@@ -2398,6 +2652,7 @@ export const KnowledgeTab = ({
                           e.stopPropagation();
                           handleApplyFilter('sepia');
                         }}
+                        disabled={isBlurring}
                       >
                         Сепия
                       </Button>
@@ -2411,6 +2666,7 @@ export const KnowledgeTab = ({
                           e.stopPropagation();
                           handleApplyFilter('brightness');
                         }}
+                        disabled={isBlurring}
                       >
                         Яркость
                       </Button>
@@ -2424,6 +2680,7 @@ export const KnowledgeTab = ({
                           e.stopPropagation();
                           handleApplyFilter('contrast');
                         }}
+                        disabled={isBlurring}
                       >
                         Контраст
                       </Button>
@@ -2437,13 +2694,14 @@ export const KnowledgeTab = ({
                           e.stopPropagation();
                           handleApplyFilter('invert');
                         }}
+                        disabled={isBlurring}
                       >
                         Негатив
                       </Button>
                     </div>
                   </div>
 
-                  {!isCropping && (
+                  {!isCropping && !isDrawing && !isBlurring && (
                     <div className="pt-2 border-t border-white/20 flex gap-2">
                       <Button
                         variant="outline"
@@ -2491,7 +2749,7 @@ export const KnowledgeTab = ({
               </div>
             )}
 
-            {!isCropping && !isDrawing && imageGallery.length > 1 && (
+            {!isCropping && !isDrawing && !isBlurring && imageGallery.length > 1 && (
               <>
                 <Button
                   variant="ghost"
@@ -2552,7 +2810,7 @@ export const KnowledgeTab = ({
               </>
             )}
 
-            {!isCropping && !isDrawing && imageGallery.length === 1 && (
+            {!isCropping && !isDrawing && !isBlurring && imageGallery.length === 1 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-sm text-white/70 px-3 py-1 rounded-full text-xs flex items-center gap-2">
                 <span>2× клик</span>
                 <span>зум</span>
@@ -2624,29 +2882,35 @@ export const KnowledgeTab = ({
             </div>
             
             <div 
+              ref={imageContainerRef}
               className={`overflow-hidden relative ${
                 isDrawing ? 'cursor-crosshair' : 
+                isBlurring ? 'cursor-crosshair' :
                 (zoomLevel > 1 && !isCropping ? 'cursor-move' : 'cursor-default')
               }`}
-              onWheel={!isCropping && !isDrawing ? handleWheel : undefined}
+              onWheel={!isCropping && !isDrawing && !isBlurring ? handleWheel : undefined}
               onMouseDown={
                 isCropping ? handleCropMouseDown : 
-                isDrawing ? handleDrawMouseDown : 
+                isDrawing ? handleDrawMouseDown :
+                isBlurring ? handleBlurMouseDown :
                 handleMouseDown
               }
               onMouseMove={
                 isCropping ? handleCropMouseMove : 
-                isDrawing ? handleDrawMouseMove : 
+                isDrawing ? handleDrawMouseMove :
+                isBlurring ? handleBlurMouseMove :
                 handleMouseMove
               }
               onMouseUp={
                 isCropping ? handleCropMouseUp : 
-                isDrawing ? handleDrawMouseUp : 
+                isDrawing ? handleDrawMouseUp :
+                isBlurring ? handleBlurMouseUp :
                 handleMouseUp
               }
               onMouseLeave={
                 isCropping ? handleCropMouseUp : 
-                isDrawing ? handleDrawMouseUp : 
+                isDrawing ? handleDrawMouseUp :
+                isBlurring ? handleBlurMouseUp :
                 handleMouseUp
               }
             >
@@ -2873,6 +3137,39 @@ export const KnowledgeTab = ({
 
                   <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-blue-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-blue-400/50 z-20">
                     ✏️ {drawMode === 'pen' ? 'Рисуйте' : drawMode === 'arrow' ? 'Нарисуйте стрелку' : drawMode === 'rect' ? 'Нарисуйте прямоугольник' : 'Кликните для текста'}
+                  </div>
+                </>
+              )}
+
+              {isBlurring && (
+                <>
+                  {blurAreas.map((area, index) => (
+                    <div
+                      key={index}
+                      className="absolute border-2 border-red-500 bg-red-500/20 pointer-events-none"
+                      style={{
+                        left: area.x,
+                        top: area.y,
+                        width: area.width,
+                        height: area.height
+                      }}
+                    />
+                  ))}
+
+                  {currentBlurArea && currentBlurArea.width !== 0 && currentBlurArea.height !== 0 && (
+                    <div
+                      className="absolute border-2 border-red-400 border-dashed bg-red-400/10 pointer-events-none"
+                      style={{
+                        left: currentBlurArea.width < 0 ? currentBlurArea.x + currentBlurArea.width : currentBlurArea.x,
+                        top: currentBlurArea.height < 0 ? currentBlurArea.y + currentBlurArea.height : currentBlurArea.y,
+                        width: Math.abs(currentBlurArea.width),
+                        height: Math.abs(currentBlurArea.height)
+                      }}
+                    />
+                  )}
+
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-500/20 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm border border-red-400/50 z-20">
+                    🔒 Выделите области для размытия
                   </div>
                 </>
               )}
