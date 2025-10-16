@@ -229,16 +229,34 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
       issues.push(`Много инлайн-стилей: ${inlineStyles.length} элементов`);
     }
     
-    // Проверка на множественные классы
+    // Проверка на множественные классы (игнорируем UI компоненты библиотек)
     const elementsWithManyClasses = Array.from(document.querySelectorAll('*')).filter(
       el => {
         if (!el.className) return false;
         const className = typeof el.className === 'string' ? el.className : el.className.baseVal || '';
-        return className.split(' ').length > 15;
+        const classCount = className.split(' ').filter(c => c.trim()).length;
+        
+        // Игнорируем элементы из UI библиотек (shadcn, radix)
+        const ignoredSelectors = ['[data-radix', '[data-state', '[cmdk-', '[role="dialog"]', '[role="menu"]'];
+        const shouldIgnore = ignoredSelectors.some(selector => {
+          try {
+            return el.matches(selector + '*]') || el.closest(selector + '*]');
+          } catch {
+            return false;
+          }
+        });
+        
+        return classCount > 20 && !shouldIgnore; // Увеличили порог до 20 и добавили игнорирование
       }
     );
     if (elementsWithManyClasses.length > 0) {
-      issues.push(`Элементы с >15 классами: ${elementsWithManyClasses.length} шт.`);
+      issues.push(`Элементы с избыточными классами: ${elementsWithManyClasses.length} шт.`);
+      // Показываем примеры
+      elementsWithManyClasses.slice(0, 3).forEach((el, i) => {
+        const className = typeof el.className === 'string' ? el.className : el.className.baseVal || '';
+        const classCount = className.split(' ').filter(c => c.trim()).length;
+        issues.push(`  └─ Элемент #${i + 1}: ${el.tagName.toLowerCase()} (${classCount} классов)`);
+      });
     }
     
     // Проверка на комментарии HTML
