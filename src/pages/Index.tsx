@@ -228,14 +228,6 @@ const Index = () => {
 
       {/* AI Помощник Алиса */}
       <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
-      
-      {/* Чат технической поддержки */}
-      {isLoggedIn && userId && (
-        <SupportChat 
-          employeeId={userId} 
-          isAdmin={userRole === 'admin'} 
-        />
-      )}
     </div>
   );
 };

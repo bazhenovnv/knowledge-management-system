@@ -19,9 +19,10 @@ interface SupportMessage {
 interface SupportChatProps {
   employeeId: number;
   isAdmin: boolean;
+  compact?: boolean;
 }
 
-const SupportChat = ({ employeeId, isAdmin }: SupportChatProps) => {
+const SupportChat = ({ employeeId, isAdmin, compact = false }: SupportChatProps) => {
   const [messages, setMessages] = useState<SupportMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -110,16 +111,22 @@ const SupportChat = ({ employeeId, isAdmin }: SupportChatProps) => {
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 z-50"
+        variant={compact ? "ghost" : "default"}
+        size={compact ? "icon" : "default"}
+        className={
+          compact
+            ? "relative"
+            : "fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 z-50"
+        }
         title="Техническая поддержка"
       >
-        <Icon name="MessageCircle" size={24} />
+        <Icon name="Headphones" size={compact ? 20 : 24} />
       </Button>
     );
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 w-96 h-[32rem] shadow-2xl z-50 flex flex-col">
+    <Card className={compact ? "fixed top-16 right-4 w-96 h-[32rem] shadow-2xl z-50 flex flex-col" : "fixed bottom-6 right-6 w-96 h-[32rem] shadow-2xl z-50 flex flex-col"}>
       <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

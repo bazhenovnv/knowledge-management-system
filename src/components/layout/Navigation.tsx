@@ -17,6 +17,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { useState } from "react";
 import ServerStatusIndicator from "@/components/status/ServerStatusIndicator";
+import SupportChat from "@/components/support/SupportChat";
 
 interface NavigationProps {
   activeTab: string;
@@ -95,6 +96,11 @@ export const Navigation = ({
         <div className="flex items-center space-x-2">
           <ServerStatusIndicator compact />
           <NotificationBell employeeId={employeeId} isAdmin={userRole === 'admin'} />
+          <SupportChat 
+            employeeId={employeeId} 
+            isAdmin={userRole === 'admin'}
+            compact={true}
+          />
           <Button
             variant="outline"
             size="sm"
