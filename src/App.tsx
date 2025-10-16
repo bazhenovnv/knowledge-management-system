@@ -16,6 +16,7 @@ import AddEmployeeTestPage from "./pages/AddEmployeeTestPage";
 import EmployeeManagementPage from "./pages/EmployeeManagementPage";
 import DemoEmployeesPage from "./pages/DemoEmployeesPage";
 import AdminSettings from "./pages/AdminSettings";
+import AdminConsole from "./pages/AdminConsole";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/employees" element={<EmployeeManagementPage />} />
             <Route path="/demo-employees" element={<DemoEmployeesPage />} />
             <Route path="/admin-settings" element={<AdminSettings />} />
+            <Route path="/admin-console" element={<AdminConsole />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
