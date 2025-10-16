@@ -85,6 +85,7 @@ export const KnowledgeTab = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDownloading, setIsDownloading] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   
   const departments = departmentsFromHook;
 
@@ -114,6 +115,9 @@ export const KnowledgeTab = ({
       } else if ((e.key === 'c' || e.key === 'C' || e.key === 'с' || e.key === 'С') && imageGallery.length > 0) {
         e.preventDefault();
         handleCopyImage();
+      } else if ((e.key === 'h' || e.key === 'H' || e.key === 'р' || e.key === 'Р') && imageGallery.length > 0) {
+        e.preventDefault();
+        handleShareImage();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -254,6 +258,53 @@ export const KnowledgeTab = ({
         console.error('Ошибка копирования:', error);
         setIsCopying(false);
         toast.error('Не удалось скопировать. Попробуйте скачать (S)');
+      }
+    }
+  };
+
+  const handleShareImage = async () => {
+    if (imageGallery.length > 0 && imageGallery[currentImageIndex]) {
+      setIsSharing(true);
+      const currentImage = imageGallery[currentImageIndex];
+      
+      if (!navigator.share) {
+        setIsSharing(false);
+        toast.error('Ваш браузер не поддерживает функцию "Поделиться"');
+        return;
+      }
+      
+      try {
+        const response = await fetch(currentImage.url);
+        const blob = await response.blob();
+        
+        const fileName = currentImage.name || `image-${Date.now()}.${blob.type.split('/')[1] || 'png'}`;
+        const file = new File([blob], fileName, { type: blob.type });
+        
+        const shareData: ShareData = {
+          title: 'Изображение из базы знаний',
+          text: 'Смотрите это изображение',
+          files: [file]
+        };
+        
+        if (navigator.canShare && !navigator.canShare(shareData)) {
+          throw new Error('Sharing files is not supported');
+        }
+        
+        await navigator.share(shareData);
+        
+        setTimeout(() => {
+          setIsSharing(false);
+          toast.success('Изображение отправлено!');
+        }, 500);
+      } catch (error: unknown) {
+        console.error('Ошибка отправки:', error);
+        setIsSharing(false);
+        
+        if ((error as Error).name === 'AbortError') {
+          return;
+        }
+        
+        toast.error('Не удалось отправить. Попробуйте копировать (C) или скачать (S)');
       }
     }
   };
@@ -1410,6 +1461,25 @@ export const KnowledgeTab = ({
                   variant="ghost"
                   size="sm"
                   className={`bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all ${
+                    isSharing ? 'scale-90 bg-purple-500/30' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleShareImage();
+                  }}
+                  disabled={isSharing}
+                  title="Поделиться (H)"
+                >
+                  {isSharing ? (
+                    <Icon name="Check" size={20} className="animate-pulse" />
+                  ) : (
+                    <Icon name="Share2" size={20} />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all ${
                     isDownloading ? 'scale-90 bg-green-500/30' : ''
                   }`}
                   onClick={(e) => {
@@ -1479,6 +1549,9 @@ export const KnowledgeTab = ({
                     <span>C</span>
                     <span>копия</span>
                     <span className="mx-1">•</span>
+                    <span>H</span>
+                    <span>поделиться</span>
+                    <span className="mx-1">•</span>
                     <span>S</span>
                     <span>скачать</span>
                     <span className="mx-1">•</span>
@@ -1496,6 +1569,9 @@ export const KnowledgeTab = ({
                 <span className="mx-1">•</span>
                 <span>C</span>
                 <span>копия</span>
+                <span className="mx-1">•</span>
+                <span>H</span>
+                <span>поделиться</span>
                 <span className="mx-1">•</span>
                 <span>S</span>
                 <span>скачать</span>
