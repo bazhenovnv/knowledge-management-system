@@ -77,6 +77,8 @@ export const KnowledgeTab = ({
   const [isDraggingCover, setIsDraggingCover] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [imageGallery, setImageGallery] = useState<FileAttachment[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const departments = departmentsFromHook;
 
@@ -85,14 +87,49 @@ export const KnowledgeTab = ({
   }, []);
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && previewImage) {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!previewImage) return;
+      
+      if (e.key === 'Escape') {
         setPreviewImage(null);
+        setImageGallery([]);
+      } else if (e.key === 'ArrowLeft') {
+        handlePrevImage();
+      } else if (e.key === 'ArrowRight') {
+        handleNextImage();
       }
     };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [previewImage]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewImage, currentImageIndex, imageGallery]);
+
+  const openImagePreview = (imageUrl: string, allImages: FileAttachment[]) => {
+    const images = allImages.filter(file => file.type?.startsWith('image/'));
+    const index = images.findIndex(img => img.url === imageUrl);
+    setImageGallery(images);
+    setCurrentImageIndex(index >= 0 ? index : 0);
+    setPreviewImage(imageUrl);
+  };
+
+  const handleNextImage = () => {
+    if (imageGallery.length === 0) return;
+    const nextIndex = (currentImageIndex + 1) % imageGallery.length;
+    setCurrentImageIndex(nextIndex);
+    setPreviewImage(imageGallery[nextIndex].url);
+  };
+
+  const handlePrevImage = () => {
+    if (imageGallery.length === 0) return;
+    const prevIndex = currentImageIndex === 0 ? imageGallery.length - 1 : currentImageIndex - 1;
+    setCurrentImageIndex(prevIndex);
+    setPreviewImage(imageGallery[prevIndex].url);
+  };
+
+  const closeImagePreview = () => {
+    setPreviewImage(null);
+    setImageGallery([]);
+    setCurrentImageIndex(0);
+  };
 
   const loadMaterials = async () => {
     try {
@@ -688,7 +725,7 @@ export const KnowledgeTab = ({
                           <div>
                             <div 
                               className="relative group cursor-pointer"
-                              onClick={() => setPreviewImage(file.url)}
+                              onClick={() => openImagePreview(file.url, viewingMaterial.attachments || [])}
                             >
                               <img
                                 src={file.url}
@@ -801,7 +838,7 @@ export const KnowledgeTab = ({
                           <div>
                             <div 
                               className="relative group cursor-pointer"
-                              onClick={() => setPreviewImage(file.url)}
+                              onClick={() => openImagePreview(file.url, formData.attachments)}
                             >
                               <img
                                 src={file.url}
@@ -1064,7 +1101,10 @@ export const KnowledgeTab = ({
                         {file.type?.startsWith('image/') ? (
                           <div 
                             className="relative group cursor-pointer"
-                            onClick={() => setPreviewImage(file.url)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openImagePreview(file.url, formData.attachments);
+                            }}
                           >
                             <img 
                               src={file.url} 
@@ -1090,7 +1130,7 @@ export const KnowledgeTab = ({
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => setPreviewImage(file.url)}
+                            onClick={() => openImagePreview(file.url, formData.attachments)}
                             title="Посмотреть изображение"
                           >
                             <Icon name="Eye" size={16} />
@@ -1206,18 +1246,73 @@ export const KnowledgeTab = ({
 
       {previewImage && (
         <div 
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => setPreviewImage(null)}
+          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={closeImagePreview}
         >
           <div className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm"
-              onClick={() => setPreviewImage(null)}
-            >
-              <Icon name="X" size={24} />
-            </Button>
+            <div className="absolute top-4 left-4 right-4 flex items-start justify-between z-10">
+              {imageGallery.length > 0 && imageGallery[currentImageIndex] && (
+                <div className="bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-lg max-w-md">
+                  <p className="font-medium truncate">{imageGallery[currentImageIndex].name}</p>
+                  <p className="text-xs text-white/80">
+                    {(imageGallery[currentImageIndex].size / 1024).toFixed(1)} КБ
+                  </p>
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm flex-shrink-0 ml-2"
+                onClick={closeImagePreview}
+                title="Закрыть (Esc)"
+              >
+                <Icon name="X" size={24} />
+              </Button>
+            </div>
+
+            {imageGallery.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm z-10 h-16 w-16 transition-all hover:scale-110"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevImage();
+                  }}
+                  title="Предыдущее изображение (←)"
+                >
+                  <Icon name="ChevronLeft" size={32} />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm z-10 h-16 w-16 transition-all hover:scale-110"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  title="Следующее изображение (→)"
+                >
+                  <Icon name="ChevronRight" size={32} />
+                </Button>
+
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+                  <div className="bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+                    {currentImageIndex + 1} / {imageGallery.length}
+                  </div>
+                  <div className="bg-white/5 backdrop-blur-sm text-white/70 px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                    <span>← →</span>
+                    <span>листать</span>
+                    <span className="mx-1">•</span>
+                    <span>Esc</span>
+                    <span>закрыть</span>
+                  </div>
+                </div>
+              </>
+            )}
+            
             <img 
               src={previewImage} 
               alt="Предпросмотр" 
