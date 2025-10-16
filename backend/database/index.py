@@ -44,10 +44,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
         cursor = conn.cursor()
         
-        # Определяем операцию из URL path
+        # Инкремент счётчика обращений к БД (кроме запросов статистики)
         params = event.get('queryStringParameters') or {}
         action = params.get('action', 'list')
         table = params.get('table', 'employees')
+        
+        if action != 'get_db_stats':
+            increment_request_counter(cursor, conn)
         
         if method == 'GET':
             if action == 'list':
@@ -72,6 +75,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = get_unread_notifications_count(cursor, employee_id)
             elif action == 'stats':
                 result = get_database_stats(cursor)
+            elif action == 'get_db_stats':
+                result = get_db_request_stats(cursor)
             else:
                 result = {'error': 'Неизвестное действие'}
                 
@@ -1100,3 +1105,59 @@ def mark_all_notifications_read(cursor, conn, employee_id: str) -> Dict[str, Any
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка обновления уведомлений: {str(e)}'}
+
+
+def increment_request_counter(cursor, conn) -> None:
+    """Инкремент счётчика обращений к БД для текущего месяца"""
+    try:
+        from datetime import datetime
+        schema = 't_p47619579_knowledge_management'
+        current_month = datetime.now().strftime('%Y-%m')
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.db_request_stats (month_year, request_count, updated_at)
+            VALUES (%s, 1, CURRENT_TIMESTAMP)
+            ON CONFLICT (month_year) 
+            DO UPDATE SET 
+                request_count = {schema}.db_request_stats.request_count + 1,
+                updated_at = CURRENT_TIMESTAMP
+        """, (current_month,))
+        
+        conn.commit()
+    except Exception as e:
+        print(f"ERROR incrementing request counter: {str(e)}")
+        conn.rollback()
+
+
+def get_db_request_stats(cursor) -> Dict[str, Any]:
+    """Получить статистику обращений к БД за текущий и прошлый месяцы"""
+    try:
+        from datetime import datetime, timedelta
+        schema = 't_p47619579_knowledge_management'
+        
+        current_date = datetime.now()
+        current_month = current_date.strftime('%Y-%m')
+        
+        # Предыдущий месяц
+        if current_date.month == 1:
+            prev_month = f"{current_date.year - 1}-12"
+        else:
+            prev_month = f"{current_date.year}-{str(current_date.month - 1).zfill(2)}"
+        
+        cursor.execute(f"""
+            SELECT month_year, request_count, updated_at
+            FROM {schema}.db_request_stats
+            WHERE month_year IN (%s, %s)
+            ORDER BY month_year DESC
+        """, (current_month, prev_month))
+        
+        rows = cursor.fetchall()
+        stats = {row['month_year']: dict(row) for row in rows}
+        
+        return {
+            'current_month': stats.get(current_month, {'month_year': current_month, 'request_count': 0}),
+            'previous_month': stats.get(prev_month, {'month_year': prev_month, 'request_count': 0})
+        }
+        
+    except Exception as e:
+        return {'error': f'Ошибка получения статистики: {str(e)}'}

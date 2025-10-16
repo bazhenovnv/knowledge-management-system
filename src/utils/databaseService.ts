@@ -458,6 +458,28 @@ class DatabaseService {
       return false;
     }
   }
+
+  async getDbRequestStats(): Promise<{
+    current_month: { month_year: string; request_count: number; updated_at?: string };
+    previous_month: { month_year: string; request_count: number; updated_at?: string };
+  } | null> {
+    try {
+      const response = await this.makeRequest(
+        `${this.baseUrl}?action=get_db_stats`,
+        'GET'
+      );
+      
+      if (response.error) {
+        console.error('Get DB stats error:', response.error);
+        return null;
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('Get DB stats error:', error);
+      return null;
+    }
+  }
 }
 
 // Создаем единственный экземпляр сервиса

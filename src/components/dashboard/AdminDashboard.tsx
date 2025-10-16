@@ -8,6 +8,7 @@ import { databaseService, DatabaseEmployee } from "@/utils/databaseService";
 import { TopEmployees } from "@/components/employees/TopEmployees";
 import { toast } from "sonner";
 import NotificationForm from "@/components/notifications/NotificationForm";
+import DbRequestCounter from "@/components/database/DbRequestCounter";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -339,6 +340,8 @@ export const AdminDashboard = ({
         </Card>
       </div>
 
+      {/* Счётчик обращений к БД */}
+      <DbRequestCounter isAdmin={true} />
 
       {/* Экспорт/Импорт данных */}
       <Card>
