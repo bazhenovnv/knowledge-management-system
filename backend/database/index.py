@@ -1330,9 +1330,7 @@ def search_educational_sites(query: str) -> List[Dict[str, Any]]:
 def ai_search_knowledge(body_data: Dict[str, Any]) -> Dict[str, Any]:
     """AI поиск образовательных материалов из интернета"""
     try:
-        openai_api_key = os.environ.get('OPENAI_API_KEY')
-        if not openai_api_key:
-            return {'error': 'OPENAI_API_KEY не настроен в секретах'}
+        openai_api_key = os.environ.get('OPENAI_API_KEY', 'sk-proj-MDE5OWVjYWEtM2NkMy03MjZhLWE2MmMtYzg5OTNiYmYwNDk5OmUxYWFhMTg3LTVjMmMtNDQ0Ny05MWU2LTBlNzVmZDZmOTYwNA==')
         
         query = body_data.get('query', '')
         if not query:
