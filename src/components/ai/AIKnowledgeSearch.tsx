@@ -34,13 +34,18 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
 
     setLoading(true);
     try {
+      console.log('AI Search: Searching for:', query);
+      console.log('AI Search: Using URL:', `${BACKEND_URL}?action=ai_search_knowledge`);
+      
       const response = await fetch(`${BACKEND_URL}?action=ai_search_knowledge`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: query.trim() })
       });
 
+      console.log('AI Search: Response status:', response.status);
       const data = await response.json();
+      console.log('AI Search: Response data:', data);
 
       if (data.error) {
         toast.error(data.error);
