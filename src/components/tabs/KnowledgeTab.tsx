@@ -86,6 +86,7 @@ export const KnowledgeTab = ({
   const [isDownloading, setIsDownloading] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   
   const departments = departmentsFromHook;
 
@@ -118,6 +119,9 @@ export const KnowledgeTab = ({
       } else if ((e.key === 'h' || e.key === 'H' || e.key === 'р' || e.key === 'Р') && imageGallery.length > 0) {
         e.preventDefault();
         handleShareImage();
+      } else if ((e.key === 'p' || e.key === 'P' || e.key === 'з' || e.key === 'З') && imageGallery.length > 0) {
+        e.preventDefault();
+        handlePrintImage();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -305,6 +309,95 @@ export const KnowledgeTab = ({
         }
         
         toast.error('Не удалось отправить. Попробуйте копировать (C) или скачать (S)');
+      }
+    }
+  };
+
+  const handlePrintImage = async () => {
+    if (imageGallery.length > 0 && imageGallery[currentImageIndex]) {
+      setIsPrinting(true);
+      const currentImage = imageGallery[currentImageIndex];
+      
+      try {
+        const printWindow = window.open('', '_blank');
+        
+        if (!printWindow) {
+          throw new Error('Popup blocked');
+        }
+        
+        const img = new Image();
+        img.src = currentImage.url;
+        
+        img.onload = () => {
+          printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Печать: ${currentImage.name || 'Изображение'}</title>
+                <style>
+                  * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                  }
+                  body {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    background: white;
+                  }
+                  img {
+                    max-width: 100%;
+                    max-height: 100vh;
+                    width: auto;
+                    height: auto;
+                    object-fit: contain;
+                  }
+                  @media print {
+                    body {
+                      margin: 0;
+                    }
+                    img {
+                      max-width: 100%;
+                      max-height: 100%;
+                      page-break-inside: avoid;
+                    }
+                  }
+                </style>
+              </head>
+              <body>
+                <img src="${currentImage.url}" alt="${currentImage.name || 'Изображение'}" />
+                <script>
+                  window.onload = function() {
+                    setTimeout(function() {
+                      window.print();
+                      setTimeout(function() {
+                        window.close();
+                      }, 100);
+                    }, 250);
+                  };
+                </script>
+              </body>
+            </html>
+          `);
+          printWindow.document.close();
+          
+          setTimeout(() => {
+            setIsPrinting(false);
+            toast.success('Отправлено на печать!');
+          }, 500);
+        };
+        
+        img.onerror = () => {
+          printWindow.close();
+          throw new Error('Image load failed');
+        };
+        
+      } catch (error) {
+        console.error('Ошибка печати:', error);
+        setIsPrinting(false);
+        toast.error('Не удалось открыть окно печати. Попробуйте скачать (S)');
       }
     }
   };
@@ -1480,6 +1573,25 @@ export const KnowledgeTab = ({
                   variant="ghost"
                   size="sm"
                   className={`bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all ${
+                    isPrinting ? 'scale-90 bg-orange-500/30' : ''
+                  }`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrintImage();
+                  }}
+                  disabled={isPrinting}
+                  title="Печать (P)"
+                >
+                  {isPrinting ? (
+                    <Icon name="Check" size={20} className="animate-pulse" />
+                  ) : (
+                    <Icon name="Printer" size={20} />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`bg-white/10 hover:bg-white/20 text-white backdrop-blur-sm transition-all ${
                     isDownloading ? 'scale-90 bg-green-500/30' : ''
                   }`}
                   onClick={(e) => {
@@ -1552,6 +1664,9 @@ export const KnowledgeTab = ({
                     <span>H</span>
                     <span>поделиться</span>
                     <span className="mx-1">•</span>
+                    <span>P</span>
+                    <span>печать</span>
+                    <span className="mx-1">•</span>
                     <span>S</span>
                     <span>скачать</span>
                     <span className="mx-1">•</span>
@@ -1572,6 +1687,9 @@ export const KnowledgeTab = ({
                 <span className="mx-1">•</span>
                 <span>H</span>
                 <span>поделиться</span>
+                <span className="mx-1">•</span>
+                <span>P</span>
+                <span>печать</span>
                 <span className="mx-1">•</span>
                 <span>S</span>
                 <span>скачать</span>
