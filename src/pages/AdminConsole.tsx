@@ -289,7 +289,7 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
       const issuesList = issues.map(issue => `  • ${issue}`).join('\n');
       console.warn(`⚠️ Найдено проблем: ${issues.length}\n${issuesList}`);
       toast.warning(`Найдено проблем: ${issues.length}`, {
-        description: 'Подробности в консоли браузера'
+        description: 'Нажмите "Исправить проблемы" для автоматической очистки'
       });
     }
     
@@ -302,6 +302,75 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
 - Комментариев: ${comments.length}
 - Проблем: ${issues.length}
     `);
+    
+    return issues.length;
+  };
+
+  const fixJunkCode = () => {
+    let fixed = 0;
+    
+    // Удаляем пустые div
+    const emptyDivs = Array.from(document.querySelectorAll('div')).filter(
+      div => !div.textContent?.trim() && 
+             !div.querySelector('img, svg, video, iframe, canvas, input, button, select, textarea') && 
+             div.children.length === 0 &&
+             !div.id && // Не трогаем div с id (могут быть якорями)
+             !div.getAttribute('data-radix-portal') // Не трогаем порталы
+    );
+    emptyDivs.forEach(div => {
+      div.remove();
+      fixed++;
+    });
+    
+    // Удаляем устаревшие теги
+    const deprecatedTags = ['marquee', 'blink', 'center', 'font'];
+    deprecatedTags.forEach(tag => {
+      document.querySelectorAll(tag).forEach(el => {
+        // Сохраняем текст, удаляем тег
+        const parent = el.parentElement;
+        if (parent) {
+          parent.insertBefore(document.createTextNode(el.textContent || ''), el);
+          el.remove();
+          fixed++;
+        }
+      });
+    });
+    
+    // Конвертируем инлайн-стили в классы (только простые случаи)
+    const inlineStyles = Array.from(document.querySelectorAll('[style]')).filter(el => {
+      // Не трогаем элементы с динамическими стилями или библиотеки
+      return !el.closest('[data-radix-portal], [data-sonner-toaster]') && 
+             !el.getAttribute('data-state');
+    });
+    
+    inlineStyles.slice(0, 10).forEach(el => { // Обрабатываем первые 10
+      const style = el.getAttribute('style') || '';
+      
+      // Простые конвертации
+      if (style.includes('display: none') || style.includes('display:none')) {
+        el.classList.add('hidden');
+        el.removeAttribute('style');
+        fixed++;
+      } else if (style.includes('visibility: hidden')) {
+        el.classList.add('invisible');
+        el.removeAttribute('style');
+        fixed++;
+      }
+    });
+    
+    if (fixed > 0) {
+      console.log(`✓ Исправлено проблем: ${fixed}`);
+      toast.success(`Исправлено ${fixed} проблем`, {
+        description: 'Удалены пустые элементы, устаревшие теги и оптимизированы стили'
+      });
+      
+      // Повторное сканирование
+      setTimeout(() => {
+        scanForJunkCode();
+      }, 500);
+    } else {
+      toast.info('Нет проблем для автоматического исправления');
+    }
   };
 
   const testSystemErrors = () => {
@@ -333,6 +402,15 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
                 >
                   <Icon name="Search" size={16} />
                   Сканировать код
+                </Button>
+                <Button 
+                  onClick={fixJunkCode}
+                  variant="outline" 
+                  size="sm"
+                  className="gap-2 border-green-500 text-green-400 hover:bg-green-950"
+                >
+                  <Icon name="Wrench" size={16} />
+                  Исправить проблемы
                 </Button>
                 <Button 
                   onClick={testSystemErrors}
