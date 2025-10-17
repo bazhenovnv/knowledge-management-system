@@ -515,6 +515,24 @@ class DatabaseService {
     }
   }
 
+  // Метод для загрузки файлов (временно - конвертирует в Data URL)
+  async uploadFile(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result);
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Не удалось прочитать файл'));
+      };
+      
+      reader.readAsDataURL(file);
+    });
+  }
+
   async getUnreadSupportCount(): Promise<{ count: number } | null> {
     try {
       const response = await this.makeRequest<{ count: number }>('?action=get_unread_support_count', { method: 'GET' });
