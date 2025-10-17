@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
+import { useNavigate } from "react-router-dom";
 import Icon from "@/components/ui/icon";
 import { useState, useEffect } from "react";
 import { databaseService, DatabaseEmployee } from "@/utils/databaseService";
@@ -24,6 +24,7 @@ export const AdminDashboard = ({
   getStatusColor,
   getStatusText,
 }: AdminDashboardProps) => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeEmployees: 0,
@@ -341,8 +342,36 @@ export const AdminDashboard = ({
         </Card>
       </div>
 
-      {/* Счётчик обращений к БД */}
-      <DbRequestCounter isAdmin={true} />
+      {/* Панель администратора */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <DbRequestCounter isAdmin={true} />
+        
+        <Card className="p-3 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate('/admin-settings')}>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-slate-100 rounded-lg">
+              <Icon name="Settings" size={18} className="text-slate-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 font-medium">Настройки</p>
+              <p className="text-sm font-semibold text-slate-900 mt-0.5">Настройки приложения</p>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="p-3 bg-gradient-to-br from-red-50 to-red-100 border-red-200 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate('/admin-console')}>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <Icon name="Terminal" size={18} className="text-red-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 font-medium">Отладка</p>
+              <p className="text-sm font-semibold text-red-900 mt-0.5">Консоль логов</p>
+            </div>
+          </div>
+        </Card>
+      </div>
 
       {/* AI Поиск материалов */}
       <AIKnowledgeSearch onMaterialAdd={loadStats} />
