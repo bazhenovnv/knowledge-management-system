@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { LogEntry } from '@/components/admin/types';
-import { useConsoleLogger } from '@/components/admin/useConsoleLogger';
 import { ConsoleHeader } from '@/components/admin/ConsoleHeader';
 import { ConsoleFilters } from '@/components/admin/ConsoleFilters';
 import { LogItem } from '@/components/admin/LogItem';
@@ -14,7 +13,29 @@ const AdminConsole = () => {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
-  useConsoleLogger(setLogs);
+  useEffect(() => {
+    const loadLogs = () => {
+      const savedLogs = localStorage.getItem('admin-console-logs');
+      if (savedLogs) {
+        try {
+          const parsed = JSON.parse(savedLogs);
+          setLogs(parsed.map((log: any) => ({
+            ...log,
+            timestamp: new Date(log.timestamp)
+          })));
+        } catch (e) {
+          console.warn('Failed to load saved logs');
+        }
+      }
+    };
+
+    loadLogs();
+    
+    if (autoRefresh) {
+      const interval = setInterval(loadLogs, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh]);
 
   const filteredLogs = logs.filter(log => {
     const matchesFilter = filter === 'all' || log.level === filter;

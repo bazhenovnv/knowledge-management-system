@@ -17,6 +17,7 @@ import EmployeeManagementPage from "./pages/EmployeeManagementPage";
 import DemoEmployeesPage from "./pages/DemoEmployeesPage";
 import AdminSettings from "./pages/AdminSettings";
 import AdminConsole from "./pages/AdminConsole";
+import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <GlobalConsoleLogger />
         <Toaster />
         <Sonner />
         <BrowserRouter>
