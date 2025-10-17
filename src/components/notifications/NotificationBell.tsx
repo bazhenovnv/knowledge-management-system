@@ -48,11 +48,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
     if (isAdmin) {
       loadSupportCount();
     }
-    const interval = setInterval(() => {
-      loadUnreadCount();
-      if (isAdmin) loadSupportCount();
-    }, 5000);
-    return () => clearInterval(interval);
   }, [employeeId, isAdmin]);
 
   const loadUnreadCount = () => {
