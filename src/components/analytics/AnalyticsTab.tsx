@@ -68,8 +68,6 @@ export default function AnalyticsTab() {
 
   useEffect(() => {
     loadAnalyticsData();
-    const interval = setInterval(loadAnalyticsData, 30000); // Обновление каждые 30 секунд
-    return () => clearInterval(interval);
   }, []);
 
   const loadAnalyticsData = () => {

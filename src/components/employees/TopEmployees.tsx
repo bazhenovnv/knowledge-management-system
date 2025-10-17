@@ -82,9 +82,6 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
     };
 
     loadEmployeesData();
-    const interval = setInterval(loadEmployeesData, 30000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   const getAttentionReason = (employee: EmployeeWithStats) => {

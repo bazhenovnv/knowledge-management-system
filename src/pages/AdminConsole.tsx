@@ -36,7 +36,7 @@ const AdminConsole = () => {
     loadLogs();
     
     if (autoRefresh) {
-      const interval = setInterval(loadLogs, 1000);
+      const interval = setInterval(loadLogs, 5000);
       return () => clearInterval(interval);
     }
   }, [autoRefresh]);

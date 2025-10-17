@@ -47,11 +47,6 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
     };
 
     loadUserStats();
-    
-    // Обновляем статистику каждые 10 секунд
-    const interval = setInterval(loadUserStats, 10000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   return (

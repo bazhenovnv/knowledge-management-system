@@ -102,8 +102,6 @@ const SupportChat = ({ employeeId, isAdmin, compact = false }: SupportChatProps)
     if (isOpen) {
       loadMessages();
       markAsRead();
-      const interval = setInterval(loadMessages, 10000);
-      return () => clearInterval(interval);
     }
   }, [isOpen, employeeId, isAdmin]);
 
