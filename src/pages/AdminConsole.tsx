@@ -14,7 +14,7 @@ const AdminConsole = () => {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false);
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
   useEffect(() => {
