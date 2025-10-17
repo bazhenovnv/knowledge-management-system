@@ -347,6 +347,25 @@ class DatabaseService {
     return response.stats || response.data || null;
   }
 
+  // Быстрая проверка наличия обновлений (легковесный запрос)
+  async checkUpdates(employeeId: number, isAdmin: boolean = false): Promise<{
+    has_updates: boolean;
+    unread_notifications: number;
+    unread_support: number;
+    timestamp: string;
+  } | null> {
+    const response = await this.makeRequest<any>(
+      `?action=check_updates&employee_id=${employeeId}&is_admin=${isAdmin}`
+    );
+    
+    if (response.error) {
+      console.error('Error checking updates:', response.error);
+      return null;
+    }
+
+    return response;
+  }
+
   // ========================
   // МЕТОДЫ ДЛЯ СОВМЕСТИМОСТИ
   // ========================

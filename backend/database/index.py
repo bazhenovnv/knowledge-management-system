@@ -83,6 +83,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = get_support_messages(cursor, int(employee_id) if employee_id else None)
             elif action == 'get_unread_support_count':
                 result = get_unread_support_count(cursor)
+            elif action == 'check_updates':
+                employee_id = params.get('employee_id')
+                is_admin = params.get('is_admin', 'false').lower() == 'true'
+                result = check_updates(cursor, employee_id, is_admin)
             else:
                 result = {'error': 'Неизвестное действие'}
                 
@@ -1269,6 +1273,52 @@ def mark_support_messages_read(cursor, conn, employee_id: int) -> Dict[str, Any]
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка пометки прочитанных: {str(e)}'}
+
+
+def check_updates(cursor, employee_id: Optional[str] = None, is_admin: bool = False) -> Dict[str, Any]:
+    """
+    Быстрая проверка наличия обновлений (непрочитанных уведомлений и сообщений поддержки)
+    Возвращает только факт наличия обновлений без загрузки самих данных
+    """
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        has_updates = False
+        unread_notifications = 0
+        unread_support = 0
+        
+        # Проверяем непрочитанные уведомления для конкретного пользователя
+        if employee_id:
+            cursor.execute(f"""
+                SELECT COUNT(*) as count
+                FROM {schema}.notifications
+                WHERE employee_id = %s AND is_read = false
+            """, (employee_id,))
+            result = cursor.fetchone()
+            unread_notifications = result['count'] if result else 0
+        
+        # Для админа проверяем непрочитанные сообщения поддержки
+        if is_admin:
+            cursor.execute(f"""
+                SELECT COUNT(*) as count
+                FROM {schema}.support_messages
+                WHERE is_admin_response = FALSE AND is_read = FALSE
+            """)
+            result = cursor.fetchone()
+            unread_support = result['count'] if result else 0
+        
+        has_updates = unread_notifications > 0 or unread_support > 0
+        
+        return {
+            'has_updates': has_updates,
+            'unread_notifications': unread_notifications,
+            'unread_support': unread_support,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {'error': f'Ошибка проверки обновлений: {str(e)}'}
+
 
 def search_wikipedia(query: str) -> List[Dict[str, Any]]:
     """Поиск в Wikipedia"""

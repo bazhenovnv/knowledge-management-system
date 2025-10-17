@@ -23,6 +23,8 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   const [supportCount, setSupportCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [prevSupportCount, setPrevSupportCount] = useState(0);
+  const [lastCheckTimestamp, setLastCheckTimestamp] = useState<string | null>(null);
+  const [checkInterval, setCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
   const playNotificationSound = () => {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -44,13 +46,47 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   };
 
   useEffect(() => {
-    loadUnreadCount();
-    if (isAdmin) {
-      loadSupportCount();
-    }
+    checkForUpdates();
+    
+    const interval = setInterval(() => {
+      checkForUpdates();
+    }, 20 * 60 * 1000);
+    
+    setCheckInterval(interval);
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [employeeId, isAdmin]);
 
-  const loadUnreadCount = () => {
+  const checkForUpdates = async () => {
+    try {
+      const data = await databaseService.checkUpdates(employeeId, isAdmin);
+      
+      if (data && data.has_updates) {
+        await loadFullData();
+      }
+      
+      if (data) {
+        setLastCheckTimestamp(data.timestamp);
+      }
+    } catch (error) {
+      console.error('Error checking updates:', error);
+    }
+  };
+
+  const loadFullData = async () => {
+    try {
+      await loadUnreadCount();
+      if (isAdmin) {
+        await loadSupportCount();
+      }
+    } catch (error) {
+      console.error('Error loading full data:', error);
+    }
+  };
+
+  const loadUnreadCount = async () => {
     try {
       const unreadNotifications = database.getUnreadNotificationsForUser(employeeId);
       setUnreadCount(unreadNotifications.length);
@@ -78,8 +114,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   };
 
   const handleNotificationsRead = () => {
-    // Перезагружаем счётчик после чтения уведомлений
-    loadUnreadCount();
+    loadFullData();
   };
 
   const totalCount = unreadCount + (isAdmin ? supportCount : 0);
