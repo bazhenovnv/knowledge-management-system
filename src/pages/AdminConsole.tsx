@@ -95,6 +95,16 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <Button 
+            onClick={() => navigate('/')}
+            variant="outline"
+            className="bg-slate-800/50 border-slate-700 hover:bg-slate-700 text-slate-200"
+          >
+            <Icon name="ArrowLeft" className="mr-2" size={20} />
+            Вернуться в приложение
+          </Button>
+        </div>
         <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
           <ConsoleHeader
             onClearLogs={clearLogs}
