@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
 import { databaseService, DatabaseEmployee } from "@/utils/databaseService";
+
+const BACKEND_URL = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -31,9 +33,9 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
           emp.is_active && emp.role === 'employee'
         );
         
-        // Загружаем результаты тестов
+        // Загружаем результаты тестов из PostgreSQL
         const testResultsResponse = await fetch(
-          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
+          `${BACKEND_URL}?action=list&table=test_results`
         );
         const testResultsData = await testResultsResponse.json();
         const allTestResults = testResultsData.data || [];

@@ -14,6 +14,7 @@ import AIKnowledgeSearch from "@/components/ai/AIKnowledgeSearch";
 import FunctionAnalytics from "@/components/analytics/FunctionAnalytics";
 import TopFunctionsWidget from "@/components/analytics/TopFunctionsWidget";
 import { useData } from "@/contexts/DataContext";
+import MigrationButton from "@/components/admin/MigrationButton";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -337,6 +338,9 @@ export const AdminDashboard = ({
         
         <TopFunctionsWidget refreshTrigger={analyticsRefresh} />
       </div>
+
+      {/* Миграция в PostgreSQL */}
+      <MigrationButton />
 
       {/* AI Поиск материалов */}
       <AIKnowledgeSearch onMaterialAdd={refreshData} />
