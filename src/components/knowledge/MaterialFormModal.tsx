@@ -216,18 +216,30 @@ export const MaterialFormModal = ({
 
           <div>
             <Label>Отделения</Label>
+            <p className="text-sm text-gray-500 mb-2">
+              Выберите отделы, которым будет доступен материал
+            </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {departments.map((dept) => (
                 <Button
                   key={dept.id}
+                  type="button"
                   variant={selectedDepartments.includes(dept.id) ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => onDepartmentToggle(dept.id)}
+                  className={selectedDepartments.includes(dept.id) 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-white text-gray-700 hover:bg-gray-50'}
                 >
                   {dept.name}
                 </Button>
               ))}
             </div>
+            {selectedDepartments.length === 0 && (
+              <p className="text-xs text-amber-600 mt-2">
+                ⚠️ Не выбрано ни одно отделение - материал будет доступен всем
+              </p>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
