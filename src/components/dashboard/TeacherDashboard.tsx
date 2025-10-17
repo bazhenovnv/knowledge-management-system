@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 import { TopEmployees } from "@/components/employees/TopEmployees";
 import NotificationForm from "@/components/notifications/NotificationForm";
+import { useData } from "@/contexts/DataContext";
 
 interface TeacherDashboardProps {
   onLogout: () => void;
@@ -38,65 +39,34 @@ export const TeacherDashboard = ({
   getStatusColor,
   getStatusText,
 }: TeacherDashboardProps) => {
-  const [stats, setStats] = useState({
-    totalStudents: 0,
-    createdTests: 0,
-    averageScore: 0,
-    activeStudents: 0
-  });
-  const [students, setStudents] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { stats: contextStats, isLoading, refreshData } = useData();
   const [deleteStudentId, setDeleteStudentId] = useState<number | null>(null);
   const [notificationFormOpen, setNotificationFormOpen] = useState(false);
   const [selectedStudentForNotification, setSelectedStudentForNotification] = useState<any>(null);
 
-  // Загружаем студентов из базы данных
-  useEffect(() => {
-    const loadStudents = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
-        );
-        const data = await response.json();
-        const allEmployees = data.data || [];
-        
-        // Фильтруем только студентов (role === 'employee')
-        const studentsList = allEmployees
-          .filter((emp: any) => emp.role === 'employee' && emp.is_active)
-          .map((emp: any) => ({
-            id: emp.id,
-            name: emp.full_name,
-            email: emp.email,
-            department: emp.department,
-            position: emp.position,
-            role: emp.role,
-            status: 4 // Дефолтный статус
-          }));
-        
-        setStudents(studentsList);
-        
-        // Обновляем статистику
-        setStats({
-          totalStudents: studentsList.length,
-          createdTests: 0,
-          averageScore: 0,
-          activeStudents: studentsList.length
-        });
-      } catch (error) {
-        console.error('Error loading students:', error);
-        toast.error('Ошибка загрузки списка студентов');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const students = contextStats?.employees
+    ?.filter((emp: any) => emp.role === 'employee' && emp.is_active)
+    .map((emp: any) => ({
+      id: emp.id,
+      name: emp.full_name,
+      email: emp.email,
+      department: emp.department,
+      position: emp.position,
+      role: emp.role,
+      status: 4
+    })) || [];
 
-    loadStudents();
-    
-    // Обновляем каждые 30 секунд
-    const interval = setInterval(loadStudents, 30000);
-    
-    return () => clearInterval(interval);
+  const stats = {
+    totalStudents: students.length,
+    createdTests: 0,
+    averageScore: contextStats?.averageScore || 0,
+    activeStudents: students.length
+  };
+
+  useEffect(() => {
+    if (!contextStats) {
+      refreshData();
+    }
   }, []);
 
   // Функция для удаления студента (только для преподавателей с правами администратора)

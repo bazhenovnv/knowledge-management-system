@@ -18,6 +18,7 @@ import DemoEmployeesPage from "./pages/DemoEmployeesPage";
 import AdminSettings from "./pages/AdminSettings";
 import AdminConsole from "./pages/AdminConsole";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
+import { DataProvider } from "./contexts/DataContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,9 +34,10 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <GlobalConsoleLogger />
-        <Toaster />
-        <Sonner />
+        <DataProvider>
+          <GlobalConsoleLogger />
+          <Toaster />
+          <Sonner />
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -53,6 +55,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        </DataProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ErrorBoundary>

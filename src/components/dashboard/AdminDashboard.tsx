@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import NotificationForm from "@/components/notifications/NotificationForm";
 import DbRequestCounter from "@/components/database/DbRequestCounter";
 import AIKnowledgeSearch from "@/components/ai/AIKnowledgeSearch";
+import { useData } from "@/contexts/DataContext";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -25,7 +26,11 @@ export const AdminDashboard = ({
   getStatusText,
 }: AdminDashboardProps) => {
   const navigate = useNavigate();
-  const [stats, setStats] = useState({
+  const { stats: contextStats, isLoading, refreshData } = useData();
+  const [notificationFormOpen, setNotificationFormOpen] = useState(false);
+  const [selectedEmployeeForNotification, setSelectedEmployeeForNotification] = useState<any>(null);
+
+  const stats = contextStats || {
     totalEmployees: 0,
     activeEmployees: 0,
     inactiveEmployees: 0,
@@ -34,80 +39,12 @@ export const AdminDashboard = ({
     averageScore: 0,
     activeCourses: 0,
     newRegistrations: 0
-  });
-  const [loading, setLoading] = useState(true);
-  const [notificationFormOpen, setNotificationFormOpen] = useState(false);
-  const [selectedEmployeeForNotification, setSelectedEmployeeForNotification] = useState<any>(null);
-
-  const loadStats = async () => {
-      try {
-        setLoading(true);
-        
-        // Рассчитываем средний балл из test_results
-        const testResultsResponse = await fetch(
-          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
-        );
-        const testResultsData = await testResultsResponse.json();
-        const testResults = testResultsData.data || [];
-        
-        const averageScore = testResults.length > 0
-          ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)
-          : 0;
-        
-        // Подсчитываем новые регистрации за последние 24 часа
-        const employeesResponse = await fetch(
-          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
-        );
-        const employeesData = await employeesResponse.json();
-        const allEmployees = employeesData.data || [];
-        
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const newRegistrations = allEmployees.filter((emp: DatabaseEmployee) => 
-          new Date(emp.created_at) > yesterday
-        ).length;
-        
-        const activeEmployees = allEmployees.filter((emp: DatabaseEmployee) => emp.is_active).length;
-        const inactiveEmployees = allEmployees.length - activeEmployees;
-        
-        // Подсчитываем тесты
-        const testsResponse = await fetch(
-          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
-        );
-        const testsData = await testsResponse.json();
-        const totalTests = testsData.data?.length || 0;
-        
-        // Подсчитываем курсы
-        const coursesResponse = await fetch(
-          `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=courses`
-        );
-        const coursesData = await coursesResponse.json();
-        const activeCourses = coursesData.data?.filter((c: any) => c.status === 'active').length || 0;
-
-        setStats({
-          totalEmployees: allEmployees.length,
-          activeEmployees,
-          inactiveEmployees,
-          totalTests,
-          totalTestResults: testResults.length,
-          averageScore,
-          activeCourses,
-          newRegistrations
-        });
-      } catch (error) {
-        console.error('Error loading stats:', error);
-        toast.error('Ошибка загрузки статистики');
-      } finally {
-        setLoading(false);
-      }
-    };
+  };
 
   useEffect(() => {
-    loadStats();
-    
-    const interval = setInterval(loadStats, 30000);
-    
-    return () => clearInterval(interval);
+    if (!contextStats) {
+      refreshData();
+    }
   }, []);
 
   // Функция для массовой отправки уведомлений
@@ -270,8 +207,8 @@ export const AdminDashboard = ({
         
         toast.success(`Импортировано: ${successCount}, Ошибок: ${errorCount}`);
         
-        // Перезагружаем статистику
-        window.location.reload();
+        // Обновляем данные
+        refreshData();
       } catch (error) {
         console.error('Import error:', error);
         toast.error('Ошибка импорта файла');
@@ -311,7 +248,7 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-green-600">{loading ? '...' : stats.totalTestResults}</div>
+                <div className="text-3xl font-bold text-green-600">{isLoading ? '...' : stats.totalTestResults}</div>
                 <div className="text-sm text-gray-600">Пройдено тестов</div>
               </div>
               <Icon name="BookOpen" size={32} className="text-green-600" />
@@ -322,7 +259,7 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-purple-600">{loading ? '...' : stats.averageScore}%</div>
+                <div className="text-3xl font-bold text-purple-600">{isLoading ? '...' : stats.averageScore}%</div>
                 <div className="text-sm text-gray-600">Средний балл</div>
               </div>
               <Icon name="TrendingUp" size={32} className="text-purple-600" />
@@ -333,7 +270,7 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-orange-600">{loading ? '...' : stats.activeCourses}</div>
+                <div className="text-3xl font-bold text-orange-600">{isLoading ? '...' : stats.activeCourses}</div>
                 <div className="text-sm text-gray-600">Активных курсов</div>
               </div>
               <Icon name="UserPlus" size={32} className="text-orange-600" />

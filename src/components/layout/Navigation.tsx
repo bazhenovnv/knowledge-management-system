@@ -18,6 +18,7 @@ import { useViewedTests } from "@/hooks/useViewedTests";
 import { useState } from "react";
 import ServerStatusIndicator from "@/components/status/ServerStatusIndicator";
 import SupportChat from "@/components/support/SupportChat";
+import { useData } from "@/contexts/DataContext";
 
 interface NavigationProps {
   activeTab: string;
@@ -52,6 +53,7 @@ export const Navigation = ({
   } = useNotifications();
   
   const { getNewTestsCount } = useViewedTests();
+  const { isLoading, lastUpdated, refreshData } = useData();
   
   // Мок данные тестов для подсчета новых
   const mockTests = [
@@ -95,6 +97,16 @@ export const Navigation = ({
         </div>
         <div className="flex items-center space-x-2">
           <ServerStatusIndicator compact />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshData}
+            disabled={isLoading}
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+            title={lastUpdated ? `Обновлено: ${lastUpdated.toLocaleTimeString()}` : "Обновить данные"}
+          >
+            <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
+          </Button>
           <NotificationBell employeeId={employeeId} isAdmin={userRole === 'admin'} />
           <SupportChat 
             employeeId={employeeId} 
