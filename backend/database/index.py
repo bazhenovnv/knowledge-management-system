@@ -286,10 +286,10 @@ def create_item(cursor, conn, table: str, data: Dict[str, Any]) -> Dict[str, Any
         elif table == 'knowledge_materials':
             cursor.execute("""
                 INSERT INTO t_p47619579_knowledge_management.knowledge_materials 
-                (title, description, content, category, difficulty, duration, tags, is_published, created_by, cover_image, attachments)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                (title, description, content, category, difficulty, duration, tags, is_published, created_by, cover_image, attachments, departments)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id, title, description, content, category, difficulty, duration, tags, 
-                          rating, enrollments, is_published, created_by, cover_image, attachments, created_at, updated_at
+                          rating, enrollments, is_published, created_by, cover_image, attachments, departments, created_at, updated_at
             """, (
                 data.get('title'),
                 data.get('description'),
@@ -301,7 +301,8 @@ def create_item(cursor, conn, table: str, data: Dict[str, Any]) -> Dict[str, Any
                 data.get('is_published', True),
                 data.get('created_by', 'System'),
                 data.get('cover_image'),
-                json.dumps(data.get('attachments', []))
+                json.dumps(data.get('attachments', [])),
+                data.get('departments', [])
             ))
         
         row = cursor.fetchone()
@@ -458,6 +459,10 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
                 update_fields.append('attachments = %s')
                 update_values.append(json.dumps(data.get('attachments')))
             
+            if 'departments' in data:
+                update_fields.append('departments = %s')
+                update_values.append(data.get('departments'))
+            
             update_fields.append('updated_at = CURRENT_TIMESTAMP')
             
             if len(update_fields) <= 1:
@@ -470,7 +475,7 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
                 SET {', '.join(update_fields)}
                 WHERE id = %s
                 RETURNING id, title, description, content, category, difficulty, duration, tags, 
-                          rating, enrollments, is_published, created_by, cover_image, attachments, created_at, updated_at
+                          rating, enrollments, is_published, created_by, cover_image, attachments, departments, created_at, updated_at
             """
             
             cursor.execute(query, tuple(update_values))
