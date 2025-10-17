@@ -19,16 +19,18 @@ interface FunctionStat {
   month_year: string;
 }
 
-export const FunctionAnalytics = () => {
+interface FunctionAnalyticsProps {
+  refreshTrigger?: number;
+}
+
+export const FunctionAnalytics = ({ refreshTrigger }: FunctionAnalyticsProps) => {
   const [stats, setStats] = useState<FunctionStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState('');
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [refreshTrigger]);
 
   const fetchStats = async () => {
     try {

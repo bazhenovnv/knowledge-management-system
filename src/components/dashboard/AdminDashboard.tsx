@@ -32,6 +32,8 @@ export const AdminDashboard = ({
   const { stats: contextStats, isLoading, refreshData } = useData();
   const [notificationFormOpen, setNotificationFormOpen] = useState(false);
   const [selectedEmployeeForNotification, setSelectedEmployeeForNotification] = useState<any>(null);
+  const [analyticsRefresh, setAnalyticsRefresh] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const stats = contextStats || {
     totalEmployees: 0,
@@ -283,10 +285,28 @@ export const AdminDashboard = ({
       </div>
 
       {/* Панель администратора */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Аналитика платформы</h2>
+        <Button
+          onClick={() => {
+            setIsRefreshing(true);
+            setAnalyticsRefresh(prev => prev + 1);
+            setTimeout(() => setIsRefreshing(false), 1000);
+          }}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          disabled={isRefreshing}
+        >
+          <Icon name="RefreshCw" size={16} className={isRefreshing ? 'animate-spin' : ''} />
+          {isRefreshing ? 'Обновление...' : 'Обновить данные'}
+        </Button>
+      </div>
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <DbRequestCounter isAdmin={true} />
-          <FunctionCallCounter isAdmin={true} />
+          <DbRequestCounter isAdmin={true} refreshTrigger={analyticsRefresh} />
+          <FunctionCallCounter isAdmin={true} refreshTrigger={analyticsRefresh} />
           
           <Card className="p-3 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => navigate('/admin-settings')}>
@@ -315,7 +335,7 @@ export const AdminDashboard = ({
           </Card>
         </div>
         
-        <TopFunctionsWidget />
+        <TopFunctionsWidget refreshTrigger={analyticsRefresh} />
       </div>
 
       {/* AI Поиск материалов */}
@@ -391,7 +411,7 @@ export const AdminDashboard = ({
       </Card>
 
       {/* Аналитика функций */}
-      <FunctionAnalytics />
+      <FunctionAnalytics refreshTrigger={analyticsRefresh} />
 
       {/* Рейтинг сотрудников */}
       <TopEmployees onEmployeeClick={(employeeId) => {

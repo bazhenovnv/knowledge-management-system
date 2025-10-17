@@ -11,16 +11,18 @@ interface FunctionStat {
   error_count: number;
 }
 
-export const TopFunctionsWidget = () => {
+interface TopFunctionsWidgetProps {
+  refreshTrigger?: number;
+}
+
+export const TopFunctionsWidget = ({ refreshTrigger }: TopFunctionsWidgetProps) => {
   const [topFunctions, setTopFunctions] = useState<FunctionStat[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCalls, setTotalCalls] = useState(0);
 
   useEffect(() => {
     fetchTopFunctions();
-    const interval = setInterval(fetchTopFunctions, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [refreshTrigger]);
 
   const fetchTopFunctions = async () => {
     try {

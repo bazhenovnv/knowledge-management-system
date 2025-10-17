@@ -4,6 +4,7 @@ import Icon from '@/components/ui/icon';
 
 interface FunctionCallCounterProps {
   isAdmin: boolean;
+  refreshTrigger?: number;
 }
 
 interface MonthStats {
@@ -12,7 +13,7 @@ interface MonthStats {
   updated_at?: string;
 }
 
-export const FunctionCallCounter = ({ isAdmin }: FunctionCallCounterProps) => {
+export const FunctionCallCounter = ({ isAdmin, refreshTrigger }: FunctionCallCounterProps) => {
   const [currentMonth, setCurrentMonth] = useState<MonthStats | null>(null);
   const [previousMonth, setPreviousMonth] = useState<MonthStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -20,10 +21,8 @@ export const FunctionCallCounter = ({ isAdmin }: FunctionCallCounterProps) => {
   useEffect(() => {
     if (isAdmin) {
       fetchStats();
-      const interval = setInterval(fetchStats, 60000);
-      return () => clearInterval(interval);
     }
-  }, [isAdmin]);
+  }, [isAdmin, refreshTrigger]);
 
   const fetchStats = async () => {
     try {

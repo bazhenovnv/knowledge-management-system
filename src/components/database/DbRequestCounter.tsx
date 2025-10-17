@@ -5,6 +5,7 @@ import { databaseService } from '@/utils/databaseService';
 
 interface DbRequestCounterProps {
   isAdmin: boolean;
+  refreshTrigger?: number;
 }
 
 interface MonthStats {
@@ -13,7 +14,7 @@ interface MonthStats {
   updated_at?: string;
 }
 
-export const DbRequestCounter = ({ isAdmin }: DbRequestCounterProps) => {
+export const DbRequestCounter = ({ isAdmin, refreshTrigger }: DbRequestCounterProps) => {
   const [currentMonth, setCurrentMonth] = useState<MonthStats | null>(null);
   const [previousMonth, setPreviousMonth] = useState<MonthStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,10 +22,8 @@ export const DbRequestCounter = ({ isAdmin }: DbRequestCounterProps) => {
   useEffect(() => {
     if (isAdmin) {
       fetchStats();
-      const interval = setInterval(fetchStats, 60000);
-      return () => clearInterval(interval);
     }
-  }, [isAdmin]);
+  }, [isAdmin, refreshTrigger]);
 
   const fetchStats = async () => {
     try {
