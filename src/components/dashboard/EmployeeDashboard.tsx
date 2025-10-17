@@ -205,7 +205,11 @@ export const EmployeeDashboard = ({ onLogout }: EmployeeDashboardProps) => {
       </Card>
       
       {/* Рейтинг сотрудников */}
-      <TopEmployees />
+      <TopEmployees onEmployeeClick={(employeeId) => {
+        window.dispatchEvent(new CustomEvent('navigateToEmployees', { 
+          detail: { employeeId } 
+        }));
+      }} />
 
 
     </div>

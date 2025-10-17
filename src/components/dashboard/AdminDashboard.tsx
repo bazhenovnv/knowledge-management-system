@@ -446,7 +446,12 @@ export const AdminDashboard = ({
       </Card>
 
       {/* Рейтинг сотрудников */}
-      <TopEmployees />
+      <TopEmployees onEmployeeClick={(employeeId) => {
+        // Переход к сотрудникам с выбранным ID
+        window.dispatchEvent(new CustomEvent('navigateToEmployees', { 
+          detail: { employeeId } 
+        }));
+      }} />
 
 
 

@@ -510,7 +510,11 @@ export const TeacherDashboard = ({
       </Card>
 
       {/* Рейтинг сотрудников */}
-      <TopEmployees />
+      <TopEmployees onEmployeeClick={(employeeId) => {
+        window.dispatchEvent(new CustomEvent('navigateToEmployees', { 
+          detail: { employeeId } 
+        }));
+      }} />
 
       {/* Диалог подтверждения удаления */}
       <AlertDialog open={!!deleteStudentId} onOpenChange={() => setDeleteStudentId(null)}>

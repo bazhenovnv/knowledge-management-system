@@ -11,7 +11,11 @@ interface EmployeeWithStats extends DatabaseEmployee {
   completedTests: number;
 }
 
-export const TopEmployees = () => {
+interface TopEmployeesProps {
+  onEmployeeClick?: (employeeId: number) => void;
+}
+
+export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
   const [topEmployees, setTopEmployees] = useState<EmployeeWithStats[]>([]);
   const [bottomEmployees, setBottomEmployees] = useState<EmployeeWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,7 +115,8 @@ export const TopEmployees = () => {
     return (
       <div 
         key={employee.id} 
-        className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+        className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
+        onClick={() => onEmployeeClick?.(employee.id)}
       >
         <div className="flex items-center space-x-2">
           {isTop && (
