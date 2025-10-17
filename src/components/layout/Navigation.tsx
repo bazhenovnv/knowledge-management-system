@@ -101,18 +101,6 @@ export const Navigation = ({
             isAdmin={userRole === 'admin'}
             compact={true}
           />
-          {userRole === 'admin' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open('/admin-console', '_blank')}
-              className="text-blue-600 border-blue-600 hover:bg-blue-50 hidden md:flex"
-              title="Консоль ошибок"
-            >
-              <Icon name="Terminal" size={16} className="mr-1" />
-              <span className="hidden lg:inline">Консоль</span>
-            </Button>
-          )}
           <Button
             variant="outline"
             size="sm"
