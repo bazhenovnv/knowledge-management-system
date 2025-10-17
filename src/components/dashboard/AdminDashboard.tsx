@@ -9,6 +9,7 @@ import { TopEmployees } from "@/components/employees/TopEmployees";
 import { toast } from "sonner";
 import NotificationForm from "@/components/notifications/NotificationForm";
 import DbRequestCounter from "@/components/database/DbRequestCounter";
+import FunctionCallCounter from "@/components/database/FunctionCallCounter";
 import AIKnowledgeSearch from "@/components/ai/AIKnowledgeSearch";
 import { useData } from "@/contexts/DataContext";
 
@@ -234,9 +235,9 @@ export const AdminDashboard = ({
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-bold text-blue-600">{loading ? '...' : stats.activeEmployees}</div>
+                <div className="text-3xl font-bold text-blue-600">{isLoading ? '...' : stats.activeEmployees}</div>
                 <div className="text-sm text-gray-600">Активных сотрудников</div>
-                {!loading && stats.inactiveEmployees > 0 && (
+                {!isLoading && stats.inactiveEmployees > 0 && (
                   <div className="text-xs text-gray-500 mt-1">+{stats.inactiveEmployees} неактивных</div>
                 )}
               </div>
@@ -280,8 +281,9 @@ export const AdminDashboard = ({
       </div>
 
       {/* Панель администратора */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DbRequestCounter isAdmin={true} />
+        <FunctionCallCounter isAdmin={true} />
         
         <Card className="p-3 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => navigate('/admin-settings')}>
