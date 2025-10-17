@@ -37,6 +37,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         if not dsn:
             raise Exception('DATABASE_URL not configured')
         
+        body_str = event.get('body')
+        if body_str and body_str.strip():
+            body = json.loads(body_str)
+        else:
+            body = {}
+        function_name = body.get('function_name', 'unknown')
+        response_time = body.get('response_time', 0)
+        is_error = body.get('is_error', False)
+        
         current_month = datetime.now().strftime('%Y-%m')
         
         conn = psycopg2.connect(dsn)
@@ -54,6 +63,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         result = cur.fetchone()
         call_count = result[0] if result else 0
+        
+        cur.execute("""
+            INSERT INTO function_calls_detailed 
+                (function_name, month_year, call_count, avg_response_time, error_count, updated_at)
+            VALUES (%s, %s, 1, %s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (function_name, month_year) 
+            DO UPDATE SET 
+                call_count = function_calls_detailed.call_count + 1,
+                avg_response_time = (function_calls_detailed.avg_response_time * function_calls_detailed.call_count + %s) / (function_calls_detailed.call_count + 1),
+                error_count = function_calls_detailed.error_count + %s,
+                updated_at = CURRENT_TIMESTAMP
+        """, (function_name, current_month, response_time, 1 if is_error else 0, response_time, 1 if is_error else 0))
         
         conn.commit()
         cur.close()

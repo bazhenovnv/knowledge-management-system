@@ -11,6 +11,8 @@ import NotificationForm from "@/components/notifications/NotificationForm";
 import DbRequestCounter from "@/components/database/DbRequestCounter";
 import FunctionCallCounter from "@/components/database/FunctionCallCounter";
 import AIKnowledgeSearch from "@/components/ai/AIKnowledgeSearch";
+import FunctionAnalytics from "@/components/analytics/FunctionAnalytics";
+import TopFunctionsWidget from "@/components/analytics/TopFunctionsWidget";
 import { useData } from "@/contexts/DataContext";
 
 interface AdminDashboardProps {
@@ -281,39 +283,43 @@ export const AdminDashboard = ({
       </div>
 
       {/* Панель администратора */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DbRequestCounter isAdmin={true} />
-        <FunctionCallCounter isAdmin={true} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <DbRequestCounter isAdmin={true} />
+          <FunctionCallCounter isAdmin={true} />
+          
+          <Card className="p-3 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate('/admin-settings')}>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-100 rounded-lg">
+                <Icon name="Settings" size={18} className="text-slate-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Настройки</p>
+                <p className="text-sm font-semibold text-slate-900 mt-0.5">Настройки приложения</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-3 bg-gradient-to-br from-red-50 to-red-100 border-red-200 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate('/admin-console')}>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <Icon name="Terminal" size={18} className="text-red-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Отладка</p>
+                <p className="text-sm font-semibold text-red-900 mt-0.5">Консоль логов</p>
+              </div>
+            </div>
+          </Card>
+        </div>
         
-        <Card className="p-3 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate('/admin-settings')}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-100 rounded-lg">
-              <Icon name="Settings" size={18} className="text-slate-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium">Настройки</p>
-              <p className="text-sm font-semibold text-slate-900 mt-0.5">Настройки приложения</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-3 bg-gradient-to-br from-red-50 to-red-100 border-red-200 hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate('/admin-console')}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 rounded-lg">
-              <Icon name="Terminal" size={18} className="text-red-600" />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 font-medium">Отладка</p>
-              <p className="text-sm font-semibold text-red-900 mt-0.5">Консоль логов</p>
-            </div>
-          </div>
-        </Card>
+        <TopFunctionsWidget />
       </div>
 
       {/* AI Поиск материалов */}
-      <AIKnowledgeSearch onMaterialAdd={loadStats} />
+      <AIKnowledgeSearch onMaterialAdd={refreshData} />
 
       {/* Экспорт/Импорт данных */}
       <Card>
@@ -377,16 +383,18 @@ export const AdminDashboard = ({
             </Button>
           </div>
           <div className="text-sm text-gray-600">
-            Всего активных сотрудников: <span className="font-medium">{loading ? '...' : stats.activeEmployees}</span>
+            Всего активных сотрудников: <span className="font-medium">{isLoading ? '...' : stats.activeEmployees}</span>
             <br />
             Для полного управления перейдите в раздел "Сотрудники"
           </div>
         </CardContent>
       </Card>
 
+      {/* Аналитика функций */}
+      <FunctionAnalytics />
+
       {/* Рейтинг сотрудников */}
       <TopEmployees onEmployeeClick={(employeeId) => {
-        // Переход к сотрудникам с выбранным ID
         window.dispatchEvent(new CustomEvent('navigateToEmployees', { 
           detail: { employeeId } 
         }));
