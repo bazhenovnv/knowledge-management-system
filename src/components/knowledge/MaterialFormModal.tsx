@@ -12,7 +12,7 @@ interface MaterialFormModalProps {
   isEditing: boolean;
   formData: FormData;
   selectedDepartments: string[];
-  departments: Array<{ id: string; name: string }>;
+  departments: string[];
   coverImagePreview: string;
   uploadingCount: number;
   onClose: () => void;
@@ -215,29 +215,29 @@ export const MaterialFormModal = ({
           </div>
 
           <div>
-            <Label>Отделения</Label>
+            <Label>Отделы</Label>
             <p className="text-sm text-gray-500 mb-2">
               Выберите отделы, которым будет доступен материал
             </p>
             <div className="flex flex-wrap gap-2 mt-2">
               {departments.map((dept) => (
                 <Button
-                  key={dept.id}
+                  key={dept}
                   type="button"
-                  variant={selectedDepartments.includes(dept.id) ? 'default' : 'outline'}
+                  variant={selectedDepartments.includes(dept) ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => onDepartmentToggle(dept.id)}
-                  className={selectedDepartments.includes(dept.id) 
+                  onClick={() => onDepartmentToggle(dept)}
+                  className={selectedDepartments.includes(dept) 
                     ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-white text-gray-700 hover:bg-gray-50'}
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'}
                 >
-                  {dept.name}
+                  {dept}
                 </Button>
               ))}
             </div>
             {selectedDepartments.length === 0 && (
               <p className="text-xs text-amber-600 mt-2">
-                ⚠️ Не выбрано ни одно отделение - материал будет доступен всем
+                ⚠️ Не выбран ни один отдел - материал будет доступен всем
               </p>
             )}
           </div>
