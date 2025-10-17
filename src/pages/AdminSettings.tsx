@@ -134,14 +134,24 @@ export default function AdminSettings() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            <Icon name="Settings" className="inline mr-2" size={32} />
-            Настройки администратора
-          </h1>
-          <p className="text-gray-600">
-            Управление текстами и настройками проекта
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <Icon name="Settings" className="inline mr-2" size={32} />
+              Настройки администратора
+            </h1>
+            <p className="text-gray-600">
+              Управление текстами и настройками проекта
+            </p>
+          </div>
+          <Button 
+            onClick={() => navigate('/')}
+            variant="outline"
+            size="lg"
+          >
+            <Icon name="ArrowLeft" className="mr-2" size={20} />
+            Вернуться в приложение
+          </Button>
         </div>
 
         <Tabs defaultValue="texts" className="space-y-6">
