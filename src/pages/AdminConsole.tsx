@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { LogEntry } from '@/components/admin/types';
 import { ConsoleHeader } from '@/components/admin/ConsoleHeader';
 import { ConsoleFilters } from '@/components/admin/ConsoleFilters';
 import { LogItem } from '@/components/admin/LogItem';
+import Icon from '@/components/ui/icon';
 
 const AdminConsole = () => {
+  const navigate = useNavigate();
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -91,6 +95,16 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
+        <div className="flex justify-end mb-4">
+          <Button 
+            onClick={() => navigate('/admin-settings')}
+            variant="outline"
+            className="bg-slate-800/50 border-slate-700 hover:bg-slate-700"
+          >
+            <Icon name="Settings" className="mr-2" size={20} />
+            Настройки приложения
+          </Button>
+        </div>
         <Card className="border-slate-700 bg-slate-800/50 backdrop-blur">
           <ConsoleHeader
             onClearLogs={clearLogs}
