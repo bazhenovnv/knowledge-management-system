@@ -344,11 +344,214 @@ CREATE TABLE t_p47619579_knowledge_management.user_sessions (
     is_active BIT NULL DEFAULT 1
 );
 
+-- ========================================
+-- 6. ТАБЛИЦА: user_sessions (Сессии пользователей)
+-- ========================================
+IF OBJECT_ID('t_p47619579_knowledge_management.user_sessions', 'U') IS NOT NULL
+    DROP TABLE t_p47619579_knowledge_management.user_sessions;
+GO
+
+CREATE TABLE t_p47619579_knowledge_management.user_sessions (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    employee_id INT NOT NULL,
+    token NVARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME NULL DEFAULT GETDATE(),
+    updated_at DATETIME NULL DEFAULT GETDATE(),
+    user_agent NVARCHAR(MAX) NULL,
+    ip_address NVARCHAR(50) NULL,
+    CONSTRAINT FK_user_sessions_employee FOREIGN KEY (employee_id) 
+        REFERENCES t_p47619579_knowledge_management.employees(id)
+);
+GO
+
+SET IDENTITY_INSERT t_p47619579_knowledge_management.user_sessions ON;
+INSERT INTO t_p47619579_knowledge_management.user_sessions 
+(id, employee_id, token, expires_at, created_at, updated_at, user_agent, ip_address)
+VALUES 
+(1, 6, 'TMofkfQjulm9XRR49QJDjQrFDxO_cfxIMalZLOaijQY', '2025-09-25T12:31:54.781', '2025-09-24T12:31:54.789', '2025-09-24T12:48:14.739', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 YaBrowser/25.8.0.0 Safari/537.36', '158.160.16.200'),
+(2, 2, '05WK4LSde49gv0sbxI92MjsrfsACxXTC9S1V10H5px4', '2025-09-27T11:18:14.958', '2025-09-26T11:18:14.967', '2025-09-26T11:18:14.967', 'Python/3.12 aiohttp/3.10.5', '158.160.16.200'),
+(3, 1, 'CMCy51pYQFwUoTC5KR3q1WFbn16fmBzJyb33_1XB7OI', '2025-09-27T11:18:46.012', '2025-09-26T11:18:46.020', '2025-09-26T11:18:46.020', 'Python/3.12 aiohttp/3.10.5', '158.160.16.200');
+SET IDENTITY_INSERT t_p47619579_knowledge_management.user_sessions OFF;
+GO
+
+-- ========================================
+-- 7. ТАБЛИЦА: scheduled_notifications (Запланированные уведомления)
+-- ========================================
+IF OBJECT_ID('t_p47619579_knowledge_management.scheduled_notifications', 'U') IS NOT NULL
+    DROP TABLE t_p47619579_knowledge_management.scheduled_notifications;
+GO
+
+CREATE TABLE t_p47619579_knowledge_management.scheduled_notifications (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    employee_id INT NULL,
+    notification_type NVARCHAR(50) NULL,
+    title NVARCHAR(255) NULL,
+    message NVARCHAR(MAX) NULL,
+    related_entity_type NVARCHAR(50) NULL,
+    related_entity_id INT NULL,
+    scheduled_for DATETIME NULL,
+    channels NVARCHAR(MAX) NULL,
+    status NVARCHAR(20) NULL DEFAULT 'pending',
+    retry_count INT NULL DEFAULT 0,
+    error_message NVARCHAR(MAX) NULL,
+    created_at DATETIME NULL DEFAULT GETDATE(),
+    sent_at DATETIME NULL,
+    CONSTRAINT FK_scheduled_notifications_employee FOREIGN KEY (employee_id) 
+        REFERENCES t_p47619579_knowledge_management.employees(id)
+);
+GO
+
+SET IDENTITY_INSERT t_p47619579_knowledge_management.scheduled_notifications ON;
+INSERT INTO t_p47619579_knowledge_management.scheduled_notifications 
+(id, employee_id, notification_type, title, message, related_entity_type, related_entity_id, scheduled_for, channels, status, retry_count, error_message, created_at, sent_at)
+VALUES 
+(1, 1, 'info', N'Отложенное уведомление', N'Это сообщение отправится позже', NULL, NULL, '2025-10-15T10:00:00', '["database","push"]', 'pending', 0, NULL, '2025-10-14T07:45:41.062', NULL),
+(2, 1, 'info', N'Отложенное уведомление', N'Это сообщение отправится позже', NULL, NULL, '2025-10-15T10:00:00', '["database","push"]', 'pending', 0, NULL, '2025-10-14T07:46:08.701', NULL),
+(3, 1, 'info', N'Отложенное уведомление', N'Это сообщение отправится позже', NULL, NULL, '2025-10-15T10:00:00', '["database","push"]', 'pending', 0, NULL, '2025-10-14T07:46:54.283', NULL),
+(4, 1, 'info', N'Отложенное уведомление', N'Это сообщение отправится позже', NULL, NULL, '2025-10-15T10:00:00', '["database","push"]', 'pending', 0, NULL, '2025-10-15T09:29:32.870', NULL),
+(5, 1, 'info', N'Отложенное уведомление', N'Это сообщение отправится позже', NULL, NULL, '2025-10-15T10:00:00', '["database","push"]', 'pending', 0, NULL, '2025-10-15T10:55:12.184', NULL);
+SET IDENTITY_INSERT t_p47619579_knowledge_management.scheduled_notifications OFF;
+GO
+
+-- ========================================
+-- 8. ТАБЛИЦА: test_results (Результаты тестов)
+-- ========================================
+IF OBJECT_ID('t_p47619579_knowledge_management.test_results', 'U') IS NOT NULL
+    DROP TABLE t_p47619579_knowledge_management.test_results;
+GO
+
+CREATE TABLE t_p47619579_knowledge_management.test_results (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    test_id INT NULL,
+    employee_id INT NULL,
+    score INT NULL,
+    max_score INT NULL,
+    percentage INT NULL,
+    passed BIT NULL,
+    attempt_number INT NULL,
+    started_at DATETIME NULL,
+    completed_at DATETIME NULL,
+    time_spent INT NULL,
+    created_at DATETIME NULL DEFAULT GETDATE(),
+    CONSTRAINT FK_test_results_test FOREIGN KEY (test_id) 
+        REFERENCES t_p47619579_knowledge_management.tests(id),
+    CONSTRAINT FK_test_results_employee FOREIGN KEY (employee_id) 
+        REFERENCES t_p47619579_knowledge_management.employees(id)
+);
+GO
+
+SET IDENTITY_INSERT t_p47619579_knowledge_management.test_results ON;
+INSERT INTO t_p47619579_knowledge_management.test_results 
+(id, test_id, employee_id, score, max_score, percentage, passed, attempt_number, started_at, completed_at, time_spent, created_at)
+VALUES 
+(1, 1, 1, 5, 6, 83, 1, 1, '2025-10-13T14:34:14.118', '2025-10-11T14:34:14.118', 1200, '2025-10-13T14:34:14.118'),
+(5, 3, 1, 3, 4, 75, 1, 1, '2025-10-13T14:34:14.205', '2025-10-13T09:34:14.205', 850, '2025-10-13T14:34:14.205');
+SET IDENTITY_INSERT t_p47619579_knowledge_management.test_results OFF;
+GO
+
+-- ========================================
+-- 9. ТАБЛИЦА: deadline_reminders (Напоминания о дедлайнах)
+-- ========================================
+IF OBJECT_ID('t_p47619579_knowledge_management.deadline_reminders', 'U') IS NOT NULL
+    DROP TABLE t_p47619579_knowledge_management.deadline_reminders;
+GO
+
+CREATE TABLE t_p47619579_knowledge_management.deadline_reminders (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    entity_type NVARCHAR(50) NULL,
+    entity_id INT NULL,
+    deadline DATETIME NULL,
+    reminder_intervals NVARCHAR(MAX) NULL,
+    is_active BIT NULL DEFAULT 1,
+    created_at DATETIME NULL DEFAULT GETDATE()
+);
+GO
+
+SET IDENTITY_INSERT t_p47619579_knowledge_management.deadline_reminders ON;
+INSERT INTO t_p47619579_knowledge_management.deadline_reminders 
+(id, entity_type, entity_id, deadline, reminder_intervals, is_active, created_at)
+VALUES 
+(1, 'test', 1, '2025-10-20T15:00:00', '[86400,3600,0]', 1, '2025-10-14T07:45:41.645');
+SET IDENTITY_INSERT t_p47619579_knowledge_management.deadline_reminders OFF;
+GO
+
+-- ========================================
+-- 10. ТАБЛИЦА: db_request_stats (Статистика запросов к БД)
+-- ========================================
+IF OBJECT_ID('t_p47619579_knowledge_management.db_request_stats', 'U') IS NOT NULL
+    DROP TABLE t_p47619579_knowledge_management.db_request_stats;
+GO
+
+CREATE TABLE t_p47619579_knowledge_management.db_request_stats (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    month_year NVARCHAR(7) NULL,
+    request_count INT NULL,
+    created_at DATETIME NULL DEFAULT GETDATE(),
+    updated_at DATETIME NULL DEFAULT GETDATE()
+);
+GO
+
+SET IDENTITY_INSERT t_p47619579_knowledge_management.db_request_stats ON;
+INSERT INTO t_p47619579_knowledge_management.db_request_stats 
+(id, month_year, request_count, created_at, updated_at)
+VALUES 
+(1, '2025-10', 3402, '2025-10-16T10:10:48.877', '2025-10-17T11:14:19.459');
+SET IDENTITY_INSERT t_p47619579_knowledge_management.db_request_stats OFF;
+GO
+
+-- ========================================
+-- 11. ТАБЛИЦА: function_call_stats (Статистика вызовов функций)
+-- ========================================
+IF OBJECT_ID('t_p47619579_knowledge_management.function_call_stats', 'U') IS NOT NULL
+    DROP TABLE t_p47619579_knowledge_management.function_call_stats;
+GO
+
+CREATE TABLE t_p47619579_knowledge_management.function_call_stats (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    month_year NVARCHAR(7) NULL,
+    call_count INT NULL,
+    created_at DATETIME NULL DEFAULT GETDATE(),
+    updated_at DATETIME NULL DEFAULT GETDATE()
+);
+GO
+
+SET IDENTITY_INSERT t_p47619579_knowledge_management.function_call_stats ON;
+INSERT INTO t_p47619579_knowledge_management.function_call_stats 
+(id, month_year, call_count, created_at, updated_at)
+VALUES 
+(1, '2025-10', 32278, '2025-10-17T07:45:37.438', '2025-10-17T09:04:04.401'),
+(4, '2025-09', 1250, '2025-09-15T10:00:00', '2025-09-30T23:59:59');
+SET IDENTITY_INSERT t_p47619579_knowledge_management.function_call_stats OFF;
+GO
+
+PRINT '';
+PRINT '========================================';
 PRINT 'Импорт завершён успешно!';
-PRINT 'Импортировано:';
-PRINT '  - 3 сотрудника (employees)';
-PRINT '  - 2 курса (courses)';
-PRINT '  - 5 тестов (tests)';
-PRINT '  - 12 вопросов (test_questions)';
-PRINT '  - 43 ответа (test_answers)';
+PRINT '========================================';
+PRINT '';
+PRINT 'Импортированные данные:';
+PRINT '  ✓ 3 сотрудника (employees)';
+PRINT '  ✓ 2 курса (courses)';
+PRINT '  ✓ 5 тестов (tests)';
+PRINT '  ✓ 12 вопросов (test_questions)';
+PRINT '  ✓ 43 ответа (test_answers)';
+PRINT '  ✓ 3 сессии пользователей (user_sessions)';
+PRINT '  ✓ 5 запланированных уведомлений (scheduled_notifications)';
+PRINT '  ✓ 2 результата тестов (test_results)';
+PRINT '  ✓ 1 напоминание о дедлайне (deadline_reminders)';
+PRINT '  ✓ 1 запись статистики БД (db_request_stats)';
+PRINT '  ✓ 2 записи статистики функций (function_call_stats)';
+PRINT '';
+PRINT 'Пустые таблицы (структура создана):';
+PRINT '  - attendance';
+PRINT '  - course_enrollments';
+PRINT '  - lessons';
+PRINT '  - notifications';
+PRINT '  - password_reset_codes';
+PRINT '  - support_messages';
+PRINT '  - test_user_answers';
+PRINT '';
+PRINT 'База данных готова к работе!';
+PRINT '========================================';
 GO
