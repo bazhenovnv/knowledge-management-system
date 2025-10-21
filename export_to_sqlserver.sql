@@ -92,7 +92,7 @@ CREATE TABLE t_p47619579_knowledge_management.tests (
     title NVARCHAR(255) NOT NULL,
     description NVARCHAR(MAX) NULL,
     course_id INT NULL,
-    creator_id BIGINT NULL,
+    creator_id INT NULL,
     time_limit INT NULL,
     passing_score INT NULL DEFAULT 70,
     max_attempts INT NULL DEFAULT 1,
