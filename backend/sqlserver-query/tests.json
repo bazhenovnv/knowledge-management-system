@@ -1,0 +1,29 @@
+{
+  "tests": [
+    {
+      "name": "Get API info",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string",
+        "usage": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Execute SELECT query",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "query": "SELECT TOP 5 * FROM employees"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "data": "array",
+        "count": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
