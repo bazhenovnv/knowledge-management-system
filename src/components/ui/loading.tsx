@@ -1,4 +1,3 @@
-import React from 'react';
 import { cn } from '@/lib/utils';
 import Icon from './icon';
 
@@ -10,7 +9,7 @@ interface LoadingProps {
   overlay?: boolean;
 }
 
-export const Loading: React.FC<LoadingProps> = ({
+export const Loading = ({
   size = 'md',
   variant = 'spinner',
   text,
@@ -92,7 +91,7 @@ export const Loading: React.FC<LoadingProps> = ({
 };
 
 // Готовые варианты для частых случаев
-export const LoadingButton: React.FC<{ loading?: boolean; children: React.ReactNode; [key: string]: any }> = ({
+export const LoadingButton = ({
   loading = false,
   children,
   disabled,
