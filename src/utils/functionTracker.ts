@@ -18,21 +18,7 @@ const extractFunctionName = (url: string): string => {
 };
 
 export const trackFunctionCall = async (functionName: string, responseTime: number, isError: boolean = false) => {
-  try {
-    await fetch(TRACK_FUNCTION_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        function_name: functionName,
-        response_time: responseTime,
-        is_error: isError
-      })
-    });
-  } catch (error) {
-    console.error('[FunctionTracker] Failed to track function call:', error);
-  }
+  return;
 };
 
 export const createTrackedFetch = (originalFetch: typeof fetch) => {
