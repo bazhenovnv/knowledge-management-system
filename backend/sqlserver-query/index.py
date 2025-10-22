@@ -1,6 +1,6 @@
 import json
 import os
-import pyodbc
+import pymssql
 from typing import Dict, Any, List
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -46,16 +46,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = None
     
     try:
-        sqlserver_conn_str = os.environ.get('SQL_SERVER_CONNECTION_STRING')
-        
-        if not sqlserver_conn_str:
-            return {
-                'statusCode': 500,
-                'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'isBase64Encoded': False,
-                'body': json.dumps({'error': 'SQL_SERVER_CONNECTION_STRING not configured'})
-            }
-        
         body_data = json.loads(event.get('body', '{}'))
         query = body_data.get('query', '')
         params = body_data.get('params', [])
@@ -68,26 +58,30 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Query is required'})
             }
         
-        conn = pyodbc.connect(sqlserver_conn_str)
-        cursor = conn.cursor()
+        conn = pymssql.connect(
+            server='xtunnel.ru:19379',
+            user='cloud_user',
+            password='YourStrongPassword123!',
+            database='master',
+            tds_version='7.0'
+        )
+        cursor = conn.cursor(as_dict=True)
         
         if params:
-            cursor.execute(query, params)
+            cursor.execute(query, tuple(params))
         else:
             cursor.execute(query)
         
         if query.strip().upper().startswith('SELECT'):
-            columns = [column[0] for column in cursor.description]
             rows = cursor.fetchall()
             
             results = []
             for row in rows:
                 row_dict = {}
-                for i, column in enumerate(columns):
-                    value = row[i]
+                for key, value in row.items():
                     if hasattr(value, 'isoformat'):
                         value = value.isoformat()
-                    row_dict[column] = value
+                    row_dict[key] = value
                 results.append(row_dict)
             
             return {
@@ -113,7 +107,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 })
             }
         
-    except pyodbc.Error as e:
+    except pymssql.Error as e:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
