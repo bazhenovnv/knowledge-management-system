@@ -19,6 +19,7 @@ import AdminSettings from "./pages/AdminSettings";
 import AdminConsole from "./pages/AdminConsole";
 import GuideIndex from "./pages/GuideIndex";
 import SqlServerGuide from "./pages/SqlServerGuide";
+import SecretsManager from "./pages/SecretsManager";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 import { DataProvider } from "./contexts/DataContext";
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/admin-console" element={<AdminConsole />} />
             <Route path="/guide" element={<GuideIndex />} />
             <Route path="/sql-guide" element={<SqlServerGuide />} />
+            <Route path="/secrets" element={<SecretsManager />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
