@@ -110,7 +110,7 @@ export const LoadingButton = ({
   </button>
 );
 
-export const LoadingCard: React.FC<{ loading?: boolean; children: React.ReactNode; className?: string }> = ({
+export const LoadingCard = ({
   loading = false,
   children,
   className
