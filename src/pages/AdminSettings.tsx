@@ -144,14 +144,24 @@ export default function AdminSettings() {
               Управление текстами и настройками проекта
             </p>
           </div>
-          <Button 
-            onClick={() => navigate('/')}
-            variant="outline"
-            size="lg"
-          >
-            <Icon name="ArrowLeft" className="mr-2" size={20} />
-            Вернуться в приложение
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => navigate('/test-sql')}
+              variant="outline"
+              size="lg"
+            >
+              <Icon name="Database" className="mr-2" size={20} />
+              SQL Server
+            </Button>
+            <Button 
+              onClick={() => navigate('/')}
+              variant="outline"
+              size="lg"
+            >
+              <Icon name="ArrowLeft" className="mr-2" size={20} />
+              Вернуться в приложение
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="texts" className="space-y-6">
