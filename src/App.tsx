@@ -17,6 +17,8 @@ import EmployeeManagementPage from "./pages/EmployeeManagementPage";
 import DemoEmployeesPage from "./pages/DemoEmployeesPage";
 import AdminSettings from "./pages/AdminSettings";
 import AdminConsole from "./pages/AdminConsole";
+import GuideIndex from "./pages/GuideIndex";
+import SqlServerGuide from "./pages/SqlServerGuide";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 import { DataProvider } from "./contexts/DataContext";
 
@@ -51,6 +53,8 @@ const App = () => (
             <Route path="/demo-employees" element={<DemoEmployeesPage />} />
             <Route path="/admin-settings" element={<AdminSettings />} />
             <Route path="/admin-console" element={<AdminConsole />} />
+            <Route path="/guide" element={<GuideIndex />} />
+            <Route path="/sql-guide" element={<SqlServerGuide />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
