@@ -15,7 +15,7 @@ export const Loading = ({
   text,
   className,
   overlay = false
-}) => {
+}: LoadingProps) => {
   const sizeClasses = {
     sm: 'w-4 h-4',
     md: 'w-6 h-6',
@@ -89,40 +89,5 @@ export const Loading = ({
 
   return content;
 };
-
-// Готовые варианты для частых случаев
-export const LoadingButton = ({
-  loading = false,
-  children,
-  disabled,
-  ...props
-}) => (
-  <button 
-    {...props} 
-    disabled={disabled || loading}
-    className={cn(
-      'flex items-center justify-center space-x-2',
-      props.className
-    )}
-  >
-    {loading && <Loading size="sm" />}
-    <span>{children}</span>
-  </button>
-);
-
-export const LoadingCard = ({
-  loading = false,
-  children,
-  className
-}) => (
-  <div className={cn('relative', className)}>
-    {loading && (
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
-        <Loading text="Загрузка..." />
-      </div>
-    )}
-    {children}
-  </div>
-);
 
 export default Loading;
