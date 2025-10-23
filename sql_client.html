@@ -367,6 +367,8 @@
                     <div class="query-actions">
                         <button class="btn-primary" onclick="executeQuery()">▶ Выполнить</button>
                         <button class="btn-secondary" onclick="clearQuery()">Очистить</button>
+                        <button class="btn-secondary" onclick="exportToExcel()" id="exportBtn" style="display: none;">📊 Excel</button>
+                        <button class="btn-secondary" onclick="exportToCSV()" id="csvBtn" style="display: none;">📄 CSV</button>
                     </div>
                 </div>
 
@@ -423,6 +425,7 @@
 
     <script>
         let queryHistory = [];
+        let lastResults = null;
 
         async function executeQuery() {
             const query = document.getElementById('queryInput').value.trim();
@@ -459,9 +462,15 @@
                     if (data.data.length === 0) {
                         resultsDiv.innerHTML = '<div class="empty-state"><p>Запрос выполнен успешно. Результатов нет.</p></div>';
                         metaDiv.textContent = `0 строк • ${duration} мс`;
+                        lastResults = null;
+                        document.getElementById('exportBtn').style.display = 'none';
+                        document.getElementById('csvBtn').style.display = 'none';
                     } else {
                         displayResults(data.data);
                         metaDiv.textContent = `${data.data.length} строк • ${duration} мс`;
+                        lastResults = data.data;
+                        document.getElementById('exportBtn').style.display = 'inline-block';
+                        document.getElementById('csvBtn').style.display = 'inline-block';
                     }
 
                     addToHistory(query, database);
@@ -512,6 +521,78 @@
             document.getElementById('queryInput').value = '';
             document.getElementById('results').innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><p>Выполните запрос для отображения результатов</p></div>';
             document.getElementById('resultMeta').textContent = '';
+            lastResults = null;
+            document.getElementById('exportBtn').style.display = 'none';
+            document.getElementById('csvBtn').style.display = 'none';
+        }
+
+        function exportToExcel() {
+            if (!lastResults || lastResults.length === 0) return;
+
+            const columns = Object.keys(lastResults[0]);
+            
+            let html = '<table><thead><tr>';
+            columns.forEach(col => {
+                html += `<th>${col}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            lastResults.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    html += `<td>${row[col] === null ? '' : row[col]}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            const blob = new Blob([`
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        table { border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; }
+                        th { background-color: #667eea; color: white; font-weight: bold; }
+                    </style>
+                </head>
+                <body>${html}</body>
+                </html>
+            `], { type: 'application/vnd.ms-excel' });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sql_results_${new Date().getTime()}.xls`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportToCSV() {
+            if (!lastResults || lastResults.length === 0) return;
+
+            const columns = Object.keys(lastResults[0]);
+            let csv = columns.join(',') + '\n';
+
+            lastResults.forEach(row => {
+                const values = columns.map(col => {
+                    let value = row[col] === null ? '' : String(row[col]);
+                    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                        value = '"' + value.replace(/"/g, '""') + '"';
+                    }
+                    return value;
+                });
+                csv += values.join(',') + '\n';
+            });
+
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sql_results_${new Date().getTime()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function loadTemplate(template) {
