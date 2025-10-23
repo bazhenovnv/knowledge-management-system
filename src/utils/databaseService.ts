@@ -68,9 +68,9 @@ class DatabaseService {
   private baseUrl: string;
 
   constructor() {
-    // URL бэкенд функции для работы с SQL Server через туннель
-    // После запуска ngrok обнови URL здесь
-    this.baseUrl = import.meta.env.VITE_DATABASE_API_URL || 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
+    // URL бэкенд функции для работы с базой данных
+    // Функция автоматически развернута в облаке
+    this.baseUrl = import.meta.env.VITE_DATABASE_API_URL || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
   }
 
   private async makeRequest<T>(
