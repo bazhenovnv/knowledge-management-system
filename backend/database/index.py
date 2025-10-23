@@ -45,13 +45,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
         cursor = conn.cursor()
         
-        # Инкремент счётчика обращений к БД (кроме запросов статистики)
         params = event.get('queryStringParameters') or {}
         action = params.get('action', 'list')
         table = params.get('table', 'employees')
-        
-        if action != 'get_db_stats':
-            increment_request_counter(cursor, conn)
         
         if method == 'GET':
             if action == 'list':
