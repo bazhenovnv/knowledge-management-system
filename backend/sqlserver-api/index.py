@@ -27,7 +27,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     # URL локального API сервера через Cloudflare туннель
-    TUNNEL_URL = 'https://planets-pope-rocky-better.trycloudflare.com'
+    TUNNEL_URL = 'https://initiative-filename-cognitive-delight.trycloudflare.com'
     
     try:
         params = event.get('queryStringParameters') or {}
