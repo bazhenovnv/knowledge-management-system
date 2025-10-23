@@ -1,11 +1,12 @@
 """
-Business: API для работы с SQL Server базой данных через туннель
+Business: API для работы с SQL Server базой данных через Cloudflare туннель
 Args: event с httpMethod, body, queryStringParameters; context с request_id
 Returns: JSON ответ с данными из БД
 """
 
 import json
-import pymssql
+import urllib.request
+import urllib.parse
 from typing import Dict, Any
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -25,83 +26,41 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # ВАЖНО: Эти данные будут заменены после запуска ngrok
-    SQL_HOST = 'NGROK_HOST_HERE'  # Например: 0.tcp.ngrok.io
-    SQL_PORT = 'NGROK_PORT_HERE'  # Например: 12345
-    SQL_USER = 'sa'
-    SQL_PASSWORD = '12345'
-    SQL_DATABASE = 'StudentAccounting'
-    
-    if SQL_HOST == 'NGROK_HOST_HERE':
-        return {
-            'statusCode': 503,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({
-                'error': 'SQL Server туннель не настроен',
-                'message': 'Запусти sqlserver_tunnel.py и ngrok, затем обнови данные в коде'
-            }, ensure_ascii=False),
-            'isBase64Encoded': False
-        }
+    # URL локального API сервера через Cloudflare туннель
+    TUNNEL_URL = 'https://planets-pope-rocky-better.trycloudflare.com'
     
     try:
-        # Подключение к SQL Server через туннель
-        conn = pymssql.connect(
-            server=SQL_HOST,
-            port=int(SQL_PORT),
-            user=SQL_USER,
-            password=SQL_PASSWORD,
-            database=SQL_DATABASE,
-            timeout=10
-        )
-        cursor = conn.cursor(as_dict=True)
-        
         params = event.get('queryStringParameters') or {}
         query_text = params.get('query', '')
         
         if method == 'GET':
-            # Выполняем SELECT запрос
-            if not query_text:
-                # По умолчанию - список таблиц
-                cursor.execute("""
-                    SELECT TABLE_NAME 
-                    FROM INFORMATION_SCHEMA.TABLES 
-                    WHERE TABLE_TYPE = 'BASE TABLE'
-                """)
+            # Формируем URL с параметрами
+            if query_text:
+                url = f"{TUNNEL_URL}?query={urllib.parse.quote(query_text)}"
             else:
-                cursor.execute(query_text)
+                url = TUNNEL_URL
             
-            rows = cursor.fetchall()
-            result = {
-                'success': True,
-                'data': rows,
-                'count': len(rows)
-            }
+            # Отправляем GET запрос
+            req = urllib.request.Request(url, method='GET')
+            req.add_header('Content-Type', 'application/json')
+            
+            with urllib.request.urlopen(req, timeout=30) as response:
+                result = json.loads(response.read().decode('utf-8'))
         
         elif method == 'POST':
-            # Выполняем INSERT/UPDATE/DELETE запрос
+            # Читаем тело запроса
             body_data = json.loads(event.get('body', '{}'))
-            query_text = body_data.get('query', '')
             
-            if not query_text:
-                raise ValueError('Не указан SQL запрос')
+            # Отправляем POST запрос
+            data = json.dumps(body_data).encode('utf-8')
+            req = urllib.request.Request(TUNNEL_URL, data=data, method='POST')
+            req.add_header('Content-Type', 'application/json')
             
-            cursor.execute(query_text)
-            conn.commit()
-            
-            result = {
-                'success': True,
-                'message': 'Запрос выполнен',
-                'affected_rows': cursor.rowcount
-            }
+            with urllib.request.urlopen(req, timeout=30) as response:
+                result = json.loads(response.read().decode('utf-8'))
         
         else:
             result = {'error': f'Метод {method} не поддерживается'}
-        
-        cursor.close()
-        conn.close()
         
         return {
             'statusCode': 200,
@@ -110,6 +69,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Origin': '*'
             },
             'body': json.dumps(result, default=str, ensure_ascii=False),
+            'isBase64Encoded': False
+        }
+        
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode('utf-8')
+        return {
+            'statusCode': e.code,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': error_body,
             'isBase64Encoded': False
         }
         
@@ -126,7 +97,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             },
             'body': json.dumps({
                 'error': str(e),
-                'type': type(e).__name__
+                'type': type(e).__name__,
+                'tunnel_url': TUNNEL_URL
             }, ensure_ascii=False),
             'isBase64Encoded': False
         }
