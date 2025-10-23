@@ -16,7 +16,7 @@ def hash_password(password: str) -> str:
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
-    Business: API для работы с базой данных PostgreSQL системы управления знаниями
+    Business: API для работы с базой данных PostgreSQL системы управления знаниями (v2)
     Args: event с httpMethod, body, queryStringParameters; context с request_id
     Returns: JSON ответ с данными из БД
     """
