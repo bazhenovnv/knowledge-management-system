@@ -31,12 +31,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         params = event.get('queryStringParameters') or {}
-        query_text = params.get('query', '')
         
         if method == 'GET':
-            # Формируем URL с параметрами
-            if query_text:
-                url = f"{TUNNEL_URL}?query={urllib.parse.quote(query_text)}"
+            # Формируем URL со ВСЕМИ параметрами
+            if params:
+                query_string = urllib.parse.urlencode(params)
+                url = f"{TUNNEL_URL}?{query_string}"
             else:
                 url = TUNNEL_URL
             
