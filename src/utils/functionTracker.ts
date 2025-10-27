@@ -6,7 +6,8 @@ const extractFunctionName = (url: string): string => {
   
   const functionId = match[1];
   const functionMap: Record<string, string> = {
-    '5ce5a766-35aa-4d9a-9325-babec287d558': 'database',
+    '47d7f4cf-0b15-41dd-a1f4-28bec9d7c957': 'database',
+    '5ce5a766-35aa-4d9a-9325-babec287d558': 'database-old',
     '9af65be8-de12-472e-910f-fd63b3516ed9': 'track-function-call',
     '75306ed7-e91c-4135-84fe-8b519f7dcf17': 'email-notifications',
     '592a9eab-8102-4536-b07f-780566a0612b': 'password-reset',

@@ -28,7 +28,7 @@ const SupportChat = ({ employeeId, isAdmin, compact = false }: SupportChatProps)
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const BACKEND_URL = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+  const BACKEND_URL = 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

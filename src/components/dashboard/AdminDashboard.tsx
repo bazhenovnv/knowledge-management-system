@@ -63,20 +63,20 @@ export const AdminDashboard = ({
   const handleExportTestResults = async () => {
     try {
       const response = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=test_results`
       );
       const data = await response.json();
       const testResults = data.data || [];
       
       // Получаем информацию о тестах и сотрудниках для более подробного экспорта
       const testsResponse = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=tests`
       );
       const testsData = await testsResponse.json();
       const tests = testsData.data || [];
       
       const employeesResponse = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=employees`
       );
       const employeesData = await employeesResponse.json();
       const allEmployees = employeesData.data || [];
@@ -118,7 +118,7 @@ export const AdminDashboard = ({
   const handleExportEmployees = async () => {
     try {
       const response = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=employees`
       );
       const data = await response.json();
       const allEmployees = data.data || [];
@@ -167,7 +167,7 @@ export const AdminDashboard = ({
           try {
             // Проверяем, есть ли уже такой email
             const checkResponse = await fetch(
-              `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+              `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=employees`
             );
             const checkData = await checkResponse.json();
             const existingEmployees = checkData.data || [];
@@ -180,7 +180,7 @@ export const AdminDashboard = ({
             
             // Создаем нового сотрудника
             const response = await fetch(
-              `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558`,
+              `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957`,
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

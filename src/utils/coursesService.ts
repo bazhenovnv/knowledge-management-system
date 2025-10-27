@@ -26,7 +26,7 @@ class CoursesService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+    this.baseUrl = 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
   }
 
   private async makeRequest<T>(

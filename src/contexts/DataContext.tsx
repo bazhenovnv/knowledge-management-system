@@ -20,7 +20,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       
       const testResultsResponse = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=test_results`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=test_results`
       );
       const testResultsData = await testResultsResponse.json();
       const testResults = testResultsData.data || [];
@@ -30,7 +30,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         : 0;
       
       const employeesResponse = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=employees`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=employees`
       );
       const employeesData = await employeesResponse.json();
       const allEmployees = employeesData.data || [];
@@ -45,13 +45,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const inactiveEmployees = allEmployees.length - activeEmployees;
       
       const testsResponse = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=tests`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=tests`
       );
       const testsData = await testsResponse.json();
       const totalTests = testsData.data?.length || 0;
       
       const coursesResponse = await fetch(
-        `https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558?action=list&table=courses`
+        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=courses`
       );
       const coursesData = await coursesResponse.json();
       const activeCourses = coursesData.data?.filter((c: any) => c.status === 'active').length || 0;

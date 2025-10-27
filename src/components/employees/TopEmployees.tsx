@@ -4,7 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import Icon from "@/components/ui/icon";
 import { databaseService, DatabaseEmployee } from "@/utils/databaseService";
 
-const BACKEND_URL = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+const BACKEND_URL = 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
