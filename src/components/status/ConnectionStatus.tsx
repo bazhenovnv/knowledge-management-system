@@ -12,7 +12,6 @@ interface ConnectionStatusProps {
 
 export default function ConnectionStatus({ 
   apiUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
-  checkInterval = 30000,
   reconnectAttempts = 5,
   reconnectDelay = 3000
 }: ConnectionStatusProps) {
@@ -108,16 +107,15 @@ export default function ConnectionStatus({
 
   useEffect(() => {
     checkConnection();
-
-    const interval = setInterval(checkConnection, checkInterval);
+    
+    // Автообновление отключено
 
     return () => {
-      clearInterval(interval);
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current);
       }
     };
-  }, [apiUrl, checkInterval]);
+  }, [apiUrl]);
 
   useEffect(() => {
     const handleOnline = () => {

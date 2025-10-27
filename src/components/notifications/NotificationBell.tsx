@@ -23,8 +23,6 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   const [supportCount, setSupportCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [prevSupportCount, setPrevSupportCount] = useState(0);
-  const [lastCheckTimestamp, setLastCheckTimestamp] = useState<string | null>(null);
-  const [checkInterval, setCheckInterval] = useState<NodeJS.Timeout | null>(null);
 
   const playNotificationSound = () => {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -46,37 +44,15 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   };
 
   useEffect(() => {
-    checkForUpdates();
-    
-    // Автообновление отключено
+    loadUnreadCount();
+    if (isAdmin) {
+      loadSupportCount();
+    }
   }, [employeeId, isAdmin]);
 
-  const checkForUpdates = async () => {
-    try {
-      const data = await databaseService.checkUpdates(employeeId, isAdmin);
-      
-      if (data && data.has_updates) {
-        await loadFullData();
-      }
-      
-      if (data) {
-        setLastCheckTimestamp(data.timestamp);
-      }
-    } catch (error) {
-      console.error('Error checking updates:', error);
-    }
-  };
 
-  const loadFullData = async () => {
-    try {
-      await loadUnreadCount();
-      if (isAdmin) {
-        await loadSupportCount();
-      }
-    } catch (error) {
-      console.error('Error loading full data:', error);
-    }
-  };
+
+
 
   const loadUnreadCount = async () => {
     try {
@@ -106,7 +82,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   };
 
   const handleNotificationsRead = () => {
-    loadFullData();
+    loadUnreadCount();
+    if (isAdmin) {
+      loadSupportCount();
+    }
   };
 
   const totalCount = unreadCount + (isAdmin ? supportCount : 0);

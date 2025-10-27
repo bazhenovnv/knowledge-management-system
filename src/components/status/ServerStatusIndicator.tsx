@@ -18,7 +18,6 @@ interface ServerStatusIndicatorProps {
 
 export default function ServerStatusIndicator({ 
   apiUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
-  checkInterval = 30000,
   compact = false
 }: ServerStatusIndicatorProps) {
   const [status, setStatus] = useState<'online' | 'offline' | 'checking'>('checking');
