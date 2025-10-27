@@ -48,15 +48,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
   useEffect(() => {
     checkForUpdates();
     
-    const interval = setInterval(() => {
-      checkForUpdates();
-    }, 20 * 60 * 1000);
-    
-    setCheckInterval(interval);
-    
-    return () => {
-      if (interval) clearInterval(interval);
-    };
+    // Автообновление отключено
   }, [employeeId, isAdmin]);
 
   const checkForUpdates = async () => {

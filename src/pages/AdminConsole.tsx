@@ -35,10 +35,7 @@ const AdminConsole = () => {
 
     loadLogs();
     
-    if (autoRefresh) {
-      const interval = setInterval(loadLogs, 5000);
-      return () => clearInterval(interval);
-    }
+    // Автообновление отключено
   }, [autoRefresh]);
 
   const filteredLogs = logs.filter(log => {

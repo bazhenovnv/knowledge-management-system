@@ -91,9 +91,8 @@ export default function ServerStatusIndicator({
 
   useEffect(() => {
     checkConnection();
-    const interval = setInterval(checkConnection, checkInterval);
-    return () => clearInterval(interval);
-  }, [apiUrl, checkInterval]);
+    // Автообновление отключено
+  }, [apiUrl]);
 
   useEffect(() => {
     const handleOnline = () => checkConnection();

@@ -68,9 +68,8 @@ class DatabaseService {
   private baseUrl: string;
 
   constructor() {
-    // URL бэкенд функции для работы с SQL Server через туннель
-    // Cloudflare туннель: https://dragon-engaging-icons-lot.trycloudflare.com
-    this.baseUrl = import.meta.env.VITE_DATABASE_API_URL || 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
+    // URL бэкенд функции для работы с PostgreSQL базой данных
+    this.baseUrl = import.meta.env.VITE_DATABASE_API_URL || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
   }
 
   private async makeRequest<T>(
