@@ -810,20 +810,24 @@ export const KnowledgeTab = ({
       {selectedSubsection ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">
-            <Button
-              variant="outline"
-              onClick={() => setSelectedSubsection("Драйверы оборудования")}
-              className="h-auto py-4 px-6 flex items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
-            >
-              <Icon name="Download" size={20} className="text-cyan-600" />
-              <span className="font-medium">Драйверы оборудования</span>
-            </Button>
-            {userRole === "admin" && !isEditingSubsection && (
-              <Button onClick={() => setIsEditingSubsection(true)}>
-                <Icon name="Edit" size={16} className="mr-2" />
-                Редактировать
+            {selectedSubsection === "Торговое оборудование" && (
+              <Button
+                variant="outline"
+                onClick={() => setSelectedSubsection("Драйверы оборудования")}
+                className="h-auto py-4 px-6 flex items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
+              >
+                <Icon name="Download" size={20} className="text-cyan-600" />
+                <span className="font-medium">Драйверы оборудования</span>
               </Button>
             )}
+            <div className={selectedSubsection === "Торговое оборудование" ? "" : "ml-auto"}>
+              {userRole === "admin" && !isEditingSubsection && (
+                <Button onClick={() => setIsEditingSubsection(true)}>
+                  <Icon name="Edit" size={16} className="mr-2" />
+                  Редактировать
+                </Button>
+              )}
+            </div>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">{selectedSubsection}</h2>
           {renderSubsectionContent()}
