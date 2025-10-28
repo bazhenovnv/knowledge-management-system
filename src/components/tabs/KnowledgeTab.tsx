@@ -24,6 +24,7 @@ export const KnowledgeTab = ({
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState<string[]>([]);
+  const [selectedSubsection, setSelectedSubsection] = useState<string | null>(null);
   const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -266,7 +267,59 @@ export const KnowledgeTab = ({
         </p>
       </div>
 
-      <div className="flex items-center justify-between">
+      {selectedSubsection ? (
+        <div className="space-y-4">
+          <Button
+            variant="ghost"
+            onClick={() => setSelectedSubsection(null)}
+            className="mb-4"
+          >
+            <Icon name="ArrowLeft" size={16} className="mr-2" />
+            Назад к разделам
+          </Button>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{selectedSubsection}</h2>
+          <div className="bg-white rounded-lg p-6 border border-gray-200">
+            <p className="text-gray-600">Здесь будет отображаться содержимое подраздела "{selectedSubsection}"</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Структура компании и личный состав")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-all"
+            >
+              <Icon name="Users" size={24} className="text-blue-600" />
+              <span className="text-center font-medium">Структура компании и личный состав</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Виды деятельности компании")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-green-50 hover:border-green-300 transition-all"
+            >
+              <Icon name="Briefcase" size={24} className="text-green-600" />
+              <span className="text-center font-medium">Виды деятельности компании</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Виды торгового оборудования")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-purple-50 hover:border-purple-300 transition-all"
+            >
+              <Icon name="Package" size={24} className="text-purple-600" />
+              <span className="text-center font-medium">Виды торгового оборудования</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Скрипты продаж")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-all"
+            >
+              <Icon name="MessageSquare" size={24} className="text-orange-600" />
+              <span className="text-center font-medium">Скрипты продаж</span>
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
           <Input
             type="text"
@@ -339,11 +392,13 @@ export const KnowledgeTab = ({
         ))}
       </div>
 
-      {filteredMaterials.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
-          <Icon name="BookOpen" size={48} className="mx-auto mb-4 opacity-50" />
-          <p>Материалы не найдены</p>
-        </div>
+          {filteredMaterials.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <Icon name="BookOpen" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Материалы не найдены</p>
+            </div>
+          )}
+        </>
       )}
 
       <MaterialViewModal
