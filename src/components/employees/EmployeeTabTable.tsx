@@ -10,6 +10,7 @@ import { Employee } from '@/utils/database';
 import { getStatusColor, getStatusText } from '@/utils/statusUtils';
 import { getTestScore, getCompletedTests, getAverageTime, getRoleText, getRoleColor } from './employeeUtils';
 import { toast } from "sonner";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
 
 interface EmployeeTabTableProps {
   employees: Employee[];
@@ -26,6 +27,8 @@ const EmployeeTabTable: React.FC<EmployeeTabTableProps> = ({
   onDeleteEmployee,
   onSendNotification
 }) => {
+  const scrollRef = useScrollPosition('employeesTable', employees.length);
+
   const handleCopyEmail = (email: string) => {
     navigator.clipboard.writeText(email);
     toast.success("Email скопирован в буфер обмена");
@@ -48,6 +51,7 @@ const EmployeeTabTable: React.FC<EmployeeTabTableProps> = ({
         <CardTitle>Список сотрудников</CardTitle>
       </CardHeader>
       <CardContent>
+        <div ref={scrollRef} className="max-h-[600px] overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -166,6 +170,7 @@ const EmployeeTabTable: React.FC<EmployeeTabTableProps> = ({
             })}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

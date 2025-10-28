@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import Icon from '@/components/ui/icon';
 import { database, Assignment, AssignmentProgress, Employee, Test, KnowledgeMaterial } from '@/utils/database';
 import AssignmentForm from './AssignmentForm';
+import { useScrollPosition } from '@/hooks/useScrollPosition';
 
 interface AssignmentManagerProps {
   currentUserRole: 'admin' | 'teacher';
@@ -33,6 +34,8 @@ const AssignmentManager: React.FC<AssignmentManagerProps> = ({ currentUserRole, 
   });
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
+  
+  const scrollRef = useScrollPosition('assignmentsManager', assignments.length);
 
   useEffect(() => {
     loadData();
@@ -250,7 +253,7 @@ const AssignmentManager: React.FC<AssignmentManagerProps> = ({ currentUserRole, 
       </div>
 
       {/* Список заданий */}
-      <div className="space-y-4">
+      <div ref={scrollRef} className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
         {filteredAssignments.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-8">

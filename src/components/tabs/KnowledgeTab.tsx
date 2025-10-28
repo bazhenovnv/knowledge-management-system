@@ -13,6 +13,7 @@ import { ImagePreviewModal } from "@/components/knowledge/ImagePreviewModal";
 import { MaterialViewModal } from "@/components/knowledge/MaterialViewModal";
 import { MaterialFormModal } from "@/components/knowledge/MaterialFormModal";
 import { RussiaMapDetailed } from "@/components/map/RussiaMapDetailed";
+import { useScrollPosition } from "@/hooks/useScrollPosition";
 
 export const KnowledgeTab = ({
   searchQuery,
@@ -59,6 +60,7 @@ export const KnowledgeTab = ({
   const [coverImagePreview, setCoverImagePreview] = useState<string>('');
 
   const imageHandlers = useImageHandlers();
+  const scrollRef = useScrollPosition('knowledgeTab', materials.length);
 
   useEffect(() => {
     loadMaterials();
@@ -757,7 +759,7 @@ export const KnowledgeTab = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div ref={scrollRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto pr-2">
         {filteredMaterials.map((material) => (
           <Card
             key={material.id}

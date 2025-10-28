@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { database, Assignment, AssignmentProgress, Test, KnowledgeMaterial } from '@/utils/database';
+import { useScrollPosition } from '@/hooks/useScrollPosition';
 
 interface MyAssignmentsProps {
   userId: number;
@@ -22,6 +23,8 @@ const MyAssignments: React.FC<MyAssignmentsProps> = ({ userId }) => {
     const saved = localStorage.getItem('myAssignmentsTab');
     return saved || 'all';
   });
+
+  const scrollRef = useScrollPosition('myAssignments', assignments.length);
 
   useEffect(() => {
     loadData();
@@ -201,7 +204,7 @@ const MyAssignments: React.FC<MyAssignmentsProps> = ({ userId }) => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4">
+            <div ref={scrollRef} className="grid gap-4 max-h-[600px] overflow-y-auto pr-2">
               {filteredAssignments.map((assignment) => {
                 const assignmentProgress = getAssignmentProgress(assignment.id);
                 const isAssignmentOverdue = isOverdue(assignment);

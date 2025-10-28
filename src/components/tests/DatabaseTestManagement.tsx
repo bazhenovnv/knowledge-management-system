@@ -12,6 +12,7 @@ import TestResultsView from './TestResultsView';
 import TestCreationForm from './TestCreationForm';
 import TestEditForm from './TestEditForm';
 import DeleteTestDialog from './DeleteTestDialog';
+import { useScrollPosition } from '@/hooks/useScrollPosition';
 
 interface DatabaseTestManagementProps {
   userId: number;
@@ -30,6 +31,8 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   const [isCreatingTest, setIsCreatingTest] = useState(false);
   const [editingTestId, setEditingTestId] = useState<number | null>(null);
   const [deletingTest, setDeletingTest] = useState<{ id: number; title: string } | null>(null);
+
+  const scrollRef = useScrollPosition('testsManagement', tests.length);
 
   useEffect(() => {
     loadTests();
@@ -255,6 +258,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
           <CardTitle>Доступные тесты ({filteredTests.length})</CardTitle>
         </CardHeader>
         <CardContent>
+          <div ref={scrollRef} className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
           {filteredTests.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <Icon name="FileText" size={48} className="mx-auto mb-4 opacity-50" />
@@ -361,6 +365,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
               ))}
             </div>
           )}
+          </div>
         </CardContent>
       </Card>
       </TabsContent>

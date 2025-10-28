@@ -16,6 +16,7 @@ import { getTestScore } from './employeeUtils';
 
 // Импорты типов
 import { EmployeesTabProps, NewEmployeeFormData, EditingEmployeeData } from './employeeTabTypes';
+import { useScrollPosition } from "@/hooks/useScrollPosition";
 
 export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   const customDepartments = useDepartments();
@@ -70,6 +71,8 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     role: "employee",
     status: 3
   });
+
+  const scrollRef = useScrollPosition('employeesTab', employees.length);
 
   // Фильтрация сотрудников
   const filteredEmployees = employees
