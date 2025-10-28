@@ -23,9 +23,18 @@ export const KnowledgeTab = ({
   const departments = useDepartments();
   const [materials, setMaterials] = useState<DatabaseKnowledgeMaterial[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState<string[]>([]);
-  const [selectedSubsection, setSelectedSubsection] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const saved = localStorage.getItem('knowledgeCategory');
+    return saved || "all";
+  });
+  const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState<string[]>(() => {
+    const saved = localStorage.getItem('knowledgeDepartmentFilter');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [selectedSubsection, setSelectedSubsection] = useState<string | null>(() => {
+    const saved = localStorage.getItem('knowledgeSubsection');
+    return saved || null;
+  });
   const [isEditingSubsection, setIsEditingSubsection] = useState(false);
   const [subsectionContent, setSubsectionContent] = useState<Record<string, string>>({});
   const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
@@ -55,6 +64,22 @@ export const KnowledgeTab = ({
     loadMaterials();
     loadSubsectionContent();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('knowledgeCategory', selectedCategory);
+  }, [selectedCategory]);
+
+  useEffect(() => {
+    localStorage.setItem('knowledgeDepartmentFilter', JSON.stringify(selectedDepartmentFilter));
+  }, [selectedDepartmentFilter]);
+
+  useEffect(() => {
+    if (selectedSubsection) {
+      localStorage.setItem('knowledgeSubsection', selectedSubsection);
+    } else {
+      localStorage.removeItem('knowledgeSubsection');
+    }
+  }, [selectedSubsection]);
 
   const loadSubsectionContent = async () => {
     try {

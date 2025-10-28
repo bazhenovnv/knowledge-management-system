@@ -21,8 +21,14 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
   const customDepartments = useDepartments();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState(() => {
+    const saved = localStorage.getItem('employeesDepartmentFilter');
+    return saved || "all";
+  });
+  const [statusFilter, setStatusFilter] = useState(() => {
+    const saved = localStorage.getItem('employeesStatusFilter');
+    return saved || "all";
+  });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [deleteEmployeeId, setDeleteEmployeeId] = useState<number | null>(null);
@@ -37,6 +43,14 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     };
     loadEmployees();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('employeesDepartmentFilter', departmentFilter);
+  }, [departmentFilter]);
+
+  useEffect(() => {
+    localStorage.setItem('employeesStatusFilter', statusFilter);
+  }, [statusFilter]);
 
   const [newEmployee, setNewEmployee] = useState<NewEmployeeFormData>({
     name: "",

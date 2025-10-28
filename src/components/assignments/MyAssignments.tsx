@@ -18,11 +18,18 @@ const MyAssignments: React.FC<MyAssignmentsProps> = ({ userId }) => {
   const [progress, setProgress] = useState<AssignmentProgress[]>([]);
   const [tests, setTests] = useState<Test[]>([]);
   const [materials, setMaterials] = useState<KnowledgeMaterial[]>([]);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = localStorage.getItem('myAssignmentsTab');
+    return saved || 'all';
+  });
 
   useEffect(() => {
     loadData();
   }, [userId]);
+
+  useEffect(() => {
+    localStorage.setItem('myAssignmentsTab', activeTab);
+  }, [activeTab]);
 
   const loadData = () => {
     const userAssignments = database.getAssignmentsForUser(userId);

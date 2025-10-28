@@ -23,7 +23,10 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [takingTestId, setTakingTestId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState('tests');
+  const [activeTab, setActiveTab] = useState(() => {
+    const saved = localStorage.getItem('testManagementTab');
+    return saved || 'tests';
+  });
   const [isCreatingTest, setIsCreatingTest] = useState(false);
   const [editingTestId, setEditingTestId] = useState<number | null>(null);
   const [deletingTest, setDeletingTest] = useState<{ id: number; title: string } | null>(null);
@@ -31,6 +34,10 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   useEffect(() => {
     loadTests();
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('testManagementTab', activeTab);
+  }, [activeTab]);
 
   const loadTests = async () => {
     setIsLoading(true);

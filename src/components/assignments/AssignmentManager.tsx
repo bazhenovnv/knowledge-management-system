@@ -23,14 +23,28 @@ const AssignmentManager: React.FC<AssignmentManagerProps> = ({ currentUserRole, 
   const [tests, setTests] = useState<Test[]>([]);
   const [materials, setMaterials] = useState<KnowledgeMaterial[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>(() => {
+    const saved = localStorage.getItem('assignmentStatusFilter');
+    return saved || 'all';
+  });
+  const [priorityFilter, setPriorityFilter] = useState<string>(() => {
+    const saved = localStorage.getItem('assignmentPriorityFilter');
+    return saved || 'all';
+  });
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
 
   useEffect(() => {
     loadData();
   }, [currentUserId]);
+
+  useEffect(() => {
+    localStorage.setItem('assignmentStatusFilter', statusFilter);
+  }, [statusFilter]);
+
+  useEffect(() => {
+    localStorage.setItem('assignmentPriorityFilter', priorityFilter);
+  }, [priorityFilter]);
 
   const loadData = () => {
     const allAssignments = database.getAssignmentsByCreator(currentUserId);
