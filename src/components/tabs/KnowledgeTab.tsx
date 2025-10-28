@@ -258,7 +258,7 @@ export const KnowledgeTab = ({
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6 border border-blue-100">
-        <p className="text-gray-700 leading-relaxed">
+        <p className="text-gray-700 leading-relaxed text-indent-8">
           В этом разделе вы найдете все необходимые материалы для освоения специфики и деятельности компании. 
           Изучите торговое оборудование и его применение в бизнесе. Ознакомьтесь с принципами структуры компании, 
           научитесь эффективно общаться с клиентами и проводить успешные продажи. 
