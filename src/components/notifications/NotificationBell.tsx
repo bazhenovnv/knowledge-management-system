@@ -97,6 +97,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
           variant="ghost" 
           size="icon" 
           className={cn("relative", className)}
+          title="Оповещения"
         >
           <Icon name="Bell" size={20} />
           {totalCount > 0 && (
