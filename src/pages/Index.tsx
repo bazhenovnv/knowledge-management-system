@@ -139,21 +139,28 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <Navigation
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            onLogout={handleLogout}
-            userRole={userRole}
-            userName={userName}
-            employeeId={1}
-          />
-
-          <TabsContent value="dashboard" className="space-y-6">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
+      <div className="sticky top-0 z-50 bg-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Navigation
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              sidebarOpen={sidebarOpen}
+              setSidebarOpen={setSidebarOpen}
+              onLogout={handleLogout}
+              userRole={userRole}
+              userName={userName}
+              employeeId={1}
+            />
+          </Tabs>
+        </div>
+      </div>
+      
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsContent value="dashboard" className="space-y-6">
             {renderDashboard()}
           </TabsContent>
 
@@ -236,7 +243,8 @@ const Index = () => {
             )}
           </TabsContent>
 
-        </Tabs>
+          </Tabs>
+        </div>
       </div>
 
       {/* AI Помощник Алиса */}
