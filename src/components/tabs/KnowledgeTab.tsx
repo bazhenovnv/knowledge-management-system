@@ -284,7 +284,7 @@ export const KnowledgeTab = ({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <Button
               variant="outline"
               onClick={() => setSelectedSubsection("Структура компании и личный состав")}
@@ -303,11 +303,11 @@ export const KnowledgeTab = ({
             </Button>
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Виды торгового оборудования")}
+              onClick={() => setSelectedSubsection("Торговое оборудование")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-purple-50 hover:border-purple-300 transition-all"
             >
               <Icon name="Package" size={24} className="text-purple-600" />
-              <span className="text-center font-medium">Виды торгового оборудования</span>
+              <span className="text-center font-medium">Торговое оборудование</span>
             </Button>
             <Button
               variant="outline"
@@ -316,6 +316,14 @@ export const KnowledgeTab = ({
             >
               <Icon name="MessageSquare" size={24} className="text-orange-600" />
               <span className="text-center font-medium">Скрипты продаж</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Программное обеспечение")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-indigo-50 hover:border-indigo-300 transition-all"
+            >
+              <Icon name="Monitor" size={24} className="text-indigo-600" />
+              <span className="text-center font-medium">Программное обеспечение</span>
             </Button>
           </div>
 
