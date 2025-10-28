@@ -274,7 +274,7 @@ export const KnowledgeTab = ({
 
   const getDefaultContent = (subsection: string): string => {
     const defaults: Record<string, string> = {
-      "Структура компании и личный состав": `<div class="space-y-6">
+      "Структура компании": `<div class="space-y-6">
   <div class="bg-white rounded-lg p-6 border border-gray-200">
     <h3 class="text-xl font-semibold mb-4 text-gray-900">О компании</h3>
     <p class="text-gray-700 leading-relaxed mb-4">
@@ -337,7 +337,7 @@ export const KnowledgeTab = ({
 
     // Иначе показываем дефолтный контент
     switch (selectedSubsection) {
-      case "Структура компании и личный состав":
+      case "Структура компании":
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
@@ -659,11 +659,11 @@ export const KnowledgeTab = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Структура компании и личный состав")}
+              onClick={() => setSelectedSubsection("Структура компании")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-all"
             >
               <Icon name="Users" size={24} className="text-blue-600" />
-              <span className="text-center font-medium">Структура компании и личный состав</span>
+              <span className="text-center font-medium">Структура компании</span>
             </Button>
             <Button
               variant="outline"
