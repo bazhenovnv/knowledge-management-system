@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Get all materials",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get subsection content",
+      "method": "GET",
+      "path": "/?action=subsection&name=Структура компании",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "content": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Create new material",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "title": "Test Material",
+        "content": "Test content",
+        "category": "Документация",
+        "difficulty": "easy"
+      },
+      "expectedStatus": 201
+    }
+  ]
+}

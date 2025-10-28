@@ -400,20 +400,34 @@ class DatabaseService {
   // ========================
 
   async getKnowledgeMaterials(): Promise<DatabaseKnowledgeMaterial[]> {
-    const response = await this.makeRequest<DatabaseKnowledgeMaterial[]>('?action=list&table=knowledge_materials');
-    
-    if (response.error) {
-      console.error('Error fetching knowledge materials:', response.error);
+    try {
+      const knowledgeApiUrl = 'https://functions.poehali.dev/31a686c1-3ac4-442d-8f8d-fdf80516ccc0';
+      
+      const response = await fetch(knowledgeApiUrl, {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.error('Error fetching knowledge materials:', await response.text());
+        return [];
+      }
+      
+      const data = await response.json();
+      return (data || []).map((material: any) => ({
+        ...material,
+        rating: Number(material.rating) || 0,
+        enrollments: Number(material.enrollments) || 0,
+        attachments: material.attachments || [],
+        cover_image: material.cover_image || '',
+      }));
+    } catch (error) {
+      console.error('Error fetching knowledge materials:', error);
       return [];
     }
-
-    return (response.data || []).map(material => ({
-      ...material,
-      rating: Number(material.rating) || 0,
-      enrollments: Number(material.enrollments) || 0,
-      attachments: material.attachments || [],
-      cover_image: material.cover_image || '',
-    }));
   }
 
   async getKnowledgeMaterialById(id: number): Promise<DatabaseKnowledgeMaterial | null> {
@@ -437,40 +451,71 @@ class DatabaseService {
     is_published?: boolean;
     created_by: string;
   }): Promise<DatabaseKnowledgeMaterial | null> {
-    const response = await this.makeRequest<DatabaseKnowledgeMaterial>('?action=create&table=knowledge_materials', {
-      method: 'POST',
-      body: JSON.stringify(materialData)
-    });
-
-    if (response.error || !response.data) {
-      console.error('Error creating knowledge material:', response.error);
+    try {
+      const knowledgeApiUrl = 'https://functions.poehali.dev/31a686c1-3ac4-442d-8f8d-fdf80516ccc0';
+      
+      const response = await fetch(knowledgeApiUrl, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(materialData)
+      });
+      
+      if (!response.ok) {
+        console.error('Error creating knowledge material:', await response.text());
+        return null;
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error creating knowledge material:', error);
       return null;
     }
-
-    return response.data;
   }
 
   async updateKnowledgeMaterial(id: number, updates: Partial<DatabaseKnowledgeMaterial>): Promise<DatabaseKnowledgeMaterial | null> {
-    const response = await this.makeRequest<DatabaseKnowledgeMaterial>(`?action=update&table=knowledge_materials&id=${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates)
-    });
-
-    if (response.error || !response.data) {
-      console.error('Error updating knowledge material:', response.error);
+    try {
+      const knowledgeApiUrl = 'https://functions.poehali.dev/31a686c1-3ac4-442d-8f8d-fdf80516ccc0';
+      
+      const response = await fetch(knowledgeApiUrl, {
+        method: 'PUT',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, ...updates })
+      });
+      
+      if (!response.ok) {
+        console.error('Error updating knowledge material:', await response.text());
+        return null;
+      }
+      
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating knowledge material:', error);
       return null;
     }
-
-    return response.data;
   }
 
   async deleteKnowledgeMaterial(id: number): Promise<boolean> {
     try {
-      const response = await this.makeRequest(`?table=knowledge_materials&id=${id}`, {
-        method: 'DELETE'
+      const knowledgeApiUrl = 'https://functions.poehali.dev/31a686c1-3ac4-442d-8f8d-fdf80516ccc0';
+      
+      const response = await fetch(knowledgeApiUrl, {
+        method: 'DELETE',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id })
       });
 
-      return !response.error;
+      return response.ok;
     } catch (error) {
       console.error('Delete knowledge material error:', error);
       return false;
@@ -482,28 +527,67 @@ class DatabaseService {
   // ========================
 
   async getSubsectionContent(): Promise<Record<string, string>> {
-    const response = await this.makeRequest<Record<string, string>>('?action=get_subsections');
-    
-    if (response.error || !response.data) {
-      console.error('Error fetching subsection content:', response.error);
+    try {
+      const knowledgeApiUrl = 'https://functions.poehali.dev/31a686c1-3ac4-442d-8f8d-fdf80516ccc0';
+      const subsections = [
+        'Структура компании',
+        'Виды деятельности компании',
+        'Скрипты продаж',
+        'Торговое оборудование',
+        'Программное обеспечение'
+      ];
+      
+      const contentMap: Record<string, string> = {};
+      
+      for (const subsection of subsections) {
+        const response = await fetch(`${knowledgeApiUrl}?action=subsection&name=${encodeURIComponent(subsection)}`, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          contentMap[subsection] = data.content || '';
+        }
+      }
+      
+      return contentMap;
+    } catch (error) {
+      console.error('Error fetching subsection content:', error);
       return {};
     }
-
-    return response.data;
   }
 
   async saveSubsectionContent(subsection: string, content: string): Promise<boolean> {
-    const response = await this.makeRequest('?action=save_subsection', {
-      method: 'POST',
-      body: JSON.stringify({ subsection, content })
-    });
+    try {
+      const knowledgeApiUrl = 'https://functions.poehali.dev/31a686c1-3ac4-442d-8f8d-fdf80516ccc0';
+      
+      const response = await fetch(knowledgeApiUrl, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          action: 'save_subsection',
+          subsection_name: subsection,
+          content: content
+        })
+      });
 
-    if (response.error) {
-      console.error('Error saving subsection content:', response.error);
+      if (!response.ok) {
+        console.error('Error saving subsection content:', await response.text());
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving subsection content:', error);
       return false;
     }
-
-    return true;
   }
 
   async getDbRequestStats(): Promise<{
