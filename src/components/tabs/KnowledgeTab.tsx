@@ -505,16 +505,7 @@ export const KnowledgeTab = ({
                   </p>
                 </div>
                 
-                <div>
-                  <Button
-                    variant="outline"
-                    onClick={() => setSelectedSubsection("Драйверы оборудования")}
-                    className="w-full h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
-                  >
-                    <Icon name="Download" size={24} className="text-cyan-600" />
-                    <span className="text-center font-medium">Драйверы оборудования</span>
-                  </Button>
-                </div>
+
               </div>
             </div>
           </div>
@@ -818,7 +809,15 @@ export const KnowledgeTab = ({
 
       {selectedSubsection ? (
         <div className="space-y-4">
-          <div className="flex justify-end items-center mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Драйверы оборудования")}
+              className="h-auto py-4 px-6 flex items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
+            >
+              <Icon name="Download" size={20} className="text-cyan-600" />
+              <span className="font-medium">Драйверы оборудования</span>
+            </Button>
             {userRole === "admin" && !isEditingSubsection && (
               <Button onClick={() => setIsEditingSubsection(true)}>
                 <Icon name="Edit" size={16} className="mr-2" />
