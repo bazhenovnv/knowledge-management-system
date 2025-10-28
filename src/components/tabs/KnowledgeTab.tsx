@@ -821,7 +821,7 @@ export const KnowledgeTab = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Структура компании")}
+              onClick={() => setSelectedSubsection(selectedSubsection === "Структура компании" ? null : "Структура компании")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-all"
             >
               <Icon name="Users" size={24} className="text-blue-600" />
@@ -829,7 +829,7 @@ export const KnowledgeTab = ({
             </Button>
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Виды деятельности компании")}
+              onClick={() => setSelectedSubsection(selectedSubsection === "Виды деятельности компании" ? null : "Виды деятельности компании")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-green-50 hover:border-green-300 transition-all"
             >
               <Icon name="Briefcase" size={24} className="text-green-600" />
@@ -837,7 +837,7 @@ export const KnowledgeTab = ({
             </Button>
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Скрипты продаж")}
+              onClick={() => setSelectedSubsection(selectedSubsection === "Скрипты продаж" ? null : "Скрипты продаж")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-all"
             >
               <Icon name="MessageSquare" size={24} className="text-orange-600" />
@@ -845,7 +845,7 @@ export const KnowledgeTab = ({
             </Button>
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Торговое оборудование")}
+              onClick={() => setSelectedSubsection(selectedSubsection === "Торговое оборудование" || selectedSubsection === "Драйверы оборудования" ? null : "Торговое оборудование")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-purple-50 hover:border-purple-300 transition-all"
             >
               <Icon name="Package" size={24} className="text-purple-600" />
@@ -853,7 +853,7 @@ export const KnowledgeTab = ({
             </Button>
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Программное обеспечение")}
+              onClick={() => setSelectedSubsection(selectedSubsection === "Программное обеспечение" ? null : "Программное обеспечение")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-indigo-50 hover:border-indigo-300 transition-all"
             >
               <Icon name="Monitor" size={24} className="text-indigo-600" />
