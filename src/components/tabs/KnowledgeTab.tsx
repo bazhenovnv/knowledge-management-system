@@ -742,7 +742,7 @@ export const KnowledgeTab = ({
                         className="bg-blue-600 hover:bg-blue-700"
                       >
                         <Icon name="Download" size={16} className="mr-2" />
-                        Скачать драйверы АТОЛ
+                        Скачать драйвер
                       </Button>
                     </div>
                   </div>
@@ -763,7 +763,7 @@ export const KnowledgeTab = ({
                         className="bg-green-600 hover:bg-green-700"
                       >
                         <Icon name="Download" size={16} className="mr-2" />
-                        Скачать драйверы Штрих-М
+                        Скачать драйвер
                       </Button>
                     </div>
                   </div>
@@ -784,7 +784,7 @@ export const KnowledgeTab = ({
                         className="bg-purple-600 hover:bg-purple-700"
                       >
                         <Icon name="Download" size={16} className="mr-2" />
-                        Скачать Эвотор SDK
+                        Скачать драйвер
                       </Button>
                     </div>
                   </div>
@@ -805,7 +805,7 @@ export const KnowledgeTab = ({
                         className="bg-orange-600 hover:bg-orange-700"
                       >
                         <Icon name="Download" size={16} className="mr-2" />
-                        Скачать драйверы сканеров
+                        Скачать драйвер
                       </Button>
                     </div>
                   </div>
