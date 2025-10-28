@@ -798,15 +798,6 @@ export const KnowledgeTab = ({
         </Button>
       )}
 
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6 border border-blue-100">
-        <p className="text-gray-700 leading-relaxed text-indent-8">
-          В этом разделе вы найдете все необходимые материалы для освоения специфики и деятельности компании. 
-          Изучите торговое оборудование и его применение в бизнесе. Ознакомьтесь с принципами структуры компании, 
-          научитесь эффективно общаться с клиентами и проводить успешные продажи. 
-          Введите интересующий вас вопрос в поиск, и получите развернутый ответ.
-        </p>
-      </div>
-
       {selectedSubsection ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">
@@ -834,6 +825,15 @@ export const KnowledgeTab = ({
         </div>
       ) : (
         <>
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6 border border-blue-100">
+            <p className="text-gray-700 leading-relaxed text-indent-8">
+              В этом разделе вы найдете все необходимые материалы для освоения специфики и деятельности компании. 
+              Изучите торговое оборудование и его применение в бизнесе. Ознакомьтесь с принципами структуры компании, 
+              научитесь эффективно общаться с клиентами и проводить успешные продажи. 
+              Введите интересующий вас вопрос в поиск, и получите развернутый ответ.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <Button
               variant="outline"
