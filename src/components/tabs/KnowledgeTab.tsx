@@ -497,12 +497,23 @@ export const KnowledgeTab = ({
                   </p>
                 </div>
                 
-                <div>
+                <div className="border-b pb-4">
                   <h4 className="font-semibold text-lg text-gray-900 mb-2">POS-терминалы</h4>
                   <p className="text-gray-700 mb-2">
                     Эквайринговые терминалы для приема оплаты банковскими картами, 
                     поддержка бесконтактных платежей.
                   </p>
+                </div>
+                
+                <div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setSelectedSubsection("Драйверы оборудования")}
+                    className="w-full h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
+                  >
+                    <Icon name="Download" size={24} className="text-cyan-600" />
+                    <span className="text-center font-medium">Драйверы оборудования</span>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -821,14 +832,6 @@ export const KnowledgeTab = ({
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <Button
-              variant="outline"
-              onClick={() => setSelectedSubsection("Драйверы оборудования")}
-              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
-            >
-              <Icon name="Download" size={24} className="text-cyan-600" />
-              <span className="text-center font-medium">Драйверы оборудования</span>
-            </Button>
             <Button
               variant="outline"
               onClick={() => setSelectedSubsection("Структура компании")}
