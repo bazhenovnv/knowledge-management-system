@@ -807,6 +807,15 @@ export const KnowledgeTab = ({
         </Button>
       )}
 
+      <Button
+        variant="outline"
+        onClick={() => setSelectedSubsection("Драйверы оборудования")}
+        className="mb-6 h-auto py-6 px-6 flex items-center justify-center gap-3 hover:bg-cyan-50 hover:border-cyan-400 transition-all border-2 shadow-lg"
+      >
+        <Icon name="Download" size={28} className="text-cyan-600" />
+        <span className="text-xl font-semibold text-cyan-700">Драйверы оборудования</span>
+      </Button>
+
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6 border border-blue-100">
         <p className="text-gray-700 leading-relaxed text-indent-8">
           В этом разделе вы найдете все необходимые материалы для освоения специфики и деятельности компании. 
