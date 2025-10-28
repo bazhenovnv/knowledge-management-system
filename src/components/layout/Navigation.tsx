@@ -29,7 +29,6 @@ interface NavigationProps {
   userRole?: string;
   userName?: string;
   employeeId?: number;
-  isEditingMode?: boolean;
 }
 
 export const Navigation = ({
@@ -41,7 +40,6 @@ export const Navigation = ({
   userRole,
   userName,
   employeeId = 1,
-  isEditingMode = false,
 }: NavigationProps) => {
   const {
     notifications,
@@ -281,8 +279,7 @@ export const Navigation = ({
         </div>
       </div>
 
-      {!isEditingMode && (
-        <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
+      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
 
         <TabsTrigger
           value="dashboard"
@@ -379,7 +376,6 @@ export const Navigation = ({
         )}
 
       </TabsList>
-      )}
     </>
   );
 };
