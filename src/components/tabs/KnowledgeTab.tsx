@@ -738,7 +738,7 @@ export const KnowledgeTab = ({
                         Поддержка моделей: АТОЛ 91Ф, 92Ф, 30Ф, 25Ф и других.
                       </p>
                       <Button 
-                        onClick={() => window.open('https://www.atol.ru/support/downloads/', '_blank')}
+                        onClick={() => window.open('https://atoldriver.ru/', '_blank')}
                         className="bg-blue-600 hover:bg-blue-700"
                       >
                         <Icon name="Download" size={16} className="mr-2" />
