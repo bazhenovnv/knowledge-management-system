@@ -675,19 +675,19 @@ export const KnowledgeTab = ({
             </Button>
             <Button
               variant="outline"
-              onClick={() => setSelectedSubsection("Торговое оборудование")}
-              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-purple-50 hover:border-purple-300 transition-all"
-            >
-              <Icon name="Package" size={24} className="text-purple-600" />
-              <span className="text-center font-medium">Торговое оборудование</span>
-            </Button>
-            <Button
-              variant="outline"
               onClick={() => setSelectedSubsection("Скрипты продаж")}
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-orange-50 hover:border-orange-300 transition-all"
             >
               <Icon name="MessageSquare" size={24} className="text-orange-600" />
               <span className="text-center font-medium">Скрипты продаж</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Торговое оборудование")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-purple-50 hover:border-purple-300 transition-all"
+            >
+              <Icon name="Package" size={24} className="text-purple-600" />
+              <span className="text-center font-medium">Торговое оборудование</span>
             </Button>
             <Button
               variant="outline"
