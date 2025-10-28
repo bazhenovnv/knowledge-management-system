@@ -799,15 +799,15 @@ export const KnowledgeTab = ({
     <div className="space-y-6 relative">
       {selectedSubsection && (
         <Button
-          variant="outline"
-          size="sm"
+          variant="default"
+          size="lg"
           onClick={() => {
             setSelectedSubsection(null);
             setIsEditingSubsection(false);
           }}
-          className="fixed top-24 left-4 z-40 bg-white shadow-lg hover:shadow-xl transition-all"
+          className="fixed top-32 left-8 z-[100] bg-blue-600 hover:bg-blue-700 text-white shadow-2xl hover:shadow-xl transition-all border-2 border-white"
         >
-          <Icon name="ArrowLeft" size={16} className="mr-2" />
+          <Icon name="ArrowLeft" size={20} className="mr-2" />
           Назад
         </Button>
       )}
