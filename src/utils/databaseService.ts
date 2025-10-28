@@ -477,6 +477,35 @@ class DatabaseService {
     }
   }
 
+  // ========================
+  // МЕТОДЫ ДЛЯ ПОДРАЗДЕЛОВ БАЗЫ ЗНАНИЙ
+  // ========================
+
+  async getSubsectionContent(): Promise<Record<string, string>> {
+    const response = await this.makeRequest<Record<string, string>>('?action=get_subsections');
+    
+    if (response.error || !response.data) {
+      console.error('Error fetching subsection content:', response.error);
+      return {};
+    }
+
+    return response.data;
+  }
+
+  async saveSubsectionContent(subsection: string, content: string): Promise<boolean> {
+    const response = await this.makeRequest('?action=save_subsection', {
+      method: 'POST',
+      body: JSON.stringify({ subsection, content })
+    });
+
+    if (response.error) {
+      console.error('Error saving subsection content:', response.error);
+      return false;
+    }
+
+    return true;
+  }
+
   async getDbRequestStats(): Promise<{
     current_month: { month_year: string; request_count: number; updated_at?: string };
     previous_month: { month_year: string; request_count: number; updated_at?: string };

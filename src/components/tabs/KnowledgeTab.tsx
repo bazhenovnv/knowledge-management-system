@@ -25,6 +25,8 @@ export const KnowledgeTab = ({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDepartmentFilter, setSelectedDepartmentFilter] = useState<string[]>([]);
   const [selectedSubsection, setSelectedSubsection] = useState<string | null>(null);
+  const [isEditingSubsection, setIsEditingSubsection] = useState(false);
+  const [subsectionContent, setSubsectionContent] = useState<Record<string, string>>({});
   const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -50,7 +52,29 @@ export const KnowledgeTab = ({
 
   useEffect(() => {
     loadMaterials();
+    loadSubsectionContent();
   }, []);
+
+  const loadSubsectionContent = async () => {
+    try {
+      const content = await databaseService.getSubsectionContent();
+      setSubsectionContent(content || {});
+    } catch (error) {
+      console.error('Error loading subsection content:', error);
+    }
+  };
+
+  const saveSubsectionContent = async (subsection: string, content: string) => {
+    try {
+      await databaseService.saveSubsectionContent(subsection, content);
+      setSubsectionContent(prev => ({ ...prev, [subsection]: content }));
+      toast.success('Раздел сохранен');
+      setIsEditingSubsection(false);
+    } catch (error) {
+      toast.error('Ошибка сохранения');
+      console.error('Error saving subsection:', error);
+    }
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -248,7 +272,70 @@ export const KnowledgeTab = ({
     new Set(materials.map((m) => m.category))
   ).filter(Boolean);
 
+  const getDefaultContent = (subsection: string): string => {
+    const defaults: Record<string, string> = {
+      "Структура компании и личный состав": `<div class="space-y-6">
+  <div class="bg-white rounded-lg p-6 border border-gray-200">
+    <h3 class="text-xl font-semibold mb-4 text-gray-900">О компании</h3>
+    <p class="text-gray-700 leading-relaxed mb-4">
+      AB-Онлайн Касса — ведущий поставщик кассового оборудования и решений для автоматизации торговли в Краснодаре и Краснодарском крае.
+    </p>
+  </div>
+</div>`,
+      "Виды деятельности компании": `<div class="bg-white rounded-lg p-6 border border-gray-200">
+  <h3 class="text-xl font-semibold mb-4 text-gray-900">Основные направления</h3>
+  <p class="text-gray-700">Описание видов деятельности компании</p>
+</div>`,
+      "Торговое оборудование": `<div class="bg-white rounded-lg p-6 border border-gray-200">
+  <h3 class="text-xl font-semibold mb-4 text-gray-900">Каталог оборудования</h3>
+  <p class="text-gray-700">Описание торгового оборудования</p>
+</div>`,
+      "Скрипты продаж": `<div class="bg-white rounded-lg p-6 border border-gray-200">
+  <h3 class="text-xl font-semibold mb-4 text-gray-900">Скрипты</h3>
+  <p class="text-gray-700">Скрипты продаж</p>
+</div>`,
+      "Программное обеспечение": `<div class="bg-white rounded-lg p-6 border border-gray-200">
+  <h3 class="text-xl font-semibold mb-4 text-gray-900">ПО</h3>
+  <p class="text-gray-700">Программное обеспечение</p>
+</div>`
+    };
+    return defaults[subsection] || "";
+  };
+
   const renderSubsectionContent = () => {
+    if (isEditingSubsection && selectedSubsection) {
+      return (
+        <div className="space-y-4">
+          <textarea
+            value={subsectionContent[selectedSubsection] || getDefaultContent(selectedSubsection)}
+            onChange={(e) => setSubsectionContent(prev => ({ ...prev, [selectedSubsection]: e.target.value }))}
+            className="w-full h-96 p-4 border rounded-lg font-mono text-sm"
+            placeholder="Введите содержимое раздела в формате HTML или обычного текста..."
+          />
+          <div className="flex gap-2">
+            <Button onClick={() => saveSubsectionContent(selectedSubsection, subsectionContent[selectedSubsection] || '')}>
+              <Icon name="Save" size={16} className="mr-2" />
+              Сохранить
+            </Button>
+            <Button variant="outline" onClick={() => setIsEditingSubsection(false)}>
+              Отменить
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Если есть сохраненный контент, показываем его
+    if (subsectionContent[selectedSubsection]) {
+      return (
+        <div 
+          className="prose max-w-none"
+          dangerouslySetInnerHTML={{ __html: subsectionContent[selectedSubsection] }}
+        />
+      );
+    }
+
+    // Иначе показываем дефолтный контент
     switch (selectedSubsection) {
       case "Структура компании и личный состав":
         return (
@@ -546,14 +633,24 @@ export const KnowledgeTab = ({
 
       {selectedSubsection ? (
         <div className="space-y-4">
-          <Button
-            variant="ghost"
-            onClick={() => setSelectedSubsection(null)}
-            className="mb-4"
-          >
-            <Icon name="ArrowLeft" size={16} className="mr-2" />
-            Назад к разделам
-          </Button>
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSelectedSubsection(null);
+                setIsEditingSubsection(false);
+              }}
+            >
+              <Icon name="ArrowLeft" size={16} className="mr-2" />
+              Назад к разделам
+            </Button>
+            {(userRole === "admin" || userRole === "teacher") && !isEditingSubsection && (
+              <Button onClick={() => setIsEditingSubsection(true)}>
+                <Icon name="Edit" size={16} className="mr-2" />
+                Редактировать
+              </Button>
+            )}
+          </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">{selectedSubsection}</h2>
           {renderSubsectionContent()}
         </div>

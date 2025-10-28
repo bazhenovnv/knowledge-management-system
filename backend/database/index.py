@@ -83,6 +83,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 employee_id = params.get('employee_id')
                 is_admin = params.get('is_admin', 'false').lower() == 'true'
                 result = check_updates(cursor, employee_id, is_admin)
+            elif action == 'get_subsections':
+                result = get_subsections(cursor)
             else:
                 result = {'error': 'Неизвестное действие'}
                 
@@ -109,6 +111,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = mark_support_messages_read(cursor, conn, int(employee_id))
             elif action == 'ai_search_knowledge':
                 result = ai_search_knowledge(body_data)
+            elif action == 'save_subsection':
+                result = save_subsection(cursor, conn, body_data)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -1473,3 +1477,49 @@ def ai_search_knowledge(body_data: Dict[str, Any]) -> Dict[str, Any]:
         
     except Exception as e:
         return {'error': f'Ошибка AI поиска: {str(e)}'}
+
+
+def get_subsections(cursor) -> Dict[str, Any]:
+    """Получить содержимое подразделов базы знаний"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        cursor.execute(f"SELECT subsection_name, content FROM {schema}.knowledge_subsections")
+        rows = cursor.fetchall()
+        
+        result = {}
+        for row in rows:
+            result[row['subsection_name']] = row['content']
+        
+        return {'data': result}
+    except Exception as e:
+        return {'error': f'Ошибка получения подразделов: {str(e)}'}
+
+
+def save_subsection(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Сохранить содержимое подраздела базы знаний"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        subsection = data.get('subsection')
+        content = data.get('content', '')
+        
+        if not subsection:
+            return {'error': 'Не указано название подраздела'}
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.knowledge_subsections (subsection_name, content)
+            VALUES (%s, %s)
+            ON CONFLICT (subsection_name) 
+            DO UPDATE SET content = EXCLUDED.content, updated_at = CURRENT_TIMESTAMP
+            RETURNING subsection_name, content, updated_at
+        """, (subsection, content))
+        
+        result = cursor.fetchone()
+        conn.commit()
+        
+        return {
+            'data': dict(result),
+            'message': 'Подраздел успешно сохранен'
+        }
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка сохранения подраздела: {str(e)}'}
