@@ -832,6 +832,97 @@ export const KnowledgeTab = ({
           </div>
         );
       
+      case "Инструкции":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Инструкции по работе с оборудованием</h3>
+              <p className="text-gray-700 mb-6">
+                Подробные руководства по настройке, подключению и эксплуатации кассового оборудования.
+              </p>
+              
+              <div className="space-y-6">
+                <div className="border-b pb-4">
+                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                    <Icon name="FileText" size={20} className="text-blue-600" />
+                    Настройка онлайн-кассы
+                  </h4>
+                  <p className="text-gray-700 mb-3">
+                    Пошаговое руководство по первичной настройке кассы, регистрации в ФНС и подключению к ОФД.
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+                    <li>Распаковка и подключение оборудования</li>
+                    <li>Регистрация в личном кабинете ФНС</li>
+                    <li>Подключение к оператору фискальных данных</li>
+                    <li>Настройка параметров печати чеков</li>
+                  </ul>
+                </div>
+
+                <div className="border-b pb-4">
+                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                    <Icon name="Wrench" size={20} className="text-green-600" />
+                    Подключение периферийного оборудования
+                  </h4>
+                  <p className="text-gray-700 mb-3">
+                    Инструкции по подключению сканеров, весов, принтеров этикеток и POS-терминалов.
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+                    <li>Подключение сканера штрих-кодов через USB/COM-порт</li>
+                    <li>Настройка весового оборудования</li>
+                    <li>Интеграция принтера этикеток</li>
+                    <li>Подключение эквайрингового терминала</li>
+                  </ul>
+                </div>
+
+                <div className="border-b pb-4">
+                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                    <Icon name="Settings" size={20} className="text-purple-600" />
+                    Работа с фискальным накопителем
+                  </h4>
+                  <p className="text-gray-700 mb-3">
+                    Инструкции по установке, замене и закрытию фискального накопителя.
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+                    <li>Установка нового фискального накопителя</li>
+                    <li>Проверка срока действия ФН</li>
+                    <li>Процедура закрытия архива ФН</li>
+                    <li>Замена фискального накопителя</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
+                    <Icon name="AlertCircle" size={20} className="text-orange-600" />
+                    Решение типовых проблем
+                  </h4>
+                  <p className="text-gray-700 mb-3">
+                    Руководство по устранению часто встречающихся неисправностей и ошибок.
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+                    <li>Касса не печатает чеки - проверка соединений</li>
+                    <li>Ошибка передачи данных в ОФД - настройка интернета</li>
+                    <li>Не распознается фискальный накопитель</li>
+                    <li>Проблемы с подключением сканера</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+              <div className="flex items-start gap-3">
+                <Icon name="Info" size={24} className="text-blue-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Нужна помощь?</h4>
+                  <p className="text-gray-700">
+                    Если у вас возникли сложности с настройкой или возникли вопросы, 
+                    обратитесь в службу технической поддержки по телефону или через форму обратной связи.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
       default:
         return (
           <div className="bg-white rounded-lg p-6 border border-gray-200">
@@ -950,6 +1041,14 @@ export const KnowledgeTab = ({
             >
               <Icon name="Monitor" size={24} className="text-indigo-600" />
               <span className="text-center font-medium">Программное обеспечение</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Инструкции")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-pink-50 hover:border-pink-300 transition-all"
+            >
+              <Icon name="BookOpen" size={24} className="text-pink-600" />
+              <span className="text-center font-medium">Инструкции</span>
             </Button>
 
           </div>
