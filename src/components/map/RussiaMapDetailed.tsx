@@ -6,6 +6,114 @@ import { Branch } from './RussiaMap';
 const branches: Branch[] = [
   {
     id: '1',
+    city: 'Краснодар',
+    address: 'ул. Красная, д. 122',
+    phone: '+7 (861) 234-56-78',
+    email: 'krasnodar@ab-kassa.ru',
+    employees: 28,
+    description: 'Региональный центр Южного федерального округа. Координирует работу филиалов в Краснодарском крае.',
+    images: [],
+    x: 85,
+    y: 580
+  },
+  {
+    id: '2',
+    city: 'Сочи',
+    address: 'Курортный проспект, д. 75',
+    phone: '+7 (862) 345-67-89',
+    email: 'sochi@ab-kassa.ru',
+    employees: 18,
+    description: 'Филиал в курортной зоне, специализируется на обслуживании гостиничного и ресторанного бизнеса.',
+    images: [],
+    x: 62,
+    y: 605
+  },
+  {
+    id: '3',
+    city: 'п. Лазаревское',
+    address: 'ул. Победы, д. 153',
+    phone: '+7 (862) 456-78-90',
+    email: 'lazarevskoye@ab-kassa.ru',
+    employees: 12,
+    description: 'Обслуживает курортную зону Большого Сочи, работа с малым и средним бизнесом.',
+    images: [],
+    x: 68,
+    y: 600
+  },
+  {
+    id: '4',
+    city: 'Геленджик',
+    address: 'ул. Луначарского, д. 166',
+    phone: '+7 (861) 567-89-01',
+    email: 'gelendzhik@ab-kassa.ru',
+    employees: 15,
+    description: 'Обслуживает курортную зону Геленджика и прилегающих районов.',
+    images: [],
+    x: 72,
+    y: 587
+  },
+  {
+    id: '5',
+    city: 'Анапа',
+    address: 'ул. Крымская, д. 99',
+    phone: '+7 (861) 678-90-12',
+    email: 'anapa@ab-kassa.ru',
+    employees: 14,
+    description: 'Специализация на семейных курортах, детских лагерях и санаториях.',
+    images: [],
+    x: 58,
+    y: 578
+  },
+  {
+    id: '6',
+    city: 'Новороссийск',
+    address: 'проспект Ленина, д. 7',
+    phone: '+7 (861) 789-01-23',
+    email: 'novoross@ab-kassa.ru',
+    employees: 20,
+    description: 'Крупный филиал портового города, работа с логистическими и торговыми компаниями.',
+    images: [],
+    x: 66,
+    y: 582
+  },
+  {
+    id: '7',
+    city: 'Ейск',
+    address: 'ул. Свердлова, д. 88',
+    phone: '+7 (861) 890-12-34',
+    email: 'eysk@ab-kassa.ru',
+    employees: 10,
+    description: 'Обслуживает северную часть Краснодарского края и курортную зону Азовского моря.',
+    images: [],
+    x: 90,
+    y: 560
+  },
+  {
+    id: '8',
+    city: 'Туапсе',
+    address: 'ул. Сочинская, д. 4',
+    phone: '+7 (861) 901-23-45',
+    email: 'tuapse@ab-kassa.ru',
+    employees: 13,
+    description: 'Филиал в крупном портовом и курортном городе на побережье Черного моря.',
+    images: [],
+    x: 70,
+    y: 595
+  },
+  {
+    id: '9',
+    city: 'Ростов-на-Дону',
+    address: 'Большая Садовая, д. 47',
+    phone: '+7 (863) 123-45-67',
+    email: 'rostov@ab-kassa.ru',
+    employees: 35,
+    description: 'Региональный центр Южного региона, крупный филиал с полным спектром услуг.',
+    images: [],
+    x: 105,
+    y: 540
+  },
+  {
+    id: '10',
     city: 'Москва',
     address: 'ул. Тверская, д. 15',
     phone: '+7 (495) 123-45-67',
@@ -16,119 +124,8 @@ const branches: Branch[] = [
       'https://cdn.poehali.dev/projects/3e7167fb-cf22-49a0-9384-995d309795e1/files/d13c6ebf-e510-4f18-84e3-eb85e6ef7e97.jpg',
       'https://cdn.poehali.dev/projects/3e7167fb-cf22-49a0-9384-995d309795e1/files/513df264-576d-44b5-9013-d96b5a53a72d.jpg'
     ],
-    x: 340,
-    y: 350
-  },
-  {
-    id: '2',
-    city: 'Санкт-Петербург',
-    address: 'Невский проспект, д. 28',
-    phone: '+7 (812) 987-65-43',
-    email: 'spb@ab-kassa.ru',
-    employees: 32,
-    description: 'Крупнейший филиал в Северо-Западном регионе. Обслуживает клиентов Ленинградской области и соседних регионов.',
-    images: [
-      'https://cdn.poehali.dev/projects/3e7167fb-cf22-49a0-9384-995d309795e1/files/d13c6ebf-e510-4f18-84e3-eb85e6ef7e97.jpg',
-      'https://cdn.poehali.dev/projects/3e7167fb-cf22-49a0-9384-995d309795e1/files/a003f4d7-cc70-4ff3-8983-a84f909d2e23.jpg'
-    ],
-    x: 290,
-    y: 250
-  },
-  {
-    id: '3',
-    city: 'Краснодар',
-    address: 'ул. Красная, д. 122',
-    phone: '+7 (861) 234-56-78',
-    email: 'krasnodar@ab-kassa.ru',
-    employees: 28,
-    description: 'Региональный центр Южного федерального округа. Координирует работу филиалов в Краснодарском крае.',
-    images: [],
-    x: 220,
-    y: 530
-  },
-  {
-    id: '4',
-    city: 'Сочи',
-    address: 'Курортный проспект, д. 75',
-    phone: '+7 (862) 345-67-89',
-    email: 'sochi@ab-kassa.ru',
-    employees: 18,
-    description: 'Филиал в курортной зоне, специализируется на обслуживании гостиничного и ресторанного бизнеса.',
-    images: [],
-    x: 200,
-    y: 560
-  },
-  {
-    id: '5',
-    city: 'Геленджик',
-    address: 'ул. Луначарского, д. 166',
-    phone: '+7 (861) 567-89-01',
-    email: 'gelendzhik@ab-kassa.ru',
-    employees: 15,
-    description: 'Обслуживает курортную зону Геленджика и прилегающих районов.',
-    images: [],
-    x: 205,
-    y: 545
-  },
-  {
-    id: '6',
-    city: 'Анапа',
-    address: 'ул. Крымская, д. 99',
-    phone: '+7 (861) 678-90-12',
-    email: 'anapa@ab-kassa.ru',
-    employees: 14,
-    description: 'Специализация на семейных курортах, детских лагерях и санаториях.',
-    images: [],
-    x: 195,
-    y: 535
-  },
-  {
-    id: '7',
-    city: 'Новороссийск',
-    address: 'проспект Ленина, д. 7',
-    phone: '+7 (861) 789-01-23',
-    email: 'novoross@ab-kassa.ru',
-    employees: 20,
-    description: 'Крупный филиал портового города, работа с логистическими и торговыми компаниями.',
-    images: [],
-    x: 210,
-    y: 540
-  },
-  {
-    id: '8',
-    city: 'Ейск',
-    address: 'ул. Свердлова, д. 88',
-    phone: '+7 (861) 890-12-34',
-    email: 'eysk@ab-kassa.ru',
-    employees: 10,
-    description: 'Обслуживает северную часть Краснодарского края и курортную зону Азовского моря.',
-    images: [],
-    x: 230,
-    y: 515
-  },
-  {
-    id: '9',
-    city: 'Туапсе',
-    address: 'ул. Сочинская, д. 4',
-    phone: '+7 (861) 901-23-45',
-    email: 'tuapse@ab-kassa.ru',
-    employees: 13,
-    description: 'Филиал в крупном портовом и курортном городе на побережье Черного моря.',
-    images: [],
-    x: 205,
-    y: 555
-  },
-  {
-    id: '10',
-    city: 'Ростов-на-Дону',
-    address: 'Большая Садовая, д. 47',
-    phone: '+7 (863) 123-45-67',
-    email: 'rostov@ab-kassa.ru',
-    employees: 35,
-    description: 'Региональный центр Южного региона, крупный филиал с полным спектром услуг.',
-    images: [],
-    x: 240,
-    y: 500
+    x: 175,
+    y: 395
   },
   {
     id: '11',
@@ -139,8 +136,8 @@ const branches: Branch[] = [
     employees: 22,
     description: 'Обслуживает Центрально-Черноземный регион, активно развивающийся филиал.',
     images: [],
-    x: 280,
-    y: 440
+    x: 138,
+    y: 475
   },
   {
     id: '12',
@@ -151,8 +148,8 @@ const branches: Branch[] = [
     employees: 16,
     description: 'Работа с промышленными предприятиями и торговыми сетями региона.',
     images: [],
-    x: 300,
-    y: 420
+    x: 152,
+    y: 455
   },
   {
     id: '13',
@@ -163,11 +160,26 @@ const branches: Branch[] = [
     employees: 27,
     description: 'Крупный филиал Приволжского округа, обслуживает весь Нижегородский регион.',
     images: [],
-    x: 400,
-    y: 370
+    x: 215,
+    y: 405
   },
   {
     id: '14',
+    city: 'Санкт-Петербург',
+    address: 'Невский проспект, д. 28',
+    phone: '+7 (812) 987-65-43',
+    email: 'spb@ab-kassa.ru',
+    employees: 32,
+    description: 'Крупнейший филиал в Северо-Западном регионе. Обслуживает клиентов Ленинградской области и соседних регионов.',
+    images: [
+      'https://cdn.poehali.dev/projects/3e7167fb-cf22-49a0-9384-995d309795e1/files/d13c6ebf-e510-4f18-84e3-eb85e6ef7e97.jpg',
+      'https://cdn.poehali.dev/projects/3e7167fb-cf22-49a0-9384-995d309795e1/files/a003f4d7-cc70-4ff3-8983-a84f909d2e23.jpg'
+    ],
+    x: 138,
+    y: 290
+  },
+  {
+    id: '15',
     city: 'Самара',
     address: 'ул. Куйбышева, д. 92',
     phone: '+7 (846) 567-89-01',
@@ -175,11 +187,11 @@ const branches: Branch[] = [
     employees: 24,
     description: 'Важный филиал Поволжского региона, работа с крупным и средним бизнесом.',
     images: [],
-    x: 440,
-    y: 430
+    x: 260,
+    y: 465
   },
   {
-    id: '15',
+    id: '16',
     city: 'Новосибирск',
     address: 'Красный проспект, д. 35',
     phone: '+7 (383) 678-90-12',
@@ -187,11 +199,11 @@ const branches: Branch[] = [
     employees: 30,
     description: 'Крупнейший филиал в Сибирском федеральном округе, региональный центр.',
     images: [],
-    x: 800,
-    y: 430
+    x: 526,
+    y: 410
   },
   {
-    id: '16',
+    id: '17',
     city: 'Волгоград',
     address: 'проспект Ленина, д. 10',
     phone: '+7 (844) 789-01-23',
@@ -199,11 +211,11 @@ const branches: Branch[] = [
     employees: 19,
     description: 'Обслуживает Волгоградскую область и южные регионы Поволжья.',
     images: [],
-    x: 360,
-    y: 490
+    x: 195,
+    y: 530
   },
   {
-    id: '17',
+    id: '18',
     city: 'Пермь',
     address: 'ул. Ленина, д. 45',
     phone: '+7 (342) 890-12-34',
@@ -211,11 +223,11 @@ const branches: Branch[] = [
     employees: 21,
     description: 'Филиал Уральского региона, обслуживает Пермский край и соседние области.',
     images: [],
-    x: 530,
-    y: 360
+    x: 310,
+    y: 355
   },
   {
-    id: '18',
+    id: '19',
     city: 'Челябинск',
     address: 'ул. Кирова, д. 104',
     phone: '+7 (351) 901-23-45',
@@ -223,11 +235,11 @@ const branches: Branch[] = [
     employees: 23,
     description: 'Крупный филиал Южного Урала, работа с промышленными и торговыми компаниями.',
     images: [],
-    x: 570,
-    y: 430
+    x: 330,
+    y: 420
   },
   {
-    id: '19',
+    id: '20',
     city: 'Саратов',
     address: 'проспект Кирова, д. 27',
     phone: '+7 (845) 012-34-56',
@@ -235,11 +247,11 @@ const branches: Branch[] = [
     employees: 17,
     description: 'Обслуживает Саратовскую область, развитие малого и среднего бизнеса.',
     images: [],
-    x: 400,
-    y: 450
+    x: 225,
+    y: 485
   },
   {
-    id: '20',
+    id: '21',
     city: 'Красноярск',
     address: 'проспект Мира, д. 88',
     phone: '+7 (391) 123-45-67',
@@ -247,11 +259,11 @@ const branches: Branch[] = [
     employees: 25,
     description: 'Региональный центр Восточной Сибири, координация работы филиалов округа.',
     images: [],
-    x: 950,
-    y: 370
+    x: 600,
+    y: 375
   },
   {
-    id: '21',
+    id: '22',
     city: 'Екатеринбург',
     address: 'ул. Вайнера, д. 9А',
     phone: '+7 (343) 234-56-78',
@@ -259,11 +271,11 @@ const branches: Branch[] = [
     employees: 33,
     description: 'Крупнейший филиал Уральского округа, полный спектр услуг для всех отраслей.',
     images: [],
-    x: 570,
-    y: 380
+    x: 330,
+    y: 395
   },
   {
-    id: '22',
+    id: '23',
     city: 'Казань',
     address: 'ул. Баумана, д. 58',
     phone: '+7 (843) 345-67-89',
@@ -271,11 +283,11 @@ const branches: Branch[] = [
     employees: 26,
     description: 'Региональный центр Татарстана, обслуживание республики и соседних регионов.',
     images: [],
-    x: 440,
-    y: 370
+    x: 245,
+    y: 405
   },
   {
-    id: '23',
+    id: '24',
     city: 'Уфа',
     address: 'ул. Ленина, д. 63',
     phone: '+7 (347) 456-78-90',
@@ -283,11 +295,11 @@ const branches: Branch[] = [
     employees: 20,
     description: 'Филиал республики Башкортостан, работа с разными отраслями экономики.',
     images: [],
-    x: 510,
-    y: 410
+    x: 285,
+    y: 420
   },
   {
-    id: '24',
+    id: '25',
     city: 'Омск',
     address: 'ул. Ленина, д. 18',
     phone: '+7 (381) 567-89-01',
@@ -295,11 +307,11 @@ const branches: Branch[] = [
     employees: 18,
     description: 'Филиал Западной Сибири, обслуживает Омскую область и прилегающие территории.',
     images: [],
-    x: 710,
+    x: 440,
     y: 410
   },
   {
-    id: '25',
+    id: '26',
     city: 'Симферополь',
     address: 'ул. Пушкина, д. 12',
     phone: '+7 (365) 678-90-12',
@@ -307,11 +319,11 @@ const branches: Branch[] = [
     employees: 16,
     description: 'Центральный филиал Республики Крым, координация всех филиалов полуострова.',
     images: [],
-    x: 170,
-    y: 540
+    x: 20,
+    y: 582
   },
   {
-    id: '26',
+    id: '28',
     city: 'Пятигорск',
     address: 'проспект Кирова, д. 56',
     phone: '+7 (879) 789-01-23',
@@ -319,11 +331,11 @@ const branches: Branch[] = [
     employees: 14,
     description: 'Филиал Северо-Кавказского региона, курортная и санаторная специализация.',
     images: [],
-    x: 260,
-    y: 560
+    x: 120,
+    y: 598
   },
   {
-    id: '27',
+    id: '29',
     city: 'Астрахань',
     address: 'ул. Советская, д. 15',
     phone: '+7 (851) 890-12-34',
@@ -331,8 +343,8 @@ const branches: Branch[] = [
     employees: 15,
     description: 'Филиал Нижнего Поволжья, обслуживание торговых и логистических компаний.',
     images: [],
-    x: 390,
-    y: 510
+    x: 220,
+    y: 555
   }
 ];
 
@@ -357,7 +369,7 @@ export const RussiaMapDetailed = () => {
               
               {/* Интерактивные маркеры городов */}
               <svg
-                viewBox="0 0 1400 800"
+                viewBox="0 0 700 800"
                 className="absolute top-0 left-0 w-full h-full"
                 style={{ pointerEvents: 'none' }}
               >
@@ -369,10 +381,10 @@ export const RussiaMapDetailed = () => {
                       <circle
                         cx={branch.x}
                         cy={branch.y}
-                        r={isHovered ? 12 : 8}
+                        r={isHovered ? 10 : 7}
                         fill={isHovered ? '#ef4444' : '#3b82f6'}
                         stroke="white"
-                        strokeWidth="3"
+                        strokeWidth="2.5"
                         className="cursor-pointer transition-all duration-200 drop-shadow-lg"
                         onMouseEnter={() => setHoveredBranch(branch.id)}
                         onMouseLeave={() => setHoveredBranch(null)}
@@ -384,7 +396,7 @@ export const RussiaMapDetailed = () => {
                         <circle
                           cx={branch.x}
                           cy={branch.y}
-                          r={16}
+                          r={14}
                           fill="none"
                           stroke="#ef4444"
                           strokeWidth="2"
@@ -397,19 +409,19 @@ export const RussiaMapDetailed = () => {
                       {isHovered && (
                         <g>
                           <rect
-                            x={branch.x + 15}
-                            y={branch.y - 25}
-                            width={branch.city.length * 9 + 20}
-                            height="35"
+                            x={branch.x + 12}
+                            y={branch.y - 22}
+                            width={branch.city.length * 7.5 + 16}
+                            height="30"
                             fill="rgba(0, 0, 0, 0.95)"
-                            rx="6"
+                            rx="5"
                             className="drop-shadow-xl"
                           />
                           <text
-                            x={branch.x + 25}
-                            y={branch.y - 5}
+                            x={branch.x + 20}
+                            y={branch.y - 4}
                             fill="white"
-                            fontSize="16"
+                            fontSize="14"
                             fontWeight="700"
                             className="select-none"
                           >
