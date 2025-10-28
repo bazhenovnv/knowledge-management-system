@@ -39,6 +39,12 @@ export const KnowledgeTab = ({
   const [previousSubsection, setPreviousSubsection] = useState<string | null>(null);
   const [isEditingSubsection, setIsEditingSubsection] = useState(false);
   const [subsectionContent, setSubsectionContent] = useState<Record<string, string>>({});
+  const [editableTexts, setEditableTexts] = useState({
+    aboutCompany: 'AB-Онлайн Касса — ведущий поставщик кассового оборудования и решений для автоматизации торговли в Краснодаре и Краснодарском крае. Компания специализируется на продаже, настройке и обслуживании онлайн-касс, фискальных регистраторов и сопутствующего оборудования.',
+    salesDept: 'Консультирование клиентов, подбор оборудования, оформление договоров',
+    techDept: 'Настройка, подключение и техническая поддержка оборудования',
+    supportDept: 'Решение вопросов клиентов, консультации по эксплуатации'
+  });
   const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [editingMaterial, setEditingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -380,6 +386,68 @@ export const KnowledgeTab = ({
     // Иначе показываем дефолтный контент
     switch (selectedSubsection) {
       case "Структура компании":
+        if (isEditingSubsection) {
+          return (
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">О компании</h3>
+                <textarea
+                  value={editableTexts.aboutCompany}
+                  onChange={(e) => setEditableTexts(prev => ({ ...prev, aboutCompany: e.target.value }))}
+                  className="w-full h-32 p-4 border rounded-lg text-gray-700"
+                  placeholder="Описание компании..."
+                />
+              </div>
+              
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Организационная структура</h3>
+                <div className="space-y-4">
+                  <div className="border-l-4 border-blue-500 pl-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Отдел продаж</h4>
+                    <textarea
+                      value={editableTexts.salesDept}
+                      onChange={(e) => setEditableTexts(prev => ({ ...prev, salesDept: e.target.value }))}
+                      className="w-full p-3 border rounded-lg text-gray-600"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="border-l-4 border-green-500 pl-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Технический отдел</h4>
+                    <textarea
+                      value={editableTexts.techDept}
+                      onChange={(e) => setEditableTexts(prev => ({ ...prev, techDept: e.target.value }))}
+                      className="w-full p-3 border rounded-lg text-gray-600"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="border-l-4 border-purple-500 pl-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">Служба поддержки</h4>
+                    <textarea
+                      value={editableTexts.supportDept}
+                      onChange={(e) => setEditableTexts(prev => ({ ...prev, supportDept: e.target.value }))}
+                      className="w-full p-3 border rounded-lg text-gray-600"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={() => {
+                  toast.success('Изменения сохранены');
+                  setIsEditingSubsection(false);
+                }}>
+                  <Icon name="Save" size={16} className="mr-2" />
+                  Сохранить
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditingSubsection(false)}>
+                  Отменить
+                </Button>
+              </div>
+            </div>
+          );
+        }
+        
         return (
           <div className="space-y-6">
             <RussiaMapDetailed userRole={userRole} />
@@ -387,8 +455,7 @@ export const KnowledgeTab = ({
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">О компании</h3>
               <p className="text-gray-700 leading-relaxed mb-4">
-                AB-Онлайн Касса — ведущий поставщик кассового оборудования и решений для автоматизации торговли в Краснодаре и Краснодарском крае. 
-                Компания специализируется на продаже, настройке и обслуживании онлайн-касс, фискальных регистраторов и сопутствующего оборудования.
+                {editableTexts.aboutCompany}
               </p>
             </div>
             
@@ -397,15 +464,15 @@ export const KnowledgeTab = ({
               <div className="space-y-4">
                 <div className="border-l-4 border-blue-500 pl-4">
                   <h4 className="font-semibold text-gray-900">Отдел продаж</h4>
-                  <p className="text-gray-600">Консультирование клиентов, подбор оборудования, оформление договоров</p>
+                  <p className="text-gray-600">{editableTexts.salesDept}</p>
                 </div>
                 <div className="border-l-4 border-green-500 pl-4">
                   <h4 className="font-semibold text-gray-900">Технический отдел</h4>
-                  <p className="text-gray-600">Настройка, подключение и техническая поддержка оборудования</p>
+                  <p className="text-gray-600">{editableTexts.techDept}</p>
                 </div>
                 <div className="border-l-4 border-purple-500 pl-4">
                   <h4 className="font-semibold text-gray-900">Служба поддержки</h4>
-                  <p className="text-gray-600">Решение вопросов клиентов, консультации по эксплуатации</p>
+                  <p className="text-gray-600">{editableTexts.supportDept}</p>
                 </div>
               </div>
             </div>
