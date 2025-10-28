@@ -96,16 +96,6 @@ export const Navigation = ({
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.dispatchEvent(new CustomEvent('resetSubsection'))}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-            title="Назад"
-          >
-            <Icon name="ArrowLeft" size={16} className="mr-1" />
-            <span className="hidden sm:inline">Назад</span>
-          </Button>
           <ServerStatusIndicator compact />
           <Button
             variant="outline"

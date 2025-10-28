@@ -796,7 +796,22 @@ export const KnowledgeTab = ({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {selectedSubsection && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setSelectedSubsection(null);
+            setIsEditingSubsection(false);
+          }}
+          className="fixed top-24 left-4 z-40 bg-white shadow-lg hover:shadow-xl transition-all"
+        >
+          <Icon name="ArrowLeft" size={16} className="mr-2" />
+          Назад
+        </Button>
+      )}
+
       <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6 border border-blue-100">
         <p className="text-gray-700 leading-relaxed text-indent-8">
           В этом разделе вы найдете все необходимые материалы для освоения специфики и деятельности компании. 
@@ -808,17 +823,7 @@ export const KnowledgeTab = ({
 
       {selectedSubsection ? (
         <div className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setSelectedSubsection(null);
-                setIsEditingSubsection(false);
-              }}
-            >
-              <Icon name="ArrowLeft" size={16} className="mr-2" />
-              Назад к разделам
-            </Button>
+          <div className="flex justify-end items-center mb-4">
             {userRole === "admin" && !isEditingSubsection && (
               <Button onClick={() => setIsEditingSubsection(true)}>
                 <Icon name="Edit" size={16} className="mr-2" />
