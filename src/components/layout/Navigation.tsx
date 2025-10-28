@@ -153,7 +153,7 @@ export const Navigation = ({
                     variant={activeTab === "dashboard" ? "default" : "ghost"}
                     className="w-full justify-start"
                     onClick={() => {
-                      setActiveTab(activeTab === "dashboard" ? "dashboard" : "dashboard");
+                      setActiveTab("dashboard");
                       setSidebarOpen(false);
                     }}
                   >
@@ -164,7 +164,7 @@ export const Navigation = ({
                     variant={activeTab === "knowledge" ? "default" : "ghost"}
                     className="w-full justify-start"
                     onClick={() => {
-                      setActiveTab(activeTab === "knowledge" ? "dashboard" : "knowledge");
+                      setActiveTab("knowledge");
                       setSidebarOpen(false);
                     }}
                   >
@@ -175,7 +175,7 @@ export const Navigation = ({
                     variant={activeTab === "tests" ? "default" : "ghost"}
                     className="w-full justify-start test-button-animate test-button-glow test-button-hover relative"
                     onClick={() => {
-                      setActiveTab(activeTab === "tests" ? "dashboard" : "tests");
+                      setActiveTab("tests");
                       setSidebarOpen(false);
                     }}
                   >
@@ -191,7 +191,7 @@ export const Navigation = ({
                     variant={activeTab === "analytics" ? "default" : "ghost"}
                     className="w-full justify-start"
                     onClick={() => {
-                      setActiveTab(activeTab === "analytics" ? "dashboard" : "analytics");
+                      setActiveTab("analytics");
                       setSidebarOpen(false);
                     }}
                   >
@@ -204,7 +204,7 @@ export const Navigation = ({
                         variant={activeTab === "assignments" ? "default" : "ghost"}
                         className="w-full justify-start"
                         onClick={() => {
-                          setActiveTab(activeTab === "assignments" ? "dashboard" : "assignments");
+                          setActiveTab("assignments");
                           setSidebarOpen(false);
                         }}
                       >
@@ -215,7 +215,7 @@ export const Navigation = ({
                         variant={activeTab === "employees" ? "default" : "ghost"}
                         className="w-full justify-start"
                         onClick={() => {
-                          setActiveTab(activeTab === "employees" ? "dashboard" : "employees");
+                          setActiveTab("employees");
                           setSidebarOpen(false);
                         }}
                       >
@@ -283,7 +283,6 @@ export const Navigation = ({
 
         <TabsTrigger
           value="dashboard"
-          onClick={() => setActiveTab(activeTab === "dashboard" ? "dashboard" : "dashboard")}
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
@@ -293,7 +292,6 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="knowledge"
-          onClick={() => setActiveTab(activeTab === "knowledge" ? "dashboard" : "knowledge")}
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
@@ -303,7 +301,6 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="tests"
-          onClick={() => setActiveTab(activeTab === "tests" ? "dashboard" : "tests")}
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="FileText" size={16} className="mr-2" />
@@ -318,7 +315,6 @@ export const Navigation = ({
         </TabsTrigger>
         <TabsTrigger
           value="analytics"
-          onClick={() => setActiveTab(activeTab === "analytics" ? "dashboard" : "analytics")}
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
@@ -330,7 +326,6 @@ export const Navigation = ({
           <>
             <TabsTrigger
               value="assignments"
-              onClick={() => setActiveTab(activeTab === "assignments" ? "dashboard" : "assignments")}
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
             >
               <Icon name="ClipboardList" size={16} className="mr-2" />
@@ -340,7 +335,6 @@ export const Navigation = ({
             </TabsTrigger>
             <TabsTrigger
               value="employees"
-              onClick={() => setActiveTab(activeTab === "employees" ? "dashboard" : "employees")}
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
             >
               <Icon name="Users" size={16} className="mr-2" />
