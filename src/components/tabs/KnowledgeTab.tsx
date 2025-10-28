@@ -942,7 +942,7 @@ export const KnowledgeTab = ({
 
   return (
     <div className="space-y-6 relative">
-      {selectedSubsection && (
+      {selectedSubsection && !isEditingSubsection && (
         <Button
           variant="default"
           size="lg"
