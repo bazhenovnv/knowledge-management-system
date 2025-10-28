@@ -36,6 +36,7 @@ export const KnowledgeTab = ({
     const saved = localStorage.getItem('knowledgeSubsection');
     return saved || null;
   });
+  const [previousSubsection, setPreviousSubsection] = useState<string | null>(null);
   const [isEditingSubsection, setIsEditingSubsection] = useState(false);
   const [subsectionContent, setSubsectionContent] = useState<Record<string, string>>({});
   const [viewingMaterial, setViewingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
@@ -788,7 +789,12 @@ export const KnowledgeTab = ({
           variant="default"
           size="lg"
           onClick={() => {
-            setSelectedSubsection(null);
+            if (previousSubsection) {
+              setSelectedSubsection(previousSubsection);
+              setPreviousSubsection(null);
+            } else {
+              setSelectedSubsection(null);
+            }
             setIsEditingSubsection(false);
           }}
           className="fixed top-32 left-8 z-[100] bg-blue-600 hover:bg-blue-700 text-white shadow-2xl hover:shadow-xl transition-all border-2 border-white"
@@ -804,7 +810,10 @@ export const KnowledgeTab = ({
             {selectedSubsection === "Торговое оборудование" && (
               <Button
                 variant="outline"
-                onClick={() => setSelectedSubsection("Драйверы оборудования")}
+                onClick={() => {
+                  setPreviousSubsection(selectedSubsection);
+                  setSelectedSubsection("Драйверы оборудования");
+                }}
                 className="h-auto py-4 px-6 flex items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
               >
                 <Icon name="Download" size={20} className="text-cyan-600" />
