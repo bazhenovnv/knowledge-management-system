@@ -22,10 +22,17 @@ import { DatabaseSetup } from "@/components/setup/DatabaseSetup";
 import SupportChat from "@/components/support/SupportChat";
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState("dashboard");
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem('lastActiveTab');
+    return savedTab || "dashboard";
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    localStorage.setItem('lastActiveTab', activeTab);
+  }, [activeTab]);
 
   // Инициализируем базу данных и загружаем сотрудников
   useEffect(() => {
