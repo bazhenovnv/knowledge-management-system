@@ -32,7 +32,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   const [editingTestId, setEditingTestId] = useState<number | null>(null);
   const [deletingTest, setDeletingTest] = useState<{ id: number; title: string } | null>(null);
 
-  const scrollRef = useScrollPosition('testsManagement', tests.length);
+  const { scrollRef, showIndicator } = useScrollPosition('testsManagement', tests.length);
 
   useEffect(() => {
     loadTests();
@@ -257,7 +257,13 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
         <CardHeader>
           <CardTitle>Доступные тесты ({filteredTests.length})</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
+          {showIndicator && (
+            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
+              <Icon name="ArrowDown" size={16} className="animate-bounce" />
+              <span className="text-sm font-medium">Восстановление позиции...</span>
+            </div>
+          )}
           <div ref={scrollRef} className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
           {filteredTests.length === 0 ? (
             <div className="text-center py-12 text-gray-500">

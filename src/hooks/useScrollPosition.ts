@@ -4,6 +4,7 @@ export const useScrollPosition = (key: string, dependency?: any) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const isRestoringRef = useRef(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showIndicator, setShowIndicator] = useState(false);
 
   useEffect(() => {
     const element = scrollRef.current;
@@ -13,6 +14,7 @@ export const useScrollPosition = (key: string, dependency?: any) => {
     if (savedPosition && !isRestoringRef.current) {
       isRestoringRef.current = true;
       setIsAnimating(true);
+      setShowIndicator(true);
 
       setTimeout(() => {
         const targetPosition = parseInt(savedPosition, 10);
@@ -39,6 +41,7 @@ export const useScrollPosition = (key: string, dependency?: any) => {
             requestAnimationFrame(animation);
           } else {
             setIsAnimating(false);
+            setTimeout(() => setShowIndicator(false), 300);
             isRestoringRef.current = false;
           }
         };
@@ -62,5 +65,5 @@ export const useScrollPosition = (key: string, dependency?: any) => {
     return () => element.removeEventListener('scroll', handleScroll);
   }, [key, isAnimating]);
 
-  return scrollRef;
+  return { scrollRef, showIndicator };
 };

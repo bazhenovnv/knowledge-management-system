@@ -60,7 +60,7 @@ export const KnowledgeTab = ({
   const [coverImagePreview, setCoverImagePreview] = useState<string>('');
 
   const imageHandlers = useImageHandlers();
-  const scrollRef = useScrollPosition('knowledgeTab', materials.length);
+  const { scrollRef, showIndicator } = useScrollPosition('knowledgeTab', materials.length);
 
   useEffect(() => {
     loadMaterials();
@@ -759,6 +759,13 @@ export const KnowledgeTab = ({
         )}
       </div>
 
+      <div className="relative">
+        {showIndicator && (
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
+            <Icon name="ArrowDown" size={16} className="animate-bounce" />
+            <span className="text-sm font-medium">Восстановление позиции...</span>
+          </div>
+        )}
       <div ref={scrollRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto pr-2">
         {filteredMaterials.map((material) => (
           <Card
@@ -800,6 +807,7 @@ export const KnowledgeTab = ({
             </CardContent>
           </Card>
         ))}
+      </div>
       </div>
 
           {filteredMaterials.length === 0 && (

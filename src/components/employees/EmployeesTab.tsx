@@ -72,7 +72,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
     status: 3
   });
 
-  const scrollRef = useScrollPosition('employeesTab', employees.length);
+  const { scrollRef, showIndicator } = useScrollPosition('employeesTab', employees.length);
 
   // Фильтрация сотрудников
   const filteredEmployees = employees

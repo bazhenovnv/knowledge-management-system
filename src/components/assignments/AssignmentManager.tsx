@@ -35,7 +35,7 @@ const AssignmentManager: React.FC<AssignmentManagerProps> = ({ currentUserRole, 
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
   
-  const scrollRef = useScrollPosition('assignmentsManager', assignments.length);
+  const { scrollRef, showIndicator } = useScrollPosition('assignmentsManager', assignments.length);
 
   useEffect(() => {
     loadData();
@@ -253,6 +253,13 @@ const AssignmentManager: React.FC<AssignmentManagerProps> = ({ currentUserRole, 
       </div>
 
       {/* Список заданий */}
+      <div className="relative">
+        {showIndicator && (
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
+            <Icon name="ArrowDown" size={16} className="animate-bounce" />
+            <span className="text-sm font-medium">Восстановление позиции...</span>
+          </div>
+        )}
       <div ref={scrollRef} className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
         {filteredAssignments.length === 0 ? (
           <Card>
@@ -395,6 +402,7 @@ const AssignmentManager: React.FC<AssignmentManagerProps> = ({ currentUserRole, 
             );
           })
         )}
+      </div>
       </div>
 
       {/* Форма создания задания */}

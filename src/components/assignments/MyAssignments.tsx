@@ -24,7 +24,7 @@ const MyAssignments: React.FC<MyAssignmentsProps> = ({ userId }) => {
     return saved || 'all';
   });
 
-  const scrollRef = useScrollPosition('myAssignments', assignments.length);
+  const { scrollRef, showIndicator } = useScrollPosition('myAssignments', assignments.length);
 
   useEffect(() => {
     loadData();
@@ -204,6 +204,13 @@ const MyAssignments: React.FC<MyAssignmentsProps> = ({ userId }) => {
               </CardContent>
             </Card>
           ) : (
+            <div className="relative">
+              {showIndicator && (
+                <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
+                  <Icon name="ArrowDown" size={16} className="animate-bounce" />
+                  <span className="text-sm font-medium">Восстановление позиции...</span>
+                </div>
+              )}
             <div ref={scrollRef} className="grid gap-4 max-h-[600px] overflow-y-auto pr-2">
               {filteredAssignments.map((assignment) => {
                 const assignmentProgress = getAssignmentProgress(assignment.id);
@@ -400,6 +407,7 @@ const MyAssignments: React.FC<MyAssignmentsProps> = ({ userId }) => {
                   </Card>
                 );
               })}
+            </div>
             </div>
           )}
         </TabsContent>

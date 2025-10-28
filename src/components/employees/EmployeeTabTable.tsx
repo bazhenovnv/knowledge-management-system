@@ -27,7 +27,7 @@ const EmployeeTabTable: React.FC<EmployeeTabTableProps> = ({
   onDeleteEmployee,
   onSendNotification
 }) => {
-  const scrollRef = useScrollPosition('employeesTable', employees.length);
+  const { scrollRef, showIndicator } = useScrollPosition('employeesTable', employees.length);
 
   const handleCopyEmail = (email: string) => {
     navigator.clipboard.writeText(email);
@@ -50,7 +50,13 @@ const EmployeeTabTable: React.FC<EmployeeTabTableProps> = ({
       <CardHeader>
         <CardTitle>Список сотрудников</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
+        {showIndicator && (
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 z-10 bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-fade-in">
+            <Icon name="ArrowDown" size={16} className="animate-bounce" />
+            <span className="text-sm font-medium">Восстановление позиции...</span>
+          </div>
+        )}
         <div ref={scrollRef} className="max-h-[600px] overflow-y-auto">
         <Table>
           <TableHeader>
