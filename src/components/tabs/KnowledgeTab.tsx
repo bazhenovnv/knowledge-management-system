@@ -440,6 +440,16 @@ export const KnowledgeTab = ({
       case "Торговое оборудование":
         return (
           <div className="space-y-6">
+            <div className="flex justify-end mb-4">
+              <Button 
+                onClick={() => window.open('https://www.atol.ru/support/downloads/', '_blank')}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Icon name="Download" size={18} className="mr-2" />
+                Скачать драйвера
+              </Button>
+            </div>
+            
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">Каталог оборудования</h3>
               <div className="space-y-6">
