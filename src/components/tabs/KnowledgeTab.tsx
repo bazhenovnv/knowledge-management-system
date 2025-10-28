@@ -440,16 +440,6 @@ export const KnowledgeTab = ({
       case "Торговое оборудование":
         return (
           <div className="space-y-6">
-            <div className="flex justify-end mb-4">
-              <Button 
-                onClick={() => window.open('https://www.atol.ru/support/downloads/', '_blank')}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Icon name="Download" size={18} className="mr-2" />
-                Скачать драйвера
-              </Button>
-            </div>
-            
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">Каталог оборудования</h3>
               <div className="space-y-6">
@@ -643,6 +633,122 @@ export const KnowledgeTab = ({
           </div>
         );
       
+      case "Скачать драйвера":
+        return (
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <h3 className="text-xl font-semibold mb-4 text-gray-900">Драйверы для оборудования</h3>
+              <p className="text-gray-700 mb-6">
+                Здесь вы можете скачать необходимые драйверы и программное обеспечение для работы с кассовым оборудованием.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="border-b pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-gray-900 mb-2 flex items-center gap-2">
+                        <Icon name="Printer" size={20} className="text-blue-600" />
+                        Драйверы АТОЛ
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        Драйверы для онлайн-касс, фискальных регистраторов и принтеров АТОЛ.
+                        Поддержка моделей: АТОЛ 91Ф, 92Ф, 30Ф, 25Ф и других.
+                      </p>
+                      <Button 
+                        onClick={() => window.open('https://www.atol.ru/support/downloads/', '_blank')}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Icon name="Download" size={16} className="mr-2" />
+                        Скачать драйверы АТОЛ
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-b pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-gray-900 mb-2 flex items-center gap-2">
+                        <Icon name="Monitor" size={20} className="text-green-600" />
+                        Драйверы Штрих-М
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        Программное обеспечение для ККТ Штрих-М, сканеров штрих-кода и весового оборудования.
+                      </p>
+                      <Button 
+                        onClick={() => window.open('https://www.shtrih-m.ru/support/download/', '_blank')}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Icon name="Download" size={16} className="mr-2" />
+                        Скачать драйверы Штрих-М
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-b pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-gray-900 mb-2 flex items-center gap-2">
+                        <Icon name="Smartphone" size={20} className="text-purple-600" />
+                        Эвотор SDK
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        Драйверы и SDK для интеграции с кассами Эвотор, разработка приложений.
+                      </p>
+                      <Button 
+                        onClick={() => window.open('https://developer.evotor.ru/docs/downloads', '_blank')}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        <Icon name="Download" size={16} className="mr-2" />
+                        Скачать Эвотор SDK
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-gray-900 mb-2 flex items-center gap-2">
+                        <Icon name="Scan" size={20} className="text-orange-600" />
+                        Драйверы для сканеров
+                      </h4>
+                      <p className="text-gray-700 mb-3">
+                        Универсальные драйверы для сканеров штрих-кодов различных производителей.
+                      </p>
+                      <Button 
+                        onClick={() => window.open('https://www.honeywell.com/us/en/support/downloads', '_blank')}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        <Icon name="Download" size={16} className="mr-2" />
+                        Скачать драйверы сканеров
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+              <div className="flex items-start gap-3">
+                <Icon name="Info" size={24} className="text-blue-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Инструкция по установке</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-gray-700">
+                    <li>Скачайте необходимый драйвер по ссылке выше</li>
+                    <li>Распакуйте архив, если файл упакован</li>
+                    <li>Запустите установщик от имени администратора</li>
+                    <li>Следуйте инструкциям мастера установки</li>
+                    <li>Перезагрузите компьютер после установки</li>
+                    <li>Подключите оборудование и проверьте его работу</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
       default:
         return (
           <div className="bg-white rounded-lg p-6 border border-gray-200">
@@ -696,7 +802,7 @@ export const KnowledgeTab = ({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <Button
               variant="outline"
               onClick={() => setSelectedSubsection("Структура компании")}
@@ -736,6 +842,14 @@ export const KnowledgeTab = ({
             >
               <Icon name="Monitor" size={24} className="text-indigo-600" />
               <span className="text-center font-medium">Программное обеспечение</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setSelectedSubsection("Скачать драйвера")}
+              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
+            >
+              <Icon name="Download" size={24} className="text-cyan-600" />
+              <span className="text-center font-medium">Скачать драйвера</span>
             </Button>
           </div>
 
