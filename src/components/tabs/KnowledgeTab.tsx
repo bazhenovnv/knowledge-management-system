@@ -83,6 +83,19 @@ export const KnowledgeTab = ({
     }
   }, [selectedSubsection]);
 
+  useEffect(() => {
+    const handleResetSubsection = () => {
+      setSelectedSubsection(null);
+      setIsEditingSubsection(false);
+    };
+
+    window.addEventListener('resetSubsection', handleResetSubsection);
+
+    return () => {
+      window.removeEventListener('resetSubsection', handleResetSubsection);
+    };
+  }, []);
+
   const loadSubsectionContent = async () => {
     try {
       const content = await databaseService.getSubsectionContent();

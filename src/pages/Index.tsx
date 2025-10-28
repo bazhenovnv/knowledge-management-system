@@ -32,6 +32,7 @@ const Index = () => {
 
   useEffect(() => {
     localStorage.setItem('lastActiveTab', activeTab);
+    window.dispatchEvent(new CustomEvent('resetSubsection'));
   }, [activeTab]);
 
   // Инициализируем базу данных и загружаем сотрудников
