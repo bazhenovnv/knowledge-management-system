@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { BranchModal } from './BranchModal';
 import { Branch } from './RussiaMap';
 import Icon from '@/components/ui/icon';
@@ -301,16 +302,32 @@ const branches: Branch[] = [
   }
 ];
 
-export const RussiaMapDetailed = () => {
+interface RussiaMapDetailedProps {
+  userRole?: string;
+}
+
+export const RussiaMapDetailed = ({ userRole }: RussiaMapDetailedProps) => {
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const krasnodar = branches[0];
 
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <h3 className="text-2xl font-bold mb-6">Филиальная сеть по России</h3>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-2xl font-bold">Филиальная сеть по России</h3>
+          {userRole === 'admin' && (
+            <Button
+              variant={isEditing ? 'default' : 'outline'}
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              <Icon name={isEditing ? 'X' : 'Edit'} size={16} className="mr-2" />
+              {isEditing ? 'Отменить' : 'Редактировать филиалы'}
+            </Button>
+          )}
+        </div>
         
         {/* Карта */}
         <div className="relative w-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>

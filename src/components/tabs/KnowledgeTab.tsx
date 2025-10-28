@@ -382,7 +382,7 @@ export const KnowledgeTab = ({
       case "Структура компании":
         return (
           <div className="space-y-6">
-            <RussiaMapDetailed />
+            <RussiaMapDetailed userRole={userRole} />
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">О компании</h3>
