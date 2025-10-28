@@ -5,6 +5,7 @@ export interface KnowledgeTabProps {
   setSearchQuery: (query: string) => void;
   userRole?: string;
   currentUserId?: number;
+  setIsEditingMode?: (isEditing: boolean) => void;
 }
 
 export interface FormData {

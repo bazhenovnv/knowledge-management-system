@@ -30,6 +30,7 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+  const [isEditingMode, setIsEditingMode] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('lastActiveTab', activeTab);
@@ -152,6 +153,7 @@ const Index = () => {
               userRole={userRole}
               userName={userName}
               employeeId={1}
+              isEditingMode={isEditingMode}
             />
           </Tabs>
         </div>
@@ -170,6 +172,7 @@ const Index = () => {
               setSearchQuery={setSearchQuery}
               userRole={userRole}
               currentUserId={1}
+              setIsEditingMode={setIsEditingMode}
             />
           </TabsContent>
 

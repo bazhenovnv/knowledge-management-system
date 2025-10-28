@@ -20,6 +20,7 @@ export const KnowledgeTab = ({
   setSearchQuery,
   userRole,
   currentUserId,
+  setIsEditingMode,
 }: KnowledgeTabProps) => {
   const departments = useDepartments();
   const [materials, setMaterials] = useState<DatabaseKnowledgeMaterial[]>([]);
@@ -94,6 +95,7 @@ export const KnowledgeTab = ({
     const handleResetSubsection = () => {
       setSelectedSubsection(null);
       setIsEditingSubsection(false);
+      setIsEditingMode?.(false);
     };
 
     window.addEventListener('resetSubsection', handleResetSubsection);
@@ -101,7 +103,11 @@ export const KnowledgeTab = ({
     return () => {
       window.removeEventListener('resetSubsection', handleResetSubsection);
     };
-  }, []);
+  }, [setIsEditingMode]);
+
+  useEffect(() => {
+    setIsEditingMode?.(isEditingSubsection);
+  }, [isEditingSubsection, setIsEditingMode]);
 
   const loadSubsectionContent = async () => {
     try {
