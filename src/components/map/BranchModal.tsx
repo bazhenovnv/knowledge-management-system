@@ -4,13 +4,16 @@ import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 
 interface BranchModalProps {
-  branch: Branch;
+  branch: Branch | null;
+  isOpen: boolean;
   onClose: () => void;
 }
 
-export const BranchModal = ({ branch, onClose }: BranchModalProps) => {
+export const BranchModal = ({ branch, isOpen, onClose }: BranchModalProps) => {
+  if (!branch) return null;
+  
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold flex items-center gap-2">
