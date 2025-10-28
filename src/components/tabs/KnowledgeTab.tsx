@@ -493,6 +493,22 @@ export const KnowledgeTab = ({
                 </div>
               </div>
             </div>
+            
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Драйверы оборудования</h3>
+                <Button 
+                  onClick={() => setSelectedSubsection("Драйверы оборудования")}
+                  className="bg-cyan-600 hover:bg-cyan-700"
+                >
+                  <Icon name="Download" size={16} className="mr-2" />
+                  Перейти к драйверам
+                </Button>
+              </div>
+              <p className="text-gray-700">
+                Скачайте необходимые драйверы и программное обеспечение для работы с кассовым оборудованием АТОЛ, Штрих-М, Эвотор и другими.
+              </p>
+            </div>
           </div>
         );
       
@@ -633,7 +649,7 @@ export const KnowledgeTab = ({
           </div>
         );
       
-      case "Скачать драйвера":
+      case "Драйверы оборудования":
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
@@ -843,14 +859,7 @@ export const KnowledgeTab = ({
               <Icon name="Monitor" size={24} className="text-indigo-600" />
               <span className="text-center font-medium">Программное обеспечение</span>
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setSelectedSubsection("Скачать драйвера")}
-              className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-cyan-50 hover:border-cyan-300 transition-all"
-            >
-              <Icon name="Download" size={24} className="text-cyan-600" />
-              <span className="text-center font-medium">Скачать драйвера</span>
-            </Button>
+
           </div>
 
           <div className="flex items-center justify-between">
