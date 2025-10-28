@@ -318,15 +318,13 @@ export const RussiaMapDetailed = ({ userRole }: RussiaMapDetailedProps) => {
       <Card className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold">Филиальная сеть по России</h3>
-          {userRole === 'admin' && (
-            <Button
-              variant={isEditing ? 'default' : 'outline'}
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              <Icon name={isEditing ? 'X' : 'Edit'} size={16} className="mr-2" />
-              {isEditing ? 'Отменить' : 'Редактировать филиалы'}
-            </Button>
-          )}
+          <Button
+            variant={isEditing ? 'default' : 'outline'}
+            onClick={() => setIsEditing(!isEditing)}
+          >
+            <Icon name={isEditing ? 'X' : 'Edit'} size={16} className="mr-2" />
+            {isEditing ? 'Отменить' : 'Редактировать филиалы'}
+          </Button>
         </div>
         
         {/* Карта */}
