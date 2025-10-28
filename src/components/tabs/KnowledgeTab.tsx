@@ -12,7 +12,7 @@ import { useImageHandlers } from "@/components/knowledge/useImageHandlers";
 import { ImagePreviewModal } from "@/components/knowledge/ImagePreviewModal";
 import { MaterialViewModal } from "@/components/knowledge/MaterialViewModal";
 import { MaterialFormModal } from "@/components/knowledge/MaterialFormModal";
-import { RussiaMap } from "@/components/map/RussiaMap";
+import { RussiaMapDetailed } from "@/components/map/RussiaMapDetailed";
 
 export const KnowledgeTab = ({
   searchQuery,
@@ -341,7 +341,7 @@ export const KnowledgeTab = ({
       case "Структура компании":
         return (
           <div className="space-y-6">
-            <RussiaMap />
+            <RussiaMapDetailed />
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">О компании</h3>
