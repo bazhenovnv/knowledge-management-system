@@ -644,7 +644,7 @@ export const KnowledgeTab = ({
               <Icon name="ArrowLeft" size={16} className="mr-2" />
               Назад к разделам
             </Button>
-            {(userRole === "admin" || userRole === "teacher") && !isEditingSubsection && (
+            {userRole === "admin" && !isEditingSubsection && (
               <Button onClick={() => setIsEditingSubsection(true)}>
                 <Icon name="Edit" size={16} className="mr-2" />
                 Редактировать
