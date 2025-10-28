@@ -29,11 +29,16 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
 
   useEffect(() => {
     localStorage.setItem('lastActiveTab', activeTab);
-    window.dispatchEvent(new CustomEvent('resetSubsection'));
-  }, [activeTab]);
+    
+    if (prevActiveTab !== activeTab) {
+      window.dispatchEvent(new CustomEvent('resetSubsection'));
+      setPrevActiveTab(activeTab);
+    }
+  }, [activeTab, prevActiveTab]);
 
   // Инициализируем базу данных и загружаем сотрудников
   useEffect(() => {
