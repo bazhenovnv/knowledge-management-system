@@ -16,6 +16,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ServerStatusIndicator from "@/components/status/ServerStatusIndicator";
 import SupportChat from "@/components/support/SupportChat";
 import { useData } from "@/contexts/DataContext";
@@ -58,6 +59,7 @@ export const Navigation = ({
   
   const { getNewTestsCount } = useViewedTests();
   const { isLoading, lastUpdated, refreshData } = useData();
+  const navigate = useNavigate();
   
   // Мок данные тестов для подсчета новых
   const mockTests = [
@@ -114,7 +116,7 @@ export const Navigation = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.location.href = '/video-conferences'}
+            onClick={() => navigate('/video-conferences')}
             className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-shadow"
             title="Видеоконференции"
           >
