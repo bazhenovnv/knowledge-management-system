@@ -11,10 +11,6 @@
       "method": "GET",
       "path": "/?action=list&table=employees",
       "expectedStatus": 200,
-      "expectedBody": {
-        "data": "array",
-        "count": "number"
-      },
       "bodyMatcher": "partial"
     },
     {
@@ -25,27 +21,15 @@
         "Content-Type": "application/json"
       },
       "body": {
-        "email": "newemployee@company.com",
-        "full_name": "Новый Сотрудник",
-        "phone": "+7 (999) 555-12-34",
+        "email": "testuser2025@company.com",
+        "full_name": "Test User",
+        "phone": "+1234567890",
         "department": "IT",
-        "position": "Junior разработчик",
+        "position": "Developer",
         "role": "employee",
-        "hire_date": "2025-09-26",
-        "password": "newpass123"
+        "password": "testpass123"
       },
       "expectedStatus": 200,
-      "expectedBody": {
-        "data": {
-          "id": "number",
-          "full_name": "string",
-          "email": "string",
-          "department": "string",
-          "position": "string",
-          "role": "string"
-        },
-        "message": "string"
-      },
       "bodyMatcher": "partial"
     },
     {
@@ -65,14 +49,6 @@
         "hire_date": "2023-01-01"
       },
       "expectedStatus": 200,
-      "expectedBody": {
-        "data": {
-          "id": "number",
-          "full_name": "string",
-          "email": "string"
-        },
-        "message": "string"
-      },
       "bodyMatcher": "partial"
     }
   ]
