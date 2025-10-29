@@ -83,8 +83,7 @@ class DatabaseService {
   private baseUrl: string;
 
   constructor() {
-    // URL бэкенд функции для работы с PostgreSQL базой данных
-    this.baseUrl = import.meta.env.VITE_DATABASE_API_URL || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+    this.baseUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
   }
 
   private async makeRequest<T>(
