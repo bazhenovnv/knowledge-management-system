@@ -113,16 +113,6 @@ export const Navigation = ({
           >
             <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/video-conferences')}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-shadow"
-            title="Видеоконференции"
-          >
-            <Icon name="Video" size={16} className="mr-1" />
-            <span className="hidden lg:inline">Конференции</span>
-          </Button>
           <NotificationBell employeeId={employeeId} isAdmin={userRole === 'admin'} />
           <SupportChat 
             employeeId={employeeId} 
@@ -238,6 +228,17 @@ export const Navigation = ({
                         <Icon name="Users" size={16} className="mr-2" />
                         Сотрудники
                       </Button>
+                      <Button
+                        variant={activeTab === "conferences" ? "default" : "ghost"}
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveTab("conferences");
+                          setSidebarOpen(false);
+                        }}
+                      >
+                        <Icon name="Video" size={16} className="mr-2" />
+                        Конференции
+                      </Button>
                     </>
                   )}
                   <Button
@@ -306,7 +307,7 @@ export const Navigation = ({
             <span className="text-lg">Назад</span>
           </Button>
         )}
-        <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} bg-transparent gap-2`}>
+        <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-7' : 'grid-cols-4'} bg-transparent gap-2`}>
 
         <TabsTrigger
           value="dashboard"
@@ -397,6 +398,20 @@ export const Navigation = ({
               <Icon name="Users" size={16} className="mr-2" />
               <span className="hidden sm:inline text-lg">
                 Сотрудники
+              </span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="conferences"
+              onClick={() => {
+                if (activeTab === "conferences") {
+                  window.dispatchEvent(new CustomEvent('resetSubsection'));
+                }
+              }}
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
+            >
+              <Icon name="Video" size={16} className="mr-2" />
+              <span className="hidden sm:inline text-lg">
+                Конференции
               </span>
             </TabsTrigger>
           </>

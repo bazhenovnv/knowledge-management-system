@@ -22,6 +22,7 @@ import MyAssignments from "@/components/assignments/MyAssignments";
 import UserSettings from "@/components/settings/UserSettings";
 import { DatabaseSetup } from "@/components/setup/DatabaseSetup";
 import SupportChat from "@/components/support/SupportChat";
+import { ConferencesTab } from "@/components/conferences/ConferencesTab";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState(() => {
@@ -242,6 +243,15 @@ const Index = () => {
                       return <div className="text-red-500">Ошибка загрузки раздела "Сотрудники": {String(error)}</div>;
                     }
                   })()}
+                </div>
+              </TabsContent>
+              <TabsContent value="conferences" className="space-y-6">
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <ConferencesTab 
+                    userRole={userRole}
+                    userId={userId}
+                    userName={userName || 'Пользователь'}
+                  />
                 </div>
               </TabsContent>
             </>
