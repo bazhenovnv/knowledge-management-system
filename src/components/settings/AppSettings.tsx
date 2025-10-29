@@ -309,18 +309,6 @@ export default function AppSettings() {
         </CardContent>
       </Card>
 
-      {/* Интерфейс */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Icon name="Palette" size={20} className="mr-2 text-orange-600" />
-            Интерфейс
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-        </CardContent>
-      </Card>
-
       {/* Кнопки действий */}
       <div className="flex gap-3">
         <Button 
