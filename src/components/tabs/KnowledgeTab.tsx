@@ -202,58 +202,65 @@ export const KnowledgeTab = ({
   const loadInstructions = async () => {
     try {
       const data = await databaseService.getInstructions();
-      setInstructions(data);
+      
+      if (data.length === 0) {
+        setInstructions([
+          {
+            id: 1,
+            title: 'Регистрация онлайн-кассы',
+            description: 'Пошаговая инструкция по регистрации онлайн-кассы в налоговой',
+            icon_name: 'FileText',
+            icon_color: 'blue-600',
+            steps: [
+              'Подготовьте документы: ИНН, ОГРН, паспорт директора',
+              'Зайдите в личный кабинет ФНС',
+              'Выберите раздел "Учет ККТ"',
+              'Заполните форму регистрации кассы',
+              'Дождитесь регистрационного номера',
+              'Введите РН в кассу и пробейте чек'
+            ],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 2,
+            title: 'Подключение к ОФД',
+            description: 'Как подключить кассу к оператору фискальных данных',
+            icon_name: 'Wifi',
+            icon_color: 'green-600',
+            steps: [
+              'Выберите ОФД из реестра ФНС',
+              'Заключите договор с ОФД',
+              'Получите данные для подключения',
+              'Настройте кассу: введите ИНН ОФД и адрес сервера',
+              'Проверьте передачу данных тестовым чеком'
+            ],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          },
+          {
+            id: 3,
+            title: 'Замена фискального накопителя',
+            description: 'Инструкция по замене ФН при окончании срока действия',
+            icon_name: 'HardDrive',
+            icon_color: 'orange-600',
+            steps: [
+              'Закройте архив на старом ФН',
+              'Снимите кассу с учета в ФНС',
+              'Извлеките старый ФН из кассы',
+              'Установите новый ФН',
+              'Зарегистрируйте кассу заново',
+              'Пробейте тестовый чек'
+            ],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ]);
+      } else {
+        setInstructions(data);
+      }
     } catch (error) {
       console.error('Error loading instructions:', error);
-      setInstructions([
-        {
-          id: 1,
-          title: 'Регистрация онлайн-кассы',
-          description: 'Пошаговая инструкция по регистрации онлайн-кассы в налоговой',
-          icon_name: 'FileText',
-          icon_color: 'blue-600',
-          steps: [
-            'Подготовьте документы: ИНН, ОГРН, паспорт директора',
-            'Зайдите в личный кабинет ФНС',
-            'Выберите раздел "Учет ККТ"',
-            'Заполните форму регистрации кассы',
-            'Дождитесь регистрационного номера',
-            'Введите РН в кассу и пробейте чек'
-          ],
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 2,
-          title: 'Подключение к ОФД',
-          description: 'Как подключить кассу к оператору фискальных данных',
-          icon_name: 'Wifi',
-          icon_color: 'green-600',
-          steps: [
-            'Выберите ОФД из реестра ФНС',
-            'Заключите договор с ОФД',
-            'Получите данные для подключения',
-            'Настройте кассу: введите ИНН ОФД и адрес сервера',
-            'Проверьте передачу данных тестовым чеком'
-          ],
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 3,
-          title: 'Замена фискального накопителя',
-          description: 'Инструкция по замене ФН при окончании срока действия',
-          icon_name: 'HardDrive',
-          icon_color: 'orange-600',
-          steps: [
-            'Закройте архив на старом ФН',
-            'Снимите кассу с учета в ФНС',
-            'Извлеките старый ФН из кассы',
-            'Установите новый ФН',
-            'Зарегистрируйте кассу заново',
-            'Пробейте тестовый чек'
-          ],
-          created_at: new Date().toISOString()
-        }
-      ]);
     }
   };
 
@@ -1125,36 +1132,43 @@ export const KnowledgeTab = ({
               </p>
               
               <div className="space-y-6">
-                {instructions.map((instruction) => (
-                  <div key={instruction.id} className="border-b pb-4 last:border-b-0">
-                    <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
-                        <Icon name={instruction.icon_name} size={20} className={`text-${instruction.icon_color}`} />
-                        {instruction.title}
-                      </h4>
-                      {userRole === 'admin' && (
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => startEditingInstruction(instruction)}>
-                            <Icon name="Pencil" size={14} />
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleDeleteInstruction(instruction.id)}>
-                            <Icon name="Trash2" size={14} />
-                          </Button>
-                        </div>
+                {instructions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Icon name="FileText" size={48} className="mx-auto mb-4 opacity-50" />
+                    <p>Инструкции загружаются...</p>
+                  </div>
+                ) : (
+                  instructions.map((instruction) => (
+                    <div key={instruction.id} className="border-b pb-4 last:border-b-0">
+                      <div className="flex items-start justify-between mb-3">
+                        <h4 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
+                          <Icon name={instruction.icon_name} size={20} className={`text-${instruction.icon_color}`} />
+                          {instruction.title}
+                        </h4>
+                        {userRole === 'admin' && (
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => startEditingInstruction(instruction)}>
+                              <Icon name="Pencil" size={14} />
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => handleDeleteInstruction(instruction.id)}>
+                              <Icon name="Trash2" size={14} />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-gray-700 mb-3">
+                        {instruction.description}
+                      </p>
+                      {instruction.steps.length > 0 && (
+                        <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+                          {instruction.steps.map((step, stepIndex) => (
+                            <li key={stepIndex}>{step}</li>
+                          ))}
+                        </ul>
                       )}
                     </div>
-                    <p className="text-gray-700 mb-3">
-                      {instruction.description}
-                    </p>
-                    {instruction.steps.length > 0 && (
-                      <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                        {instruction.steps.map((step, stepIndex) => (
-                          <li key={stepIndex}>{step}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
