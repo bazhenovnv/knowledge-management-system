@@ -750,236 +750,247 @@ export const KnowledgeTab = ({
         );
       
       case "Виды деятельности компании":
+        const activities = [
+          {
+            title: "Продажа онлайн-касс",
+            text: "Широкий ассортимент онлайн-касс от ведущих производителей. Подбор оптимального решения для любого бизнеса: от небольших магазинов до крупных торговых сетей. Цены от 3000 ₽, возможна покупка в кредит или рассрочку."
+          },
+          {
+            title: "Подключение и настройка",
+            text: "Полный цикл работ \"под ключ\": регистрация в ФНС, настройка ККТ, подключение к ОФД, обучение персонала работе с кассой, интеграция с учетными системами."
+          },
+          {
+            title: "Техническое обслуживание",
+            text: "Гарантийное и постгарантийное обслуживание, замена фискального накопителя, ремонт оборудования, обновление программного обеспечения."
+          },
+          {
+            title: "Дополнительное оборудование",
+            text: "Торговое оборудование: сканеры штрих-кодов, весы, принтеры этикеток, денежные ящики, POS-терминалы для приема банковских карт."
+          }
+        ].filter(item => containsSearchQuery(item.title + " " + item.text));
+        
+        if (activities.length === 0 && subsectionSearchQuery) {
+          return (
+            <div className="text-center py-8 text-gray-500">
+              <Icon name="Search" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Ничего не найдено по запросу "{subsectionSearchQuery}"</p>
+              <Button variant="outline" size="sm" onClick={() => setSubsectionSearchQuery("")} className="mt-4">
+                Сбросить поиск
+              </Button>
+            </div>
+          );
+        }
+        
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">Основные направления</h3>
               <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Продажа онлайн-касс</h4>
-                  <p className="text-gray-700">
-                    Широкий ассортимент онлайн-касс от ведущих производителей. Подбор оптимального решения для любого бизнеса: 
-                    от небольших магазинов до крупных торговых сетей. Цены от 3000 ₽, возможна покупка в кредит или рассрочку.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Подключение и настройка</h4>
-                  <p className="text-gray-700">
-                    Полный цикл работ "под ключ": регистрация в ФНС, настройка ККТ, подключение к ОФД, 
-                    обучение персонала работе с кассой, интеграция с учетными системами.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Техническое обслуживание</h4>
-                  <p className="text-gray-700">
-                    Гарантийное и постгарантийное обслуживание, замена фискального накопителя, 
-                    ремонт оборудования, обновление программного обеспечения.
-                  </p>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Дополнительное оборудование</h4>
-                  <p className="text-gray-700">
-                    Торговое оборудование: сканеры штрих-кодов, весы, принтеры этикеток, 
-                    денежные ящики, POS-терминалы для приема банковских карт.
-                  </p>
-                </div>
+                {activities.map((item, idx) => (
+                  <div key={idx}>
+                    <h4 className="font-semibold text-gray-900 mb-2" dangerouslySetInnerHTML={{ __html: highlightText(item.title) }} />
+                    <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText(item.text) }} />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         );
       
       case "Торговое оборудование":
+        const equipment = [
+          {
+            title: "Онлайн-кассы (ККТ)",
+            text: "Фискальные регистраторы и автономные кассовые аппараты с передачей данных в ФНС. Подходят для магазинов, кафе, салонов красоты, служб доставки.",
+            extra: "Примеры: АТОЛ, Эвотор, Меркурий, Штрих-М"
+          },
+          {
+            title: "Сканеры штрих-кодов",
+            text: "Ручные и стационарные сканеры для быстрого считывания штрих-кодов товаров. Проводные и беспроводные модели, 1D и 2D сканеры.",
+            extra: ""
+          },
+          {
+            title: "Торговые весы",
+            text: "Электронные весы с печатью этикеток для взвешиваемых товаров. Настольные и напольные модели с возможностью интеграции с кассой.",
+            extra: ""
+          },
+          {
+            title: "Принтеры этикеток",
+            text: "Термопринтеры для печати ценников, этикеток со штрих-кодами, бирок для маркировки товаров.",
+            extra: ""
+          },
+          {
+            title: "Денежные ящики",
+            text: "Металлические кассовые ящики с автоматическим открыванием, подключаются к онлайн-кассе.",
+            extra: ""
+          },
+          {
+            title: "POS-терминалы",
+            text: "Эквайринговые терминалы для приема оплаты банковскими картами, поддержка бесконтактных платежей.",
+            extra: ""
+          }
+        ].filter(item => containsSearchQuery(item.title + " " + item.text + " " + item.extra));
+        
+        if (equipment.length === 0 && subsectionSearchQuery) {
+          return (
+            <div className="text-center py-8 text-gray-500">
+              <Icon name="Search" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Ничего не найдено по запросу "{subsectionSearchQuery}"</p>
+              <Button variant="outline" size="sm" onClick={() => setSubsectionSearchQuery("")} className="mt-4">
+                Сбросить поиск
+              </Button>
+            </div>
+          );
+        }
+        
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">Каталог оборудования</h3>
               <div className="space-y-6">
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-2">Онлайн-кассы (ККТ)</h4>
-                  <p className="text-gray-700 mb-2">
-                    Фискальные регистраторы и автономные кассовые аппараты с передачей данных в ФНС. 
-                    Подходят для магазинов, кафе, салонов красоты, служб доставки.
-                  </p>
-                  <p className="text-sm text-gray-600">Примеры: АТОЛ, Эвотор, Меркурий, Штрих-М</p>
-                </div>
-                
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-2">Сканеры штрих-кодов</h4>
-                  <p className="text-gray-700 mb-2">
-                    Ручные и стационарные сканеры для быстрого считывания штрих-кодов товаров. 
-                    Проводные и беспроводные модели, 1D и 2D сканеры.
-                  </p>
-                </div>
-                
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-2">Торговые весы</h4>
-                  <p className="text-gray-700 mb-2">
-                    Электронные весы с печатью этикеток для взвешиваемых товаров. 
-                    Настольные и напольные модели с возможностью интеграции с кассой.
-                  </p>
-                </div>
-                
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-2">Принтеры этикеток</h4>
-                  <p className="text-gray-700 mb-2">
-                    Термопринтеры для печати ценников, этикеток со штрих-кодами, 
-                    бирок для маркировки товаров.
-                  </p>
-                </div>
-                
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-2">Денежные ящики</h4>
-                  <p className="text-gray-700 mb-2">
-                    Металлические кассовые ящики с автоматическим открыванием, 
-                    подключаются к онлайн-кассе.
-                  </p>
-                </div>
-                
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-2">POS-терминалы</h4>
-                  <p className="text-gray-700 mb-2">
-                    Эквайринговые терминалы для приема оплаты банковскими картами, 
-                    поддержка бесконтактных платежей.
-                  </p>
-                </div>
-                
-
+                {equipment.map((item, idx) => (
+                  <div key={idx} className="border-b pb-4 last:border-0">
+                    <h4 className="font-semibold text-lg text-gray-900 mb-2" dangerouslySetInnerHTML={{ __html: highlightText(item.title) }} />
+                    <p className="text-gray-700 mb-2" dangerouslySetInnerHTML={{ __html: highlightText(item.text) }} />
+                    {item.extra && <p className="text-sm text-gray-600" dangerouslySetInnerHTML={{ __html: highlightText(item.extra) }} />}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         );
       
       case "Скрипты продаж":
+        const salesContent = `
+          Приветствие и выявление потребностей
+          Менеджер: Добрый день! Меня зовут [Имя], компания AB-Онлайн Касса. Помогу подобрать онлайн-кассу для вашего бизнеса. Скажите, какой у вас формат торговли?
+          Задачи: установить контакт, узнать тип бизнеса (розница, услуги, доставка), масштаб (один магазин или сеть), текущее оборудование.
+          Презентация решения
+          Менеджер: Исходя из ваших задач, рекомендую [модель кассы]. Она подходит для вашего формата работы, легко настраивается, цена от [сумма] рублей. Мы подключим ее под ключ: зарегистрируем в налоговой, настроим, обучим персонал.
+          Ключевые преимущества: простота использования, быстрое подключение, техподдержка 24/7, гарантия, возможность покупки в рассрочку.
+          Работа с возражениями
+          "Дорого" → Понимаю ваше беспокойство. У нас есть модели от 3000 ₽, плюс рассрочка без переплат. Касса окупится за счет контроля выручки и отсутствия штрафов от налоговой.
+          "Сложно разобраться" → Мы все настроим сами и обучим ваших сотрудников. Касса работает интуитивно — достаточно пробить товар и получить оплату. При любых вопросах наша поддержка на связи.
+          "Надо подумать" → Конечно, понимаю. Давайте я отправлю вам коммерческое предложение, чтобы вы могли спокойно изучить. Когда удобно созвониться — завтра или послезавтра?
+          Завершение сделки
+          Менеджер: Отлично! Оформлю для вас договор. Какой способ оплаты удобен — перевод на карту, счет для ИП/ООО или рассрочка? Когда вам удобно принять кассу и провести настройку?
+        `;
+        
+        if (subsectionSearchQuery && !containsSearchQuery(salesContent)) {
+          return (
+            <div className="text-center py-8 text-gray-500">
+              <Icon name="Search" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Ничего не найдено по запросу "{subsectionSearchQuery}"</p>
+              <Button variant="outline" size="sm" onClick={() => setSubsectionSearchQuery("")} className="mt-4">
+                Сбросить поиск
+              </Button>
+            </div>
+          );
+        }
+        
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Приветствие и выявление потребностей</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText("Приветствие и выявление потребностей") }} />
               <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <p className="text-gray-800 mb-2">
-                  <strong>Менеджер:</strong> Добрый день! Меня зовут [Имя], компания AB-Онлайн Касса. 
-                  Помогу подобрать онлайн-кассу для вашего бизнеса. Скажите, какой у вас формат торговли?
-                </p>
+                <p className="text-gray-800 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("Менеджер: Добрый день! Меня зовут [Имя], компания AB-Онлайн Касса. Помогу подобрать онлайн-кассу для вашего бизнеса. Скажите, какой у вас формат торговли?") }} />
               </div>
-              <p className="text-gray-700 mb-4">
-                <strong>Задачи:</strong> установить контакт, узнать тип бизнеса (розница, услуги, доставка), 
-                масштаб (один магазин или сеть), текущее оборудование.
-              </p>
+              <p className="text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: highlightText("Задачи: установить контакт, узнать тип бизнеса (розница, услуги, доставка), масштаб (один магазин или сеть), текущее оборудование.") }} />
             </div>
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Презентация решения</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText("Презентация решения") }} />
               <div className="bg-green-50 p-4 rounded-lg mb-4">
-                <p className="text-gray-800 mb-2">
-                  <strong>Менеджер:</strong> Исходя из ваших задач, рекомендую [модель кассы]. 
-                  Она подходит для вашего формата работы, легко настраивается, цена от [сумма] рублей. 
-                  Мы подключим ее под ключ: зарегистрируем в налоговой, настроим, обучим персонал.
-                </p>
+                <p className="text-gray-800 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("Менеджер: Исходя из ваших задач, рекомендую [модель кассы]. Она подходит для вашего формата работы, легко настраивается, цена от [сумма] рублей. Мы подключим ее под ключ: зарегистрируем в налоговой, настроим, обучим персонал.") }} />
               </div>
-              <p className="text-gray-700 mb-4">
-                <strong>Ключевые преимущества:</strong> простота использования, быстрое подключение, 
-                техподдержка 24/7, гарантия, возможность покупки в рассрочку.
-              </p>
+              <p className="text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: highlightText("Ключевые преимущества: простота использования, быстрое подключение, техподдержка 24/7, гарантия, возможность покупки в рассрочку.") }} />
             </div>
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Работа с возражениями</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText("Работа с возражениями") }} />
               <div className="space-y-4">
                 <div>
-                  <p className="font-semibold text-gray-900">"Дорого"</p>
-                  <p className="text-gray-700">
-                    → Понимаю ваше беспокойство. У нас есть модели от 3000 ₽, плюс рассрочка без переплат. 
-                    Касса окупится за счет контроля выручки и отсутствия штрафов от налоговой.
-                  </p>
+                  <p className="font-semibold text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText('"Дорого"') }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("→ Понимаю ваше беспокойство. У нас есть модели от 3000 ₽, плюс рассрочка без переплат. Касса окупится за счет контроля выручки и отсутствия штрафов от налоговой.") }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">"Сложно разобраться"</p>
-                  <p className="text-gray-700">
-                    → Мы все настроим сами и обучим ваших сотрудников. Касса работает интуитивно — 
-                    достаточно пробить товар и получить оплату. При любых вопросах наша поддержка на связи.
-                  </p>
+                  <p className="font-semibold text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText('"Сложно разобраться"') }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("→ Мы все настроим сами и обучим ваших сотрудников. Касса работает интуитивно — достаточно пробить товар и получить оплату. При любых вопросах наша поддержка на связи.") }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">"Надо подумать"</p>
-                  <p className="text-gray-700">
-                    → Конечно, понимаю. Давайте я отправлю вам коммерческое предложение, 
-                    чтобы вы могли спокойно изучить. Когда удобно созвониться — завтра или послезавтра?
-                  </p>
+                  <p className="font-semibold text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText('"Надо подумать"') }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("→ Конечно, понимаю. Давайте я отправлю вам коммерческое предложение, чтобы вы могли спокойно изучить. Когда удобно созвониться — завтра или послезавтра?") }} />
                 </div>
               </div>
             </div>
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Завершение сделки</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText("Завершение сделки") }} />
               <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-gray-800 mb-2">
-                  <strong>Менеджер:</strong> Отлично! Оформлю для вас договор. 
-                  Какой способ оплаты удобен — перевод на карту, счет для ИП/ООО или рассрочка? 
-                  Когда вам удобно принять кассу и провести настройку?
-                </p>
+                <p className="text-gray-800 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("Менеджер: Отлично! Оформлю для вас договор. Какой способ оплаты удобен — перевод на карту, счет для ИП/ООО или рассрочка? Когда вам удобно принять кассу и провести настройку?") }} />
               </div>
             </div>
           </div>
         );
       
       case "Программное обеспечение":
+        const softwareContent = `
+          Операторы фискальных данных ОФД
+          Драйверы ККТ кассовое программное обеспечение
+          Торговые системы 1С Розница МойСклад
+          Интеграции 1С Предприятие интернет-магазины CMS Битрикс WooCommerce
+          Системы доставки Яндекс.Еда Delivery Club
+        `;
+        
+        if (subsectionSearchQuery && !containsSearchQuery(softwareContent)) {
+          return (
+            <div className="text-center py-8 text-gray-500">
+              <Icon name="Search" size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Ничего не найдено по запросу "{subsectionSearchQuery}"</p>
+              <Button variant="outline" size="sm" onClick={() => setSubsectionSearchQuery("")} className="mt-4">
+                Сбросить поиск
+              </Button>
+            </div>
+          );
+        }
+        
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Операторы фискальных данных (ОФД)</h3>
-              <p className="text-gray-700 mb-4">
-                ОФД — это организация, которая получает от онлайн-кассы данные о продажах 
-                и передает их в налоговую службу. Выбор оператора обязателен при регистрации кассы.
-              </p>
-              <p className="text-gray-700">
-                <strong>Популярные ОФД:</strong> Платформа ОФД, Такском, Первый ОФД, Контур.ОФД, СБИС
-              </p>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText("Операторы фискальных данных (ОФД)") }} />
+              <p className="text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: highlightText("ОФД — это организация, которая получает от онлайн-кассы данные о продажах и передает их в налоговую службу. Выбор оператора обязателен при регистрации кассы.") }} />
+              <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("Популярные ОФД: Платформа ОФД, Такском, Первый ОФД, Контур.ОФД, СБИС") }} />
             </div>
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Кассовое ПО</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText("Кассовое ПО") }} />
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Драйверы ККТ</h4>
-                  <p className="text-gray-700">
-                    Программное обеспечение для управления онлайн-кассой с компьютера. 
-                    Устанавливается на рабочее место кассира, позволяет пробивать чеки, 
-                    формировать отчеты, работать с товарной базой.
-                  </p>
+                  <h4 className="font-semibold text-gray-900 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("Драйверы ККТ") }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("Программное обеспечение для управления онлайн-кассой с компьютера. Устанавливается на рабочее место кассира, позволяет пробивать чеки, формировать отчеты, работать с товарной базой.") }} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Торговые системы</h4>
-                  <p className="text-gray-700">
-                    Программы для автоматизации розничной торговли: учет товаров, складской учет, 
-                    работа с поставщиками, формирование прайс-листов. Интеграция с онлайн-кассой.
-                  </p>
-                  <p className="text-sm text-gray-600 mt-2">Примеры: 1С:Розница, МойСклад, Класс365, Тирика-Магазин</p>
+                  <h4 className="font-semibold text-gray-900 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("Торговые системы") }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("Программы для автоматизации розничной торговли: учет товаров, складской учет, работа с поставщиками, формирование прайс-листов. Интеграция с онлайн-кассой.") }} />
+                  <p className="text-sm text-gray-600 mt-2" dangerouslySetInnerHTML={{ __html: highlightText("Примеры: 1С:Розница, МойСклад, Класс365, Тирика-Магазин") }} />
                 </div>
               </div>
             </div>
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Интеграции</h3>
+              <h3 className="text-xl font-semibold mb-4 text-gray-900" dangerouslySetInnerHTML={{ __html: highlightText("Интеграции") }} />
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">1С:Предприятие</h4>
-                  <p className="text-gray-700">
-                    Подключение онлайн-кассы к учетным системам 1С для автоматической синхронизации 
-                    товаров, цен и передачи данных о продажах в бухгалтерию.
-                  </p>
+                  <h4 className="font-semibold text-gray-900 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("1С:Предприятие") }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("Подключение онлайн-кассы к учетным системам 1С для автоматической синхронизации товаров, цен и передачи данных о продажах в бухгалтерию.") }} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Интернет-магазины</h4>
-                  <p className="text-gray-700">
-                    Подключение фискализации для онлайн-продаж через CMS (Битрикс, OpenCart, WooCommerce). 
-                    Чеки отправляются покупателям автоматически на email.
-                  </p>
+                  <h4 className="font-semibold text-gray-900 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("Интернет-магазины") }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("Подключение фискализации для онлайн-продаж через CMS (Битрикс, OpenCart, WooCommerce). Чеки отправляются покупателям автоматически на email.") }} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Системы доставки</h4>
-                  <p className="text-gray-700">
-                    Интеграция с сервисами доставки еды и товаров (Яндекс.Еда, Delivery Club). 
-                    Автоматическое формирование чеков при получении заказа.
-                  </p>
+                  <h4 className="font-semibold text-gray-900 mb-2" dangerouslySetInnerHTML={{ __html: highlightText("Системы доставки") }} />
+                  <p className="text-gray-700" dangerouslySetInnerHTML={{ __html: highlightText("Интеграция с сервисами доставки еды и товаров (Яндекс.Еда, Delivery Club). Автоматическое формирование чеков при получении заказа.") }} />
                 </div>
               </div>
             </div>
@@ -1337,7 +1348,7 @@ export const KnowledgeTab = ({
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
                           <Icon name={instruction.icon_name} size={20} className={`text-${instruction.icon_color}`} />
-                          {instruction.title}
+                          <span dangerouslySetInnerHTML={{ __html: highlightText(instruction.title) }} />
                         </h4>
                         <div className="flex gap-2">
                           <Button 
@@ -1368,13 +1379,11 @@ export const KnowledgeTab = ({
                           )}
                         </div>
                       </div>
-                      <p className="text-gray-700 mb-3">
-                        {instruction.description}
-                      </p>
+                      <p className="text-gray-700 mb-3" dangerouslySetInnerHTML={{ __html: highlightText(instruction.description) }} />
                       {instruction.steps.length > 0 && (
                         <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
                           {instruction.steps.map((step, stepIndex) => (
-                            <li key={stepIndex}>{step}</li>
+                            <li key={stepIndex} dangerouslySetInnerHTML={{ __html: highlightText(step) }} />
                           ))}
                         </ul>
                       )}
