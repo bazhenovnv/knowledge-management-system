@@ -87,6 +87,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = get_subsections(cursor)
             elif action == 'get_instructions':
                 result = get_instructions(cursor)
+            elif action == 'get_instruction_categories':
+                result = get_instruction_categories(cursor)
             else:
                 result = {'error': 'Неизвестное действие'}
                 
@@ -117,6 +119,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = save_subsection(cursor, conn, body_data)
             elif action == 'create_instruction':
                 result = create_instruction(cursor, conn, body_data)
+            elif action == 'create_instruction_category':
+                result = create_instruction_category(cursor, conn, body_data)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -129,6 +133,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = update_test_with_questions(cursor, conn, item_id, body_data)
             elif action == 'update_instruction':
                 result = update_instruction(cursor, conn, body_data)
+            elif action == 'update_instruction_category':
+                result = update_instruction_category(cursor, conn, body_data)
             else:
                 result = update_item(cursor, conn, table, item_id, body_data)
             
@@ -139,6 +145,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if action == 'delete_instruction':
                 result = delete_instruction(cursor, conn, int(item_id))
+            elif action == 'delete_instruction_category':
+                result = delete_instruction_category(cursor, conn, int(item_id))
             elif permanent:
                 result = permanent_delete_item(cursor, conn, table, item_id)
             else:
@@ -1650,3 +1658,114 @@ def delete_instruction(cursor, conn, instruction_id: int) -> Dict[str, Any]:
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка удаления инструкции: {str(e)}'}
+
+
+def get_instruction_categories(cursor) -> Dict[str, Any]:
+    """Получить все категории инструкций"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            SELECT * FROM {schema}.instruction_categories
+            ORDER BY name
+        """)
+        
+        categories = cursor.fetchall()
+        return {'data': [dict(cat) for cat in categories]}
+    except Exception as e:
+        return {'error': f'Ошибка получения категорий: {str(e)}'}
+
+
+def create_instruction_category(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создать новую категорию инструкций"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.instruction_categories (name, icon_name)
+            VALUES (%s, %s)
+            RETURNING *
+        """, (data.get('name'), data.get('icon_name', 'Folder')))
+        
+        category = cursor.fetchone()
+        conn.commit()
+        
+        return {'data': dict(category)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка создания категории: {str(e)}'}
+
+
+def update_instruction_category(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Обновить категорию инструкций"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        category_id = data.get('id')
+        
+        updates = []
+        values = []
+        
+        if 'name' in data:
+            updates.append('name = %s')
+            values.append(data['name'])
+        
+        if 'icon_name' in data:
+            updates.append('icon_name = %s')
+            values.append(data['icon_name'])
+        
+        if not updates:
+            return {'error': 'Нет полей для обновления'}
+        
+        updates.append('updated_at = NOW()')
+        values.append(category_id)
+        
+        cursor.execute(f"""
+            UPDATE {schema}.instruction_categories
+            SET {', '.join(updates)}
+            WHERE id = %s
+            RETURNING *
+        """, tuple(values))
+        
+        category = cursor.fetchone()
+        conn.commit()
+        
+        if not category:
+            return {'error': 'Категория не найдена'}
+        
+        return {'data': dict(category)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка обновления категории: {str(e)}'}
+
+
+def delete_instruction_category(cursor, conn, category_id: int) -> Dict[str, Any]:
+    """Удалить категорию инструкций"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        # Проверяем, есть ли инструкции в этой категории
+        cursor.execute(f"""
+            SELECT COUNT(*) as count FROM {schema}.instructions
+            WHERE category = (SELECT name FROM {schema}.instruction_categories WHERE id = %s)
+        """, (category_id,))
+        
+        result = cursor.fetchone()
+        if result and result['count'] > 0:
+            return {'error': f'Невозможно удалить категорию: в ней {result["count"]} инструкций'}
+        
+        cursor.execute(f"""
+            DELETE FROM {schema}.instruction_categories
+            WHERE id = %s
+            RETURNING id
+        """, (category_id,))
+        
+        result = cursor.fetchone()
+        conn.commit()
+        
+        if not result:
+            return {'error': 'Категория не найдена'}
+        
+        return {'data': {'success': True}}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка удаления категории: {str(e)}'}

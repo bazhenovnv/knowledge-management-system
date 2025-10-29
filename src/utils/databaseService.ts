@@ -56,6 +56,14 @@ export interface DatabaseKnowledgeMaterial {
   updated_at: string;
 }
 
+export interface InstructionCategory {
+  id: number;
+  name: string;
+  icon_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Instruction {
   id: number;
   title: string;
@@ -774,6 +782,83 @@ class DatabaseService {
       return response.data?.success || false;
     } catch (error) {
       console.error('Delete instruction error:', error);
+      return false;
+    }
+  }
+
+  // ========================
+  // МЕТОДЫ ДЛЯ КАТЕГОРИЙ ИНСТРУКЦИЙ
+  // ========================
+
+  async getInstructionCategories(): Promise<InstructionCategory[]> {
+    try {
+      const response = await this.makeRequest<InstructionCategory[]>('?action=get_instruction_categories', { method: 'GET' });
+      
+      if (response.error) {
+        console.error('Get instruction categories error:', response.error);
+        return [];
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      console.error('Get instruction categories error:', error);
+      return [];
+    }
+  }
+
+  async createInstructionCategory(category: { name: string; icon_name: string }): Promise<InstructionCategory | null> {
+    try {
+      const response = await this.makeRequest<InstructionCategory>('?action=create_instruction_category', {
+        method: 'POST',
+        body: JSON.stringify(category)
+      });
+      
+      if (response.error) {
+        console.error('Create instruction category error:', response.error);
+        return null;
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      console.error('Create instruction category error:', error);
+      return null;
+    }
+  }
+
+  async updateInstructionCategory(id: number, category: { name?: string; icon_name?: string }): Promise<InstructionCategory | null> {
+    try {
+      const response = await this.makeRequest<InstructionCategory>('?action=update_instruction_category', {
+        method: 'PUT',
+        body: JSON.stringify({ id, ...category })
+      });
+      
+      if (response.error) {
+        console.error('Update instruction category error:', response.error);
+        return null;
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      console.error('Update instruction category error:', error);
+      return null;
+    }
+  }
+
+  async deleteInstructionCategory(id: number): Promise<boolean> {
+    try {
+      const response = await this.makeRequest<{ success: boolean }>('?action=delete_instruction_category', {
+        method: 'DELETE',
+        body: JSON.stringify({ id })
+      });
+      
+      if (response.error) {
+        console.error('Delete instruction category error:', response.error);
+        return false;
+      }
+      
+      return response.data?.success || false;
+    } catch (error) {
+      console.error('Delete instruction category error:', error);
       return false;
     }
   }

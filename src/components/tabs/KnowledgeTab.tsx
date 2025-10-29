@@ -68,16 +68,11 @@ export const KnowledgeTab = ({
   
   const [selectedInstructionCategory, setSelectedInstructionCategory] = useState<string | null>(null);
   
-  const instructionCategories = [
-    { name: 'Онлайн кассы', icon: 'CreditCard', color: 'blue' },
-    { name: 'Торговые весы', icon: 'Scale', color: 'green' },
-    { name: 'Сканеры ШК', icon: 'ScanLine', color: 'purple' },
-    { name: 'Принтеры этикеток', icon: 'Printer', color: 'orange' },
-    { name: '1С программы', icon: 'Database', color: 'red' },
-    { name: 'POS-терминалы', icon: 'Monitor', color: 'indigo' },
-    { name: 'ТСД', icon: 'Smartphone', color: 'pink' },
-    { name: 'Мониторы покупателя', icon: 'Tv', color: 'teal' }
-  ];
+  const [instructionCategories, setInstructionCategories] = useState<Array<{ id: number; name: string; icon_name: string }>>([]);
+  const [isManagingCategories, setIsManagingCategories] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({ name: '', icon_name: 'Folder' });
+  const [editingCategory, setEditingCategory] = useState<{ id: number; name: string; icon_name: string } | null>(null);
+  
   const [subsectionSearchQuery, setSubsectionSearchQuery] = useState("");
 
   const [formData, setFormData] = useState<FormData>({
@@ -129,6 +124,7 @@ export const KnowledgeTab = ({
     loadMaterials();
     loadSubsectionContent();
     loadInstructions();
+    loadInstructionCategories();
   }, []);
 
   useEffect(() => {
@@ -328,6 +324,68 @@ export const KnowledgeTab = ({
     }
   };
 
+  const loadInstructionCategories = async () => {
+    try {
+      const categories = await databaseService.getInstructionCategories();
+      setInstructionCategories(categories);
+    } catch (error) {
+      console.error('Error loading instruction categories:', error);
+      toast.error("Не удалось загрузить категории");
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!categoryForm.name.trim()) {
+      toast.error("Введите название категории");
+      return;
+    }
+
+    try {
+      await databaseService.createInstructionCategory(categoryForm);
+      toast.success("Категория создана");
+      setCategoryForm({ name: '', icon_name: 'Folder' });
+      loadInstructionCategories();
+    } catch (error) {
+      toast.error("Не удалось создать категорию");
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory) return;
+
+    try {
+      await databaseService.updateInstructionCategory(editingCategory.id, {
+        name: categoryForm.name,
+        icon_name: categoryForm.icon_name
+      });
+      toast.success("Категория обновлена");
+      setEditingCategory(null);
+      setCategoryForm({ name: '', icon_name: 'Folder' });
+      loadInstructionCategories();
+    } catch (error) {
+      toast.error("Не удалось обновить категорию");
+    }
+  };
+
+  const handleDeleteCategory = async (id: number) => {
+    if (!confirm("Вы уверены, что хотите удалить эту категорию?")) return;
+
+    try {
+      const success = await databaseService.deleteInstructionCategory(id);
+      if (success) {
+        toast.success("Категория удалена");
+        loadInstructionCategories();
+      }
+    } catch (error) {
+      toast.error("Не удалось удалить категорию");
+    }
+  };
+
+  const startEditingCategory = (category: { id: number; name: string; icon_name: string }) => {
+    setEditingCategory(category);
+    setCategoryForm({ name: category.name, icon_name: category.icon_name });
+  };
+
   const handleCreateInstruction = async () => {
     try {
       await databaseService.createInstruction({
@@ -376,7 +434,7 @@ export const KnowledgeTab = ({
     setInstructionForm({
       title: '',
       description: '',
-      category: 'Онлайн кассы',
+      category: instructionCategories[0]?.name || '',
       icon_name: 'FileText',
       icon_color: 'blue-600',
       steps: [''],
@@ -392,7 +450,7 @@ export const KnowledgeTab = ({
     setInstructionForm({
       title: instruction.title,
       description: instruction.description,
-      category: instruction.category || 'Онлайн кассы',
+      category: instruction.category || instructionCategories[0]?.name || '',
       icon_name: instruction.icon_name,
       icon_color: instruction.icon_color,
       steps: instruction.steps.length > 0 ? instruction.steps : [''],
@@ -1369,24 +1427,38 @@ export const KnowledgeTab = ({
 
             {!selectedInstructionCategory ? (
               <div className="bg-white rounded-lg p-6 border border-gray-200">
-                <h3 className="text-xl font-semibold mb-4 text-gray-900">Инструкции по работе с оборудованием</h3>
-                <p className="text-gray-700 mb-6">
-                  Выберите категорию оборудования для просмотра инструкций
-                </p>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Инструкции по работе с оборудованием</h3>
+                    <p className="text-gray-700 mt-2">
+                      Выберите категорию оборудования для просмотра инструкций
+                    </p>
+                  </div>
+                  {userRole === 'admin' && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsManagingCategories(true)}
+                    >
+                      <Icon name="Settings" size={16} className="mr-2" />
+                      Управление категориями
+                    </Button>
+                  )}
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {instructionCategories.map((category) => {
                     const categoryCount = instructions.filter(i => i.category === category.name).length;
                     return (
                       <Card 
-                        key={category.name}
+                        key={category.id}
                         className="cursor-pointer hover:shadow-lg transition-shadow"
                         onClick={() => setSelectedInstructionCategory(category.name)}
                       >
                         <CardHeader>
                           <CardTitle className="flex items-center gap-3">
-                            <div className={`p-3 bg-${category.color}-100 rounded-lg`}>
-                              <Icon name={category.icon} size={24} className={`text-${category.color}-600`} />
+                            <div className="p-3 bg-blue-100 rounded-lg">
+                              <Icon name={category.icon_name} size={24} className="text-blue-600" />
                             </div>
                             <div>
                               <div className="text-base">{category.name}</div>
@@ -1851,6 +1923,127 @@ export const KnowledgeTab = ({
         setIsDragging={() => {}}
         setDragStart={() => {}}
       />
+
+      {isManagingCategories && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 sticky top-0 bg-white">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-semibold text-gray-900">Управление категориями</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setIsManagingCategories(false);
+                    setEditingCategory(null);
+                    setCategoryForm({ name: '', icon_name: 'Folder' });
+                  }}
+                >
+                  <Icon name="X" size={20} />
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-semibold text-gray-900 mb-3">
+                  {editingCategory ? 'Редактировать категорию' : 'Создать новую категорию'}
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Название категории
+                    </label>
+                    <Input
+                      value={categoryForm.name}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                      placeholder="Например: Онлайн кассы"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Иконка
+                    </label>
+                    <Input
+                      value={categoryForm.icon_name}
+                      onChange={(e) => setCategoryForm({ ...categoryForm, icon_name: e.target.value })}
+                      placeholder="Название иконки (например: CreditCard)"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Используйте названия иконок из библиотеки Lucide
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {editingCategory ? (
+                      <>
+                        <Button onClick={handleUpdateCategory}>
+                          <Icon name="Save" size={16} className="mr-2" />
+                          Сохранить
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setEditingCategory(null);
+                            setCategoryForm({ name: '', icon_name: 'Folder' });
+                          }}
+                        >
+                          Отмена
+                        </Button>
+                      </>
+                    ) : (
+                      <Button onClick={handleCreateCategory}>
+                        <Icon name="Plus" size={16} className="mr-2" />
+                        Создать категорию
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold text-gray-900 mb-3">Существующие категории</h4>
+                {instructionCategories.map((category) => {
+                  const categoryCount = instructions.filter(i => i.category === category.name).length;
+                  return (
+                    <div 
+                      key={category.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded">
+                          <Icon name={category.icon_name} size={20} className="text-blue-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{category.name}</div>
+                          <div className="text-sm text-gray-500">{categoryCount} инструкций</div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => startEditingCategory(category)}
+                        >
+                          <Icon name="Pencil" size={16} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteCategory(category.id)}
+                          disabled={categoryCount > 0}
+                          title={categoryCount > 0 ? 'Удалите сначала все инструкции из этой категории' : 'Удалить категорию'}
+                        >
+                          <Icon name="Trash2" size={16} className={categoryCount > 0 ? 'text-gray-400' : 'text-red-600'} />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
