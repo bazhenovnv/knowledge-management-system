@@ -28,6 +28,8 @@ export default function VideoCall() {
   const [isCalling, setIsCalling] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [roomUrl, setRoomUrl] = useState<string>('');
+  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -198,6 +200,28 @@ export default function VideoCall() {
     }
     
     setIsCalling(false);
+    setIsVideoEnabled(true);
+    setIsAudioEnabled(true);
+  };
+
+  const toggleVideo = () => {
+    if (stream) {
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        setIsVideoEnabled(videoTrack.enabled);
+      }
+    }
+  };
+
+  const toggleAudio = () => {
+    if (stream) {
+      const audioTrack = stream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        setIsAudioEnabled(audioTrack.enabled);
+      }
+    }
   };
 
   const sendMessage = () => {
@@ -305,13 +329,29 @@ export default function VideoCall() {
                     Начать звонок
                   </Button>
                 ) : (
-                  <Button 
-                    onClick={endCall}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    <Icon name="PhoneOff" size={16} className="mr-2" />
-                    Завершить
-                  </Button>
+                  <>
+                    <Button 
+                      onClick={toggleVideo}
+                      variant={isVideoEnabled ? "default" : "destructive"}
+                      size="icon"
+                    >
+                      <Icon name={isVideoEnabled ? "Video" : "VideoOff"} size={18} />
+                    </Button>
+                    <Button 
+                      onClick={toggleAudio}
+                      variant={isAudioEnabled ? "default" : "destructive"}
+                      size="icon"
+                    >
+                      <Icon name={isAudioEnabled ? "Mic" : "MicOff"} size={18} />
+                    </Button>
+                    <Button 
+                      onClick={endCall}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <Icon name="PhoneOff" size={16} className="mr-2" />
+                      Завершить
+                    </Button>
+                  </>
                 )}
               </div>
             </div>
