@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import funcUrls from '../../backend/func2url.json';
 
 interface FunctionStat {
   function_name: string;
@@ -36,7 +37,7 @@ export const FunctionAnalytics = ({ refreshTrigger }: FunctionAnalyticsProps) =>
     try {
       setLoading(true);
       const response = await fetch(
-        `https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=function_calls_detailed`
+        `${funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558'}?action=list&table=function_calls_detailed`
       );
       const data = await response.json();
       

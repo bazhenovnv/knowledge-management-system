@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import funcUrls from '../../backend/func2url.json';
 
 interface SupportMessage {
   id: number;
@@ -28,7 +29,7 @@ const SupportChat = ({ employeeId, isAdmin, compact = false }: SupportChatProps)
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const BACKEND_URL = 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
+  const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

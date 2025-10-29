@@ -1,6 +1,7 @@
 // Утилита для миграции данных из localStorage в PostgreSQL
+import funcUrls from '../backend/func2url.json';
 
-const BACKEND_URL = 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
+const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
 
 interface MigrationResult {
   success: boolean;

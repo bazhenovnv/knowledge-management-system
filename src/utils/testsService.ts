@@ -1,4 +1,5 @@
 // Сервис для работы с тестами через backend API
+import funcUrls from '../../backend/func2url.json';
 
 export interface DatabaseTest {
   id: number;
@@ -78,7 +79,7 @@ class TestsService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
+    this.baseUrl = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
   }
 
   private async makeRequest<T>(

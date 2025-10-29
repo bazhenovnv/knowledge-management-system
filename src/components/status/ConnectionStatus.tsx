@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import funcUrls from '../../backend/func2url.json';
 
 interface ConnectionStatusProps {
   apiUrl?: string;
@@ -11,7 +12,7 @@ interface ConnectionStatusProps {
 }
 
 export default function ConnectionStatus({ 
-  apiUrl = 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957',
+  apiUrl = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
   reconnectAttempts = 5,
   reconnectDelay = 3000
 }: ConnectionStatusProps) {

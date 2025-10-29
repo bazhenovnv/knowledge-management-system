@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { testsService, DatabaseTest, TestWithQuestions } from '@/utils/testsService';
+import funcUrls from '../../backend/func2url.json';
 
 interface Question {
   id?: number;
@@ -84,7 +85,7 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
 
   const loadCourses = async () => {
     try {
-      const response = await fetch('https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=list&table=courses', {
+      const response = await fetch(`${funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558'}?action=list&table=courses`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
@@ -187,7 +188,7 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957?action=update_test_full&id=${testId}`, {
+      const response = await fetch(`${funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558'}?action=update_test_full&id=${testId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
