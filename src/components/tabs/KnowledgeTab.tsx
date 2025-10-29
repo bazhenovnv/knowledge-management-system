@@ -1145,7 +1145,7 @@ export const KnowledgeTab = ({
               </Button>
             )}
             <div className={selectedSubsection === "Торговое оборудование" ? "" : "ml-auto"}>
-              {userRole === "admin" && !isEditingSubsection && (
+              {userRole === "admin" && !isEditingSubsection && selectedSubsection !== "Инструкции" && (
                 <Button onClick={() => setIsEditingSubsection(true)}>
                   <Icon name="Edit" size={16} className="mr-2" />
                   Редактировать
