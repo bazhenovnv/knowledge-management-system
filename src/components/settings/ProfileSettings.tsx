@@ -23,8 +23,10 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
     department: employee?.department || '',
     position: employee?.position || '',
     phone: '',
-    avatar: ''
+    avatar: employee?.avatar || ''
   });
+
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
@@ -92,6 +94,47 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
     toast.info('Функция смены email будет доступна в следующей версии');
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Проверка размера файла (макс 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Размер файла не должен превышать 2MB');
+      return;
+    }
+
+    // Проверка типа файла
+    if (!file.type.startsWith('image/')) {
+      toast.error('Можно загружать только изображения');
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+
+    try {
+      // Конвертируем в base64 для предпросмотра
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setProfileForm(prev => ({ ...prev, avatar: base64String }));
+        
+        // Обновляем в базе данных
+        database.updateEmployee(userId, {
+          avatar: base64String
+        });
+        
+        toast.success('Фото профиля успешно загружено!');
+        setIsUploadingPhoto(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Ошибка загрузки фото:', error);
+      toast.error('Ошибка при загрузке фото');
+      setIsUploadingPhoto(false);
+    }
+  };
+
   if (!employee) {
     return (
       <Alert>
@@ -116,13 +159,35 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
         <CardContent>
           <form onSubmit={handleProfileUpdate} className="space-y-4">
             <div className="flex items-center space-x-4 mb-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                {employee.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </div>
+              {profileForm.avatar ? (
+                <img 
+                  src={profileForm.avatar} 
+                  alt="Фото профиля" 
+                  className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
+                  {employee.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                </div>
+              )}
               <div>
-                <Button type="button" variant="outline" size="sm">
-                  <Icon name="Upload" size={14} className="mr-2" />
-                  Загрузить фото
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                  disabled={isUploadingPhoto}
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => document.getElementById('avatar-upload')?.click()}
+                  disabled={isUploadingPhoto}
+                >
+                  <Icon name={isUploadingPhoto ? "Loader2" : "Upload"} size={14} className={`mr-2 ${isUploadingPhoto ? 'animate-spin' : ''}`} />
+                  {isUploadingPhoto ? 'Загрузка...' : 'Загрузить фото'}
                 </Button>
                 <p className="text-xs text-gray-500 mt-1">JPG, PNG или GIF. Макс 2MB</p>
               </div>
