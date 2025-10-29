@@ -389,6 +389,26 @@ export const KnowledgeTab = ({
     }));
   };
 
+  const copyInstructionText = (instruction: Instruction) => {
+    const text = `${instruction.title}\n\n${instruction.description}\n\nШаги:\n${instruction.steps.map((step, i) => `${i + 1}. ${step}`).join('\n')}`;
+    navigator.clipboard.writeText(text);
+    toast.success("Текст инструкции скопирован");
+  };
+
+  const downloadInstruction = (instruction: Instruction) => {
+    const text = `${instruction.title}\n\n${instruction.description}\n\nШаги:\n${instruction.steps.map((step, i) => `${i + 1}. ${step}`).join('\n')}\n\nСоздано: ${new Date(instruction.created_at).toLocaleDateString('ru-RU')}`;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${instruction.title}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Инструкция скачана");
+  };
+
   const handleCreateMaterial = async () => {
     try {
       await databaseService.createKnowledgeMaterial({
@@ -1267,7 +1287,7 @@ export const KnowledgeTab = ({
                 Подробные руководства по настройке, подключению и эксплуатации кассового оборудования.
               </p>
               
-              <div className="space-y-6">
+              <div>
                 {instructions.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Icon name="FileText" size={48} className="mx-auto mb-4 opacity-50" />
@@ -1275,22 +1295,40 @@ export const KnowledgeTab = ({
                   </div>
                 ) : (
                   instructions.map((instruction) => (
-                    <div key={instruction.id} className="border-b pb-4 last:border-b-0">
+                    <div key={instruction.id} className="bg-gray-50 rounded-lg p-5 mb-5 last:mb-0">
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
                           <Icon name={instruction.icon_name} size={20} className={`text-${instruction.icon_color}`} />
                           {instruction.title}
                         </h4>
-                        {userRole === 'admin' && (
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => startEditingInstruction(instruction)}>
-                              <Icon name="Pencil" size={14} />
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => handleDeleteInstruction(instruction.id)}>
-                              <Icon name="Trash2" size={14} />
-                            </Button>
-                          </div>
-                        )}
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => copyInstructionText(instruction)}
+                            title="Копировать текст"
+                          >
+                            <Icon name="Copy" size={14} />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => downloadInstruction(instruction)}
+                            title="Скачать инструкцию"
+                          >
+                            <Icon name="Download" size={14} />
+                          </Button>
+                          {userRole === 'admin' && (
+                            <>
+                              <Button variant="outline" size="sm" onClick={() => startEditingInstruction(instruction)}>
+                                <Icon name="Pencil" size={14} />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => handleDeleteInstruction(instruction.id)}>
+                                <Icon name="Trash2" size={14} />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <p className="text-gray-700 mb-3">
                         {instruction.description}
@@ -1342,6 +1380,16 @@ export const KnowledgeTab = ({
                           )}
                         </div>
                       ) : null}
+                      
+                      <div className="mt-4 pt-3 border-t border-gray-200">
+                        <p className="text-xs text-gray-500">
+                          Создано: {new Date(instruction.created_at).toLocaleDateString('ru-RU', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
                     </div>
                   ))
                 )}
