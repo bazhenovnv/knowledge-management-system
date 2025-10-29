@@ -32,10 +32,14 @@ export default function VideoCall() {
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     const newPeer = new Peer();
@@ -210,6 +214,10 @@ export default function VideoCall() {
     setIsVideoEnabled(true);
     setIsAudioEnabled(true);
     setIsScreenSharing(false);
+
+    if (isRecording) {
+      stopRecording();
+    }
   };
 
   const toggleVideo = () => {
@@ -229,6 +237,56 @@ export default function VideoCall() {
         audioTrack.enabled = !audioTrack.enabled;
         setIsAudioEnabled(audioTrack.enabled);
       }
+    }
+  };
+
+  const startRecording = () => {
+    if (!stream) return;
+
+    try {
+      const options = { mimeType: 'video/webm; codecs=vp9' };
+      let recorder: MediaRecorder;
+
+      try {
+        recorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        const fallbackOptions = { mimeType: 'video/webm' };
+        recorder = new MediaRecorder(stream, fallbackOptions);
+      }
+
+      recordedChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+          setRecordedChunks([...recordedChunksRef.current]);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `video-call-${new Date().getTime()}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+
+      recorder.start(1000);
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      alert('Не удалось начать запись');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      setMediaRecorder(null);
+      setIsRecording(false);
     }
   };
 
@@ -418,6 +476,13 @@ export default function VideoCall() {
                       size="icon"
                     >
                       <Icon name={isScreenSharing ? "MonitorX" : "Monitor"} size={18} />
+                    </Button>
+                    <Button 
+                      onClick={isRecording ? stopRecording : startRecording}
+                      variant={isRecording ? "destructive" : "default"}
+                      size="icon"
+                    >
+                      <Icon name={isRecording ? "Square" : "Circle"} size={18} />
                     </Button>
                     <Button 
                       onClick={endCall}
