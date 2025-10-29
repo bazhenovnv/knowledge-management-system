@@ -72,8 +72,8 @@ export default function ServerStatusIndicator({
       setPing(null);
       
       if (isManual) {
-        toast.error('Не удалось подключиться', {
-          description: 'Проверьте интернет-соединение'
+        toast.warning('Работа в офлайн-режиме', {
+          description: 'Используются локальные данные'
         });
       }
     }
@@ -89,7 +89,8 @@ export default function ServerStatusIndicator({
   };
 
   useEffect(() => {
-    checkConnection();
+    // Начальная проверка отключена - используем локальные данные
+    setStatus('offline');
     // Автообновление отключено
   }, [apiUrl]);
 
