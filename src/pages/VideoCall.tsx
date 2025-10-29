@@ -1,0 +1,371 @@
+import { useState, useRef, useEffect } from 'react';
+import Peer, { DataConnection, MediaConnection } from 'peerjs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import Icon from '@/components/ui/icon';
+
+interface Message {
+  text: string;
+  sender: 'me' | 'peer';
+  timestamp: Date;
+}
+
+export default function VideoCall() {
+  const [myPeerId, setMyPeerId] = useState<string>('');
+  const [remotePeerId, setRemotePeerId] = useState<string>('');
+  const [peer, setPeer] = useState<Peer | null>(null);
+  const [connection, setConnection] = useState<DataConnection | null>(null);
+  const [call, setCall] = useState<MediaConnection | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messageInput, setMessageInput] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [isCalling, setIsCalling] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const newPeer = new Peer();
+
+    newPeer.on('open', (id) => {
+      setMyPeerId(id);
+      console.log('My peer ID:', id);
+    });
+
+    newPeer.on('connection', (conn) => {
+      setConnection(conn);
+      setIsConnected(true);
+      
+      conn.on('data', (data) => {
+        const message = data as string;
+        setMessages(prev => [...prev, { 
+          text: message, 
+          sender: 'peer', 
+          timestamp: new Date() 
+        }]);
+      });
+
+      conn.on('close', () => {
+        setIsConnected(false);
+        setConnection(null);
+      });
+    });
+
+    newPeer.on('call', async (mediaConnection) => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        
+        setStream(mediaStream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = mediaStream;
+        }
+
+        mediaConnection.answer(mediaStream);
+        setCall(mediaConnection);
+        setIsCalling(true);
+
+        mediaConnection.on('stream', (remoteStream) => {
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+          }
+        });
+
+        mediaConnection.on('close', () => {
+          endCall();
+        });
+      } catch (error) {
+        console.error('Error accessing media devices:', error);
+        alert('Не удалось получить доступ к камере и микрофону');
+      }
+    });
+
+    setPeer(newPeer);
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      newPeer.destroy();
+    };
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const connectToPeer = () => {
+    if (!peer || !remotePeerId) return;
+
+    const conn = peer.connect(remotePeerId);
+    
+    conn.on('open', () => {
+      setConnection(conn);
+      setIsConnected(true);
+    });
+
+    conn.on('data', (data) => {
+      const message = data as string;
+      setMessages(prev => [...prev, { 
+        text: message, 
+        sender: 'peer', 
+        timestamp: new Date() 
+      }]);
+    });
+
+    conn.on('close', () => {
+      setIsConnected(false);
+      setConnection(null);
+    });
+  };
+
+  const startCall = async () => {
+    if (!peer || !remotePeerId) return;
+
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      
+      setStream(mediaStream);
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = mediaStream;
+      }
+
+      const mediaConnection = peer.call(remotePeerId, mediaStream);
+      setCall(mediaConnection);
+      setIsCalling(true);
+
+      mediaConnection.on('stream', (remoteStream) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+        }
+      });
+
+      mediaConnection.on('close', () => {
+        endCall();
+      });
+    } catch (error) {
+      console.error('Error starting call:', error);
+      alert('Не удалось начать звонок');
+    }
+  };
+
+  const endCall = () => {
+    if (call) {
+      call.close();
+      setCall(null);
+    }
+    
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+    
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+    
+    setIsCalling(false);
+  };
+
+  const sendMessage = () => {
+    if (!connection || !messageInput.trim()) return;
+
+    connection.send(messageInput);
+    setMessages(prev => [...prev, { 
+      text: messageInput, 
+      sender: 'me', 
+      timestamp: new Date() 
+    }]);
+    setMessageInput('');
+  };
+
+  const copyPeerId = () => {
+    navigator.clipboard.writeText(myPeerId);
+    alert('ID скопирован в буфер обмена!');
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
+          Видеозвонки P2P
+        </h1>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Icon name="User" size={24} />
+              Мой ID
+            </h2>
+            <div className="flex gap-2">
+              <Input 
+                value={myPeerId} 
+                readOnly 
+                className="flex-1 font-mono text-sm"
+              />
+              <Button onClick={copyPeerId} variant="outline">
+                <Icon name="Copy" size={16} />
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              Отправьте этот ID собеседнику для подключения
+            </p>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Icon name="Users" size={24} />
+              Подключение
+            </h2>
+            <div className="flex gap-2 mb-4">
+              <Input 
+                value={remotePeerId}
+                onChange={(e) => setRemotePeerId(e.target.value)}
+                placeholder="Введите ID собеседника"
+                className="flex-1"
+                disabled={isConnected}
+              />
+              <Button 
+                onClick={connectToPeer} 
+                disabled={!remotePeerId || isConnected}
+              >
+                <Icon name="Link" size={16} />
+              </Button>
+            </div>
+            {isConnected && (
+              <div className="flex items-center gap-2 text-green-600">
+                <Icon name="CheckCircle" size={16} />
+                <span className="text-sm font-medium">Подключено</span>
+              </div>
+            )}
+          </Card>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card className="md:col-span-2 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Icon name="Video" size={24} />
+                Видеозвонок
+              </h2>
+              <div className="flex gap-2">
+                {!isCalling ? (
+                  <Button 
+                    onClick={startCall} 
+                    disabled={!isConnected}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    <Icon name="Video" size={16} className="mr-2" />
+                    Начать звонок
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={endCall}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    <Icon name="PhoneOff" size={16} className="mr-2" />
+                    Завершить
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                <video 
+                  ref={remoteVideoRef}
+                  autoPlay 
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-sm">
+                  Собеседник
+                </div>
+              </div>
+
+              <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+                <video 
+                  ref={localVideoRef}
+                  autoPlay 
+                  playsInline 
+                  muted
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-sm">
+                  Вы
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 flex flex-col">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Icon name="MessageCircle" size={24} />
+              Чат
+            </h2>
+
+            <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto max-h-96 min-h-[300px]">
+              {messages.length === 0 ? (
+                <p className="text-gray-400 text-center text-sm">
+                  Сообщений пока нет
+                </p>
+              ) : (
+                messages.map((msg, index) => (
+                  <div 
+                    key={index}
+                    className={`mb-3 ${msg.sender === 'me' ? 'text-right' : 'text-left'}`}
+                  >
+                    <div 
+                      className={`inline-block px-4 py-2 rounded-lg max-w-[80%] ${
+                        msg.sender === 'me' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-white text-gray-800 border'
+                      }`}
+                    >
+                      <p className="text-sm">{msg.text}</p>
+                      <p className="text-xs opacity-70 mt-1">
+                        {msg.timestamp.toLocaleTimeString('ru-RU', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="flex gap-2">
+              <Input 
+                value={messageInput}
+                onChange={(e) => setMessageInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Введите сообщение..."
+                disabled={!isConnected}
+              />
+              <Button 
+                onClick={sendMessage} 
+                disabled={!isConnected || !messageInput.trim()}
+              >
+                <Icon name="Send" size={16} />
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

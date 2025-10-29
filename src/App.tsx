@@ -22,6 +22,7 @@ import SqlServerGuide from "./pages/SqlServerGuide";
 import SecretsManager from "./pages/SecretsManager";
 import TestSqlConnection from "./pages/TestSqlConnection";
 import VideoConferencesPage from "./pages/VideoConferencesPage";
+import VideoCall from "./pages/VideoCall";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 import { DataProvider } from "./contexts/DataContext";
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/secrets" element={<SecretsManager />} />
             <Route path="/test-sql" element={<TestSqlConnection />} />
             <Route path="/video-conferences" element={<VideoConferencesPage />} />
+            <Route path="/video-call" element={<VideoCall />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
