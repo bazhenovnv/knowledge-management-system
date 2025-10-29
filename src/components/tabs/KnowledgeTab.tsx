@@ -1071,24 +1071,6 @@ export const KnowledgeTab = ({
                     )}
                   </div>
                 ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
-                    <Icon name="AlertCircle" size={20} className="text-orange-600" />
-                    Решение типовых проблем
-                  </h4>
-                  <p className="text-gray-700 mb-3">
-                    Руководство по устранению часто встречающихся неисправностей и ошибок.
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                    <li>Касса не печатает чеки - проверка соединений</li>
-                    <li>Ошибка передачи данных в ОФД - настройка интернета</li>
-                    <li>Не распознается фискальный накопитель</li>
-                    <li>Проблемы с подключением сканера</li>
-                  </ul>
-                </div>
               </div>
             </div>
 
