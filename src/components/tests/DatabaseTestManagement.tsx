@@ -246,8 +246,13 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
               placeholder="Поиск тестов..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 pr-24"
             />
+            {searchQuery && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
+                {filteredTests.length} результатов
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

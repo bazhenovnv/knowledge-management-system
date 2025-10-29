@@ -216,8 +216,13 @@ const TestResultsView: React.FC<TestResultsViewProps> = ({ userId, userRole }) =
                 placeholder="Поиск по сотруднику или тесту..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 pr-24"
               />
+              {searchQuery && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
+                  {filteredResults.length} результатов
+                </div>
+              )}
             </div>
 
             {/* Фильтр по тесту */}

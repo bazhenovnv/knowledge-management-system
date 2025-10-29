@@ -222,8 +222,13 @@ const AssignmentManager: React.FC<AssignmentManagerProps> = ({ currentUserRole, 
             placeholder="Поиск заданий..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 pr-24"
           />
+          {searchQuery && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
+              {filteredAssignments.length} результатов
+            </div>
+          )}
         </div>
         
         <Select value={statusFilter} onValueChange={setStatusFilter}>

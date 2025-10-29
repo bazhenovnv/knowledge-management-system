@@ -11,6 +11,7 @@ interface EmployeeTabFiltersProps {
   statusFilter: string;
   setStatusFilter: (filter: string) => void;
   departments: string[];
+  filteredCount?: number;
 }
 
 const EmployeeTabFilters: React.FC<EmployeeTabFiltersProps> = ({
@@ -20,7 +21,8 @@ const EmployeeTabFilters: React.FC<EmployeeTabFiltersProps> = ({
   setDepartmentFilter,
   statusFilter,
   setStatusFilter,
-  departments
+  departments,
+  filteredCount
 }) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4">
@@ -34,8 +36,13 @@ const EmployeeTabFilters: React.FC<EmployeeTabFiltersProps> = ({
           placeholder="Поиск по имени, отделу, должности..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 pr-24"
         />
+        {searchQuery && filteredCount !== undefined && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
+            {filteredCount} результатов
+          </div>
+        )}
       </div>
       
       <Select value={departmentFilter} onValueChange={setDepartmentFilter}>

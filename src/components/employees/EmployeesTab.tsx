@@ -264,6 +264,7 @@ export const EmployeesTab = ({ userRole }: EmployeesTabProps) => {
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         departments={departments}
+        filteredCount={filteredEmployees.length}
       />
 
       {/* Статистика */}

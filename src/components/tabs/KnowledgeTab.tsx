@@ -94,6 +94,21 @@ export const KnowledgeTab = ({
     if (!subsectionSearchQuery) return true;
     return text.toLowerCase().includes(subsectionSearchQuery.toLowerCase());
   };
+  
+  const getSubsectionResultsCount = () => {
+    if (!subsectionSearchQuery || !selectedSubsection) return 0;
+    
+    if (selectedSubsection === "Инструкции") {
+      return instructions.filter(instruction => {
+        const query = subsectionSearchQuery.toLowerCase();
+        return instruction.title.toLowerCase().includes(query) ||
+               instruction.description.toLowerCase().includes(query) ||
+               instruction.steps.some(step => step.toLowerCase().includes(query));
+      }).length;
+    }
+    
+    return 0;
+  };
 
   useEffect(() => {
     loadMaterials();
@@ -1525,14 +1540,19 @@ export const KnowledgeTab = ({
           <h2 className="text-2xl font-bold text-gray-900 mb-6">{selectedSubsection}</h2>
           
           {/* Поиск внутри подраздела */}
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <Input
               type="text"
               placeholder={`Поиск в разделе "${selectedSubsection}"...`}
               value={subsectionSearchQuery}
               onChange={(e) => setSubsectionSearchQuery(e.target.value)}
-              className="w-full"
+              className="w-full pr-24"
             />
+            {subsectionSearchQuery && selectedSubsection === "Инструкции" && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
+                {getSubsectionResultsCount()} результатов
+              </div>
+            )}
           </div>
           
           {renderSubsectionContent()}
@@ -1602,13 +1622,20 @@ export const KnowledgeTab = ({
 
           <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 flex-1">
-          <Input
-            type="text"
-            placeholder="Поиск материалов..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-md"
-          />
+          <div className="relative max-w-md flex-1">
+            <Input
+              type="text"
+              placeholder="Поиск материалов..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pr-24"
+            />
+            {searchQuery && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
+                {filteredMaterials.length} результатов
+              </div>
+            )}
+          </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
