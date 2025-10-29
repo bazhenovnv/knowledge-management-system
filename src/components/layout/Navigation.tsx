@@ -102,7 +102,7 @@ export const Navigation = ({
             size="sm"
             onClick={refreshData}
             disabled={isLoading}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow"
             title={lastUpdated ? `Обновлено: ${lastUpdated.toLocaleTimeString()}` : "Обновить данные"}
           >
             <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
@@ -117,7 +117,7 @@ export const Navigation = ({
             variant="outline"
             size="sm"
             onClick={() => setActiveTab("settings")}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow"
             title="Настройки"
           >
             <Icon name="Settings" size={16} />
@@ -130,7 +130,7 @@ export const Navigation = ({
                 e.preventDefault();
                 onLogout();
               }}
-              className="text-red-600 border-red-600 hover:bg-red-50"
+              className="text-red-600 border-red-600 hover:bg-red-50 shadow-lg hover:shadow-xl transition-shadow"
             >
               <Icon name="LogOut" size={16} className="mr-2" />
               Выход
@@ -138,7 +138,7 @@ export const Navigation = ({
           )}
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
+              <Button variant="outline" size="icon" className="md:hidden shadow-lg hover:shadow-xl transition-shadow">
                 <Icon name="Menu" size={20} />
               </Button>
             </SheetTrigger>
