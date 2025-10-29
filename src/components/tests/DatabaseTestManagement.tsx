@@ -169,7 +169,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
 
       <TabsContent value="tests" className="space-y-6">
         {/* Заголовок и статистика */}
-        <Card>
+        <Card className="bg-transparent border-transparent shadow-none">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
