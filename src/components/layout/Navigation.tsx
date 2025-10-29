@@ -283,16 +283,15 @@ export const Navigation = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 mb-8">
+      <div className="flex items-stretch gap-2 mb-8">
         {showBackButton && onBackClick && (
           <Button
             variant="default"
-            size="lg"
             onClick={onBackClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all flex-shrink-0"
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 flex-shrink-0 h-auto px-4 py-3"
           >
-            <Icon name="ArrowLeft" size={20} className="mr-2" />
-            Назад
+            <Icon name="ArrowLeft" size={16} className="mr-2" />
+            <span className="text-lg">Назад</span>
           </Button>
         )}
         <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} bg-transparent gap-2`}>
