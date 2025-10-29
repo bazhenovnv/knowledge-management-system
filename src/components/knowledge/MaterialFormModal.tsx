@@ -46,11 +46,11 @@ export const MaterialFormModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <Card
-        className="max-w-4xl w-full my-8 flex flex-col max-h-[calc(100vh-4rem)]"
+        className="max-w-4xl w-full my-8 flex flex-col max-h-[calc(100vh-4rem)] z-[101]"
         onClick={(e) => e.stopPropagation()}
       >
         <CardHeader className="flex-shrink-0">
