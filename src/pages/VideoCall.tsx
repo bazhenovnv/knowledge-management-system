@@ -30,6 +30,8 @@ export default function VideoCall() {
   const [roomUrl, setRoomUrl] = useState<string>('');
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -190,6 +192,11 @@ export default function VideoCall() {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
+
+    if (screenStream) {
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+    }
     
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = null;
@@ -202,6 +209,7 @@ export default function VideoCall() {
     setIsCalling(false);
     setIsVideoEnabled(true);
     setIsAudioEnabled(true);
+    setIsScreenSharing(false);
   };
 
   const toggleVideo = () => {
@@ -220,6 +228,66 @@ export default function VideoCall() {
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
         setIsAudioEnabled(audioTrack.enabled);
+      }
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    if (!call) return;
+
+    if (isScreenSharing) {
+      if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        setScreenStream(null);
+      }
+
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+          video: true, 
+          audio: true 
+        });
+        
+        setStream(mediaStream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = mediaStream;
+        }
+
+        const videoTrack = mediaStream.getVideoTracks()[0];
+        const sender = call.peerConnection.getSenders().find(s => s.track?.kind === 'video');
+        if (sender && videoTrack) {
+          await sender.replaceTrack(videoTrack);
+        }
+      } catch (error) {
+        console.error('Error switching back to camera:', error);
+      }
+
+      setIsScreenSharing(false);
+    } else {
+      try {
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: true, 
+          audio: false 
+        });
+        
+        setScreenStream(displayStream);
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = displayStream;
+        }
+
+        const screenTrack = displayStream.getVideoTracks()[0];
+        const sender = call.peerConnection.getSenders().find(s => s.track?.kind === 'video');
+        if (sender && screenTrack) {
+          await sender.replaceTrack(screenTrack);
+        }
+
+        screenTrack.onended = () => {
+          toggleScreenShare();
+        };
+
+        setIsScreenSharing(true);
+      } catch (error) {
+        console.error('Error starting screen share:', error);
+        alert('Не удалось начать демонстрацию экрана');
       }
     }
   };
@@ -343,6 +411,13 @@ export default function VideoCall() {
                       size="icon"
                     >
                       <Icon name={isAudioEnabled ? "Mic" : "MicOff"} size={18} />
+                    </Button>
+                    <Button 
+                      onClick={toggleScreenShare}
+                      variant={isScreenSharing ? "secondary" : "default"}
+                      size="icon"
+                    >
+                      <Icon name={isScreenSharing ? "MonitorX" : "Monitor"} size={18} />
                     </Button>
                     <Button 
                       onClick={endCall}
