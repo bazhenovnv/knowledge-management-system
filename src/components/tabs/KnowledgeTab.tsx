@@ -1092,7 +1092,7 @@ export const KnowledgeTab = ({
       case "Инструкции":
         return (
           <div className="space-y-6">
-            {userRole === 'admin' && (
+            {(userRole === 'admin' || userRole === 'teacher') && (
               <div className="flex gap-2">
                 <Button onClick={() => {
                   resetInstructionForm();
@@ -1318,7 +1318,7 @@ export const KnowledgeTab = ({
                           >
                             <Icon name="Download" size={14} />
                           </Button>
-                          {userRole === 'admin' && (
+                          {(userRole === 'admin' || userRole === 'teacher') && (
                             <>
                               <Button variant="outline" size="sm" onClick={() => startEditingInstruction(instruction)}>
                                 <Icon name="Pencil" size={14} />
