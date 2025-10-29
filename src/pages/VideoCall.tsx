@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Peer, { DataConnection, MediaConnection } from 'peerjs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,10 @@ interface Message {
 }
 
 export default function VideoCall() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const roomId = searchParams.get('room');
+
   const [myPeerId, setMyPeerId] = useState<string>('');
   const [remotePeerId, setRemotePeerId] = useState<string>('');
   const [peer, setPeer] = useState<Peer | null>(null);
@@ -22,6 +27,7 @@ export default function VideoCall() {
   const [isConnected, setIsConnected] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [roomUrl, setRoomUrl] = useState<string>('');
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -33,6 +39,16 @@ export default function VideoCall() {
     newPeer.on('open', (id) => {
       setMyPeerId(id);
       console.log('My peer ID:', id);
+
+      if (roomId && roomId !== id) {
+        setRemotePeerId(roomId);
+        setTimeout(() => {
+          connectToPeerById(roomId, newPeer);
+        }, 500);
+      } else if (!roomId) {
+        const url = `${window.location.origin}/video-call?room=${id}`;
+        setRoomUrl(url);
+      }
     });
 
     newPeer.on('connection', (conn) => {
@@ -93,16 +109,17 @@ export default function VideoCall() {
       }
       newPeer.destroy();
     };
-  }, []);
+  }, [roomId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const connectToPeer = () => {
-    if (!peer || !remotePeerId) return;
+  const connectToPeerById = (peerId: string, peerInstance?: Peer) => {
+    const activePeer = peerInstance || peer;
+    if (!activePeer || !peerId) return;
 
-    const conn = peer.connect(remotePeerId);
+    const conn = activePeer.connect(peerId);
     
     conn.on('open', () => {
       setConnection(conn);
@@ -122,6 +139,10 @@ export default function VideoCall() {
       setIsConnected(false);
       setConnection(null);
     });
+  };
+
+  const connectToPeer = () => {
+    connectToPeerById(remotePeerId);
   };
 
   const startCall = async () => {
@@ -191,49 +212,62 @@ export default function VideoCall() {
     setMessageInput('');
   };
 
-  const copyPeerId = () => {
-    navigator.clipboard.writeText(myPeerId);
-    alert('ID скопирован в буфер обмена!');
+  const copyRoomLink = () => {
+    const url = roomUrl || `${window.location.origin}/video-call?room=${myPeerId}`;
+    navigator.clipboard.writeText(url);
+    alert('Ссылка скопирована! Отправьте её собеседнику для подключения');
+  };
+
+  const createNewRoom = () => {
+    navigate('/video-call');
+    window.location.reload();
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8 text-gray-800">
-          Видеозвонки P2P
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-800">
+            Видеозвонки P2P
+          </h1>
+          <Button onClick={createNewRoom} variant="outline">
+            <Icon name="Plus" size={16} className="mr-2" />
+            Новая комната
+          </Button>
+        </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Icon name="User" size={24} />
-              Мой ID
+              <Icon name="Link" size={24} />
+              Ссылка на комнату
             </h2>
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               <Input 
-                value={myPeerId} 
+                value={roomUrl || `${window.location.origin}/video-call?room=${myPeerId}`}
                 readOnly 
-                className="flex-1 font-mono text-sm"
+                className="flex-1 text-sm"
               />
-              <Button onClick={copyPeerId} variant="outline">
-                <Icon name="Copy" size={16} />
+              <Button onClick={copyRoomLink} variant="default">
+                <Icon name="Copy" size={16} className="mr-2" />
+                Копировать
               </Button>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              Отправьте этот ID собеседнику для подключения
+            <p className="text-sm text-gray-600">
+              Отправьте эту ссылку собеседнику для автоматического подключения
             </p>
           </Card>
 
           <Card className="p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Icon name="Users" size={24} />
-              Подключение
+              Подключение вручную
             </h2>
             <div className="flex gap-2 mb-4">
               <Input 
                 value={remotePeerId}
                 onChange={(e) => setRemotePeerId(e.target.value)}
-                placeholder="Введите ID собеседника"
+                placeholder="Или введите ID собеседника"
                 className="flex-1"
                 disabled={isConnected}
               />
