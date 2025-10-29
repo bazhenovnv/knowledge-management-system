@@ -318,16 +318,6 @@ export default function AppSettings() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Тёмная тема по умолчанию</Label>
-              <p className="text-sm text-gray-600">Использовать тёмную тему для новых пользователей</p>
-            </div>
-            <Switch
-              checked={settings.darkModeDefault}
-              onCheckedChange={(checked) => handleChange('darkModeDefault', checked)}
-            />
-          </div>
         </CardContent>
       </Card>
 
