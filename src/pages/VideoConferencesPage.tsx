@@ -33,14 +33,20 @@ export default function VideoConferencesPage() {
     scheduled_time: '',
   });
 
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
 
   useEffect(() => {
-    if (!currentUser.id) {
+    const stored = localStorage.getItem('user');
+    if (!stored) {
       toast.error('Необходимо войти в систему');
       navigate('/');
       return;
     }
+    const user = JSON.parse(stored);
+    setCurrentUser(user);
     loadConferences();
   }, []);
 
@@ -66,6 +72,11 @@ export default function VideoConferencesPage() {
   const handleCreateConference = async () => {
     if (!formData.title.trim()) {
       toast.error('Введите название конференции');
+      return;
+    }
+
+    if (!currentUser?.id) {
+      toast.error('Необходимо войти в систему');
       return;
     }
 
@@ -122,6 +133,11 @@ export default function VideoConferencesPage() {
   };
 
   const handleJoinConference = async (conference: Conference) => {
+    if (!currentUser?.id) {
+      toast.error('Необходимо войти в систему');
+      return;
+    }
+
     try {
       // Пытаемся обновить через API
       try {
@@ -187,7 +203,7 @@ export default function VideoConferencesPage() {
     );
   };
 
-  if (activeConference) {
+  if (activeConference && currentUser) {
     return (
       <VideoConference
         roomId={activeConference.roomId}
