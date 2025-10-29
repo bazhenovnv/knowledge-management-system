@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -37,11 +37,11 @@ export default function DatabaseSettings() {
     setBackupHistory(history);
   };
 
-  const getDbStats = () => {
+  const getDbStats = async () => {
     const employees = database.getEmployees();
     const tests = database.getTests();
     const testResults = database.getTestResults();
-    const materials = database.getMaterials();
+    const materials = await database.getKnowledgeMaterials();
     const notifications = database.getNotifications();
     const assignments = database.getAssignments();
 
@@ -56,11 +56,24 @@ export default function DatabaseSettings() {
     };
   };
 
-  const stats = getDbStats();
+  const [stats, setStats] = React.useState({ 
+    employees: 0, 
+    tests: 0, 
+    testResults: 0, 
+    materials: 0, 
+    notifications: 0, 
+    assignments: 0, 
+    total: 0 
+  });
 
-  const exportDatabase = () => {
+  React.useEffect(() => {
+    getDbStats().then(setStats);
+  }, []);
+
+  const exportDatabase = async () => {
     setIsExporting(true);
     try {
+      const materials = await database.getKnowledgeMaterials();
       const allData = {
         version: '1.0',
         exportDate: new Date().toISOString(),
@@ -68,7 +81,7 @@ export default function DatabaseSettings() {
           employees: database.getEmployees(),
           tests: database.getTests(),
           testResults: database.getTestResults(),
-          materials: database.getMaterials(),
+          materials: materials,
           notifications: database.getNotifications(),
           assignments: database.getAssignments(),
           assignmentProgress: database.getAssignmentProgress()
