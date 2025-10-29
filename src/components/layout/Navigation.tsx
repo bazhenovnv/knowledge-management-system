@@ -29,6 +29,8 @@ interface NavigationProps {
   userRole?: string;
   userName?: string;
   employeeId?: number;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
 export const Navigation = ({
@@ -40,6 +42,8 @@ export const Navigation = ({
   userRole,
   userName,
   employeeId = 1,
+  showBackButton = false,
+  onBackClick,
 }: NavigationProps) => {
   const {
     notifications,
@@ -279,7 +283,19 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} mb-8 bg-transparent gap-2`}>
+      <div className="flex items-center gap-2 mb-8">
+        {showBackButton && onBackClick && (
+          <Button
+            variant="default"
+            size="lg"
+            onClick={onBackClick}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all flex-shrink-0"
+          >
+            <Icon name="ArrowLeft" size={20} className="mr-2" />
+            Назад
+          </Button>
+        )}
+        <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} bg-transparent gap-2`}>
 
         <TabsTrigger
           value="dashboard"
@@ -376,6 +392,7 @@ export const Navigation = ({
         )}
 
       </TabsList>
+      </div>
     </>
   );
 };

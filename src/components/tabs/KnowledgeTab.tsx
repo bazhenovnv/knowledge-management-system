@@ -20,6 +20,7 @@ export const KnowledgeTab = ({
   setSearchQuery,
   userRole,
   currentUserId,
+  onBackButtonChange,
 }: KnowledgeTabProps) => {
   const departments = useDepartments();
   const [materials, setMaterials] = useState<DatabaseKnowledgeMaterial[]>([]);
@@ -131,7 +132,24 @@ export const KnowledgeTab = ({
       localStorage.removeItem('knowledgeSubsection');
     }
     setSubsectionSearchQuery("");
-  }, [selectedSubsection]);
+    
+    // Обновляем состояние кнопки "Назад"
+    if (onBackButtonChange) {
+      if (selectedSubsection && !isEditingSubsection) {
+        onBackButtonChange(true, () => {
+          if (previousSubsection) {
+            setSelectedSubsection(previousSubsection);
+            setPreviousSubsection(null);
+          } else {
+            setSelectedSubsection(null);
+          }
+          setIsEditingSubsection(false);
+        });
+      } else {
+        onBackButtonChange(false);
+      }
+    }
+  }, [selectedSubsection, isEditingSubsection, previousSubsection, onBackButtonChange]);
 
   useEffect(() => {
     const handleResetSubsection = () => {
@@ -1492,26 +1510,6 @@ export const KnowledgeTab = ({
 
   return (
     <div className="space-y-6 relative">
-      {selectedSubsection && !isEditingSubsection && (
-        <Button
-          variant="default"
-          size="lg"
-          onClick={() => {
-            if (previousSubsection) {
-              setSelectedSubsection(previousSubsection);
-              setPreviousSubsection(null);
-            } else {
-              setSelectedSubsection(null);
-            }
-            setIsEditingSubsection(false);
-          }}
-          className="fixed top-32 left-8 z-[100] bg-blue-600 hover:bg-blue-700 text-white shadow-2xl hover:shadow-xl transition-all border-2 border-white"
-        >
-          <Icon name="ArrowLeft" size={20} className="mr-2" />
-          Назад
-        </Button>
-      )}
-
       {selectedSubsection ? (
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-4">

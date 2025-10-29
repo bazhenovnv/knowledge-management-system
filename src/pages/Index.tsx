@@ -32,6 +32,8 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+  const [showBackButton, setShowBackButton] = useState(false);
+  const [onBackClick, setOnBackClick] = useState<(() => void) | undefined>(undefined);
 
   useEffect(() => {
     localStorage.setItem('lastActiveTab', activeTab);
@@ -39,6 +41,8 @@ const Index = () => {
     if (prevActiveTab !== activeTab) {
       window.dispatchEvent(new CustomEvent('resetSubsection'));
       setPrevActiveTab(activeTab);
+      // Скрываем кнопку "Назад" при смене вкладки
+      setShowBackButton(false);
     }
   }, [activeTab, prevActiveTab]);
 
@@ -157,6 +161,8 @@ const Index = () => {
                 userRole={userRole}
                 userName={userName}
                 employeeId={1}
+                showBackButton={showBackButton}
+                onBackClick={onBackClick}
               />
             </Tabs>
           </div>
@@ -175,6 +181,10 @@ const Index = () => {
               setSearchQuery={setSearchQuery}
               userRole={userRole}
               currentUserId={1}
+              onBackButtonChange={(show, callback) => {
+                setShowBackButton(show);
+                setOnBackClick(() => callback);
+              }}
             />
           </TabsContent>
 

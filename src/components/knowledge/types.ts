@@ -5,6 +5,7 @@ export interface KnowledgeTabProps {
   setSearchQuery: (query: string) => void;
   userRole?: string;
   currentUserId?: number;
+  onBackButtonChange?: (show: boolean, callback?: () => void) => void;
 }
 
 export interface FormData {
