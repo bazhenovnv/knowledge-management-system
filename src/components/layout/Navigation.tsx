@@ -288,7 +288,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg">
@@ -302,7 +302,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg">
@@ -316,7 +316,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-md hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
         >
           <Icon name="FileText" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg">
@@ -335,7 +335,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg">
@@ -351,7 +351,7 @@ export const Navigation = ({
                   window.dispatchEvent(new CustomEvent('resetSubsection'));
                 }
               }}
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
             >
               <Icon name="ClipboardList" size={16} className="mr-2" />
               <span className="hidden sm:inline text-lg">
@@ -365,7 +365,7 @@ export const Navigation = ({
                   window.dispatchEvent(new CustomEvent('resetSubsection'));
                 }
               }}
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gray-200 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95"
             >
               <Icon name="Users" size={16} className="mr-2" />
               <span className="hidden sm:inline text-lg">
