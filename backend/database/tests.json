@@ -1,6 +1,12 @@
 {
   "tests": [
     {
+      "name": "CORS preflight OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
       "name": "Получить список сотрудников", 
       "method": "GET",
       "path": "/?action=list&table=employees",
