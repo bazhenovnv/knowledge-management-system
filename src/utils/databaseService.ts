@@ -63,6 +63,10 @@ export interface Instruction {
   icon_name: string;
   icon_color: string;
   steps: string[];
+  media?: {
+    images?: string[];
+    videos?: string[];
+  };
   created_at: string;
   updated_at: string;
 }

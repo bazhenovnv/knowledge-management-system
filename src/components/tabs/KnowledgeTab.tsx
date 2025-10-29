@@ -57,7 +57,11 @@ export const KnowledgeTab = ({
     description: '',
     icon_name: 'FileText',
     icon_color: 'blue-600',
-    steps: ['']
+    steps: [''],
+    media: {
+      images: [] as string[],
+      videos: [] as string[]
+    }
   });
 
   const [formData, setFormData] = useState<FormData>({
@@ -314,7 +318,11 @@ export const KnowledgeTab = ({
       description: '',
       icon_name: 'FileText',
       icon_color: 'blue-600',
-      steps: ['']
+      steps: [''],
+      media: {
+        images: [],
+        videos: []
+      }
     });
   };
 
@@ -325,9 +333,60 @@ export const KnowledgeTab = ({
       description: instruction.description,
       icon_name: instruction.icon_name,
       icon_color: instruction.icon_color,
-      steps: instruction.steps.length > 0 ? instruction.steps : ['']
+      steps: instruction.steps.length > 0 ? instruction.steps : [''],
+      media: instruction.media || { images: [], videos: [] }
     });
     setIsCreatingInstruction(true);
+  };
+
+  const handleInstructionImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingCount(prev => prev + files.length);
+
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const url = await databaseService.uploadFile(file);
+        return url;
+      });
+
+      const urls = await Promise.all(uploadPromises);
+      setInstructionForm(prev => ({
+        ...prev,
+        media: {
+          ...prev.media,
+          images: [...(prev.media.images || []), ...urls]
+        }
+      }));
+      toast.success(`Загружено изображений: ${urls.length}`);
+    } catch (error) {
+      toast.error("Ошибка загрузки изображений");
+    } finally {
+      setUploadingCount(prev => prev - files.length);
+    }
+  };
+
+  const handleInstructionVideoAdd = (url: string) => {
+    if (!url.trim()) return;
+    setInstructionForm(prev => ({
+      ...prev,
+      media: {
+        ...prev.media,
+        videos: [...(prev.media.videos || []), url]
+      }
+    }));
+    toast.success("Видео добавлено");
+  };
+
+  const removeInstructionMedia = (type: 'images' | 'videos', index: number) => {
+    setInstructionForm(prev => ({
+      ...prev,
+      media: {
+        ...prev.media,
+        [type]: prev.media[type]?.filter((_, i) => i !== index) || []
+      }
+    }));
   };
 
   const handleCreateMaterial = async () => {
@@ -1108,6 +1167,83 @@ export const KnowledgeTab = ({
                     </Button>
                   </div>
 
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Изображения</label>
+                      <div className="space-y-3">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleInstructionImageUpload}
+                          disabled={uploadingCount > 0}
+                        />
+                        {instructionForm.media.images && instructionForm.media.images.length > 0 && (
+                          <div className="grid grid-cols-3 gap-2">
+                            {instructionForm.media.images.map((url, index) => (
+                              <div key={index} className="relative group">
+                                <img src={url} alt={`Изображение ${index + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => removeInstructionMedia('images', index)}
+                                >
+                                  <Icon name="X" size={14} />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Видео (YouTube/Vimeo URL)</label>
+                      <div className="space-y-3">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="https://youtube.com/watch?v=..."
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleInstructionVideoAdd((e.target as HTMLInputElement).value);
+                                (e.target as HTMLInputElement).value = '';
+                              }
+                            }}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                              handleInstructionVideoAdd(input.value);
+                              input.value = '';
+                            }}
+                          >
+                            <Icon name="Plus" size={16} />
+                          </Button>
+                        </div>
+                        {instructionForm.media.videos && instructionForm.media.videos.length > 0 && (
+                          <div className="space-y-2">
+                            {instructionForm.media.videos.map((url, index) => (
+                              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                                <Icon name="Video" size={16} className="text-gray-500" />
+                                <span className="text-sm flex-1 truncate">{url}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeInstructionMedia('videos', index)}
+                                >
+                                  <Icon name="X" size={14} />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex gap-2">
                     <Button onClick={editingInstruction ? handleUpdateInstruction : handleCreateInstruction}>
                       <Icon name="Save" size={16} className="mr-2" />
@@ -1166,6 +1302,46 @@ export const KnowledgeTab = ({
                           ))}
                         </ul>
                       )}
+                      
+                      {instruction.media && (instruction.media.images?.length || instruction.media.videos?.length) ? (
+                        <div className="mt-4 space-y-4">
+                          {instruction.media.images && instruction.media.images.length > 0 && (
+                            <div>
+                              <h5 className="text-sm font-medium text-gray-900 mb-2">Изображения:</h5>
+                              <div className="grid grid-cols-3 gap-2">
+                                {instruction.media.images.map((url, imgIndex) => (
+                                  <img 
+                                    key={imgIndex} 
+                                    src={url} 
+                                    alt={`Изображение ${imgIndex + 1}`} 
+                                    className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() => imageHandlers.openImagePreview(url, instruction.media?.images || [])}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {instruction.media.videos && instruction.media.videos.length > 0 && (
+                            <div>
+                              <h5 className="text-sm font-medium text-gray-900 mb-2">Видео:</h5>
+                              <div className="space-y-2">
+                                {instruction.media.videos.map((url, vidIndex) => (
+                                  <div key={vidIndex} className="aspect-video">
+                                    <iframe
+                                      src={url.includes('youtube.com') || url.includes('youtu.be') 
+                                        ? url.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')
+                                        : url}
+                                      className="w-full h-full rounded-lg"
+                                      allowFullScreen
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   ))
                 )}
