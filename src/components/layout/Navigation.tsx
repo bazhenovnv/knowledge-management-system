@@ -279,7 +279,7 @@ export const Navigation = ({
         </div>
       </div>
 
-      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} mb-8 bg-white/50 backdrop-blur-sm gap-2`}>
+      <TabsList className={`grid w-full ${(userRole === "admin" || userRole === "teacher") ? 'grid-cols-6' : 'grid-cols-4'} mb-8 bg-transparent gap-2`}>
 
         <TabsTrigger
           value="dashboard"
