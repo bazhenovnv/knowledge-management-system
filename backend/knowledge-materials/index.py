@@ -15,6 +15,12 @@ def get_db_connection():
     dsn = os.environ.get('DATABASE_URL')
     return psycopg2.connect(dsn)
 
+def escape_sql_string(value: str) -> str:
+    '''Экранирует строку для использования в SQL'''
+    if value is None:
+        return 'NULL'
+    return "'" + str(value).replace("'", "''") + "'"
+
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     method: str = event.get('httpMethod', 'GET')
     
@@ -27,7 +33,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Headers': 'Content-Type, X-User-Id',
                 'Access-Control-Max-Age': '86400'
             },
-            'body': ''
+            'body': '',
+            'isBase64Encoded': False
         }
     
     try:
@@ -40,10 +47,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             if action == 'subsection':
                 subsection_name = params.get('name', '')
-                cur.execute(
-                    "SELECT content FROM t_p47619579_knowledge_management.knowledge_subsections WHERE subsection_name = %s",
-                    (subsection_name,)
-                )
+                query = f"SELECT content FROM t_p47619579_knowledge_management.knowledge_subsections WHERE subsection_name = {escape_sql_string(subsection_name)}"
+                cur.execute(query)
                 result = cur.fetchone()
                 content = result['content'] if result else ''
                 
@@ -65,7 +70,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 query = "SELECT * FROM t_p47619579_knowledge_management.knowledge_materials WHERE 1=1"
                 
                 if category:
-                    query += f" AND category = '{category}'"
+                    query += f" AND category = {escape_sql_string(category)}"
                 
                 query += " ORDER BY created_at DESC"
                 
@@ -93,22 +98,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 subsection_name = body_data.get('subsection_name')
                 content = body_data.get('content')
                 
-                cur.execute(
-                    "SELECT id FROM t_p47619579_knowledge_management.knowledge_subsections WHERE subsection_name = %s",
-                    (subsection_name,)
-                )
+                query = f"SELECT id FROM t_p47619579_knowledge_management.knowledge_subsections WHERE subsection_name = {escape_sql_string(subsection_name)}"
+                cur.execute(query)
                 existing = cur.fetchone()
                 
                 if existing:
-                    cur.execute(
-                        "UPDATE t_p47619579_knowledge_management.knowledge_subsections SET content = %s, updated_at = CURRENT_TIMESTAMP WHERE subsection_name = %s",
-                        (content, subsection_name)
-                    )
+                    query = f"""UPDATE t_p47619579_knowledge_management.knowledge_subsections 
+                                SET content = {escape_sql_string(content)}, updated_at = CURRENT_TIMESTAMP 
+                                WHERE subsection_name = {escape_sql_string(subsection_name)}"""
+                    cur.execute(query)
                 else:
-                    cur.execute(
-                        "INSERT INTO t_p47619579_knowledge_management.knowledge_subsections (subsection_name, content) VALUES (%s, %s)",
-                        (subsection_name, content)
-                    )
+                    query = f"""INSERT INTO t_p47619579_knowledge_management.knowledge_subsections (subsection_name, content) 
+                                VALUES ({escape_sql_string(subsection_name)}, {escape_sql_string(content)})"""
+                    cur.execute(query)
                 
                 conn.commit()
                 cur.close()
@@ -136,13 +138,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 cover_image = body_data.get('cover_image', '')
                 departments = body_data.get('departments', [])
                 
-                cur.execute(
-                    """INSERT INTO t_p47619579_knowledge_management.knowledge_materials 
-                    (title, description, content, category, difficulty, duration, tags, created_by, cover_image, departments)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-                    (title, description, content, category, difficulty, duration, tags, created_by, cover_image, departments)
-                )
+                tags_array = "ARRAY[" + ",".join([escape_sql_string(t) for t in tags]) + "]::text[]" if tags else "ARRAY[]::text[]"
+                departments_array = "ARRAY[" + ",".join([escape_sql_string(d) for d in departments]) + "]::text[]" if departments else "ARRAY[]::text[]"
                 
+                query = f"""INSERT INTO t_p47619579_knowledge_management.knowledge_materials 
+                        (title, description, content, category, difficulty, duration, tags, created_by, cover_image, departments)
+                        VALUES ({escape_sql_string(title)}, {escape_sql_string(description)}, {escape_sql_string(content)}, 
+                                {escape_sql_string(category)}, {escape_sql_string(difficulty)}, {escape_sql_string(duration)}, 
+                                {tags_array}, {escape_sql_string(created_by)}, {escape_sql_string(cover_image)}, 
+                                {departments_array}) 
+                        RETURNING id"""
+                
+                cur.execute(query)
                 new_id = cur.fetchone()['id']
                 conn.commit()
                 cur.close()
@@ -163,24 +170,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             material_id = body_data.get('id')
             
             fields_to_update = []
-            values = []
             
             for field in ['title', 'description', 'content', 'category', 'difficulty', 'duration', 'cover_image']:
                 if field in body_data:
-                    fields_to_update.append(f"{field} = %s")
-                    values.append(body_data[field])
+                    fields_to_update.append(f"{field} = {escape_sql_string(body_data[field])}")
             
-            for field in ['tags', 'departments']:
-                if field in body_data:
-                    fields_to_update.append(f"{field} = %s")
-                    values.append(body_data[field])
+            if 'tags' in body_data:
+                tags = body_data['tags']
+                tags_array = "ARRAY[" + ",".join([escape_sql_string(t) for t in tags]) + "]::text[]" if tags else "ARRAY[]::text[]"
+                fields_to_update.append(f"tags = {tags_array}")
+            
+            if 'departments' in body_data:
+                departments = body_data['departments']
+                departments_array = "ARRAY[" + ",".join([escape_sql_string(d) for d in departments]) + "]::text[]" if departments else "ARRAY[]::text[]"
+                fields_to_update.append(f"departments = {departments_array}")
             
             if fields_to_update:
                 fields_to_update.append("updated_at = CURRENT_TIMESTAMP")
-                values.append(material_id)
                 
-                query = f"UPDATE t_p47619579_knowledge_management.knowledge_materials SET {', '.join(fields_to_update)} WHERE id = %s"
-                cur.execute(query, values)
+                query = f"UPDATE t_p47619579_knowledge_management.knowledge_materials SET {', '.join(fields_to_update)} WHERE id = {material_id}"
+                cur.execute(query)
                 conn.commit()
             
             cur.close()
@@ -200,10 +209,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             material_id = body_data.get('id')
             
-            cur.execute(
-                "DELETE FROM t_p47619579_knowledge_management.knowledge_materials WHERE id = %s",
-                (material_id,)
-            )
+            query = f"DELETE FROM t_p47619579_knowledge_management.knowledge_materials WHERE id = {material_id}"
+            cur.execute(query)
             conn.commit()
             cur.close()
             conn.close()
@@ -217,7 +224,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False,
                 'body': json.dumps({'success': True})
             }
-        
+            
         cur.close()
         conn.close()
         
@@ -230,7 +237,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False,
             'body': json.dumps({'error': 'Method not allowed'})
         }
-    
+        
     except Exception as e:
         return {
             'statusCode': 500,

@@ -1,4 +1,5 @@
 // Сервис для работы с реальной базой данных через backend API
+import funcUrls from '../../backend/func2url.json';
 
 export interface DatabaseEmployee {
   id: number;
@@ -92,7 +93,7 @@ class DatabaseService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+    this.baseUrl = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
   }
 
   private async makeRequest<T>(
