@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
-import funcUrls from '../backend/func2url.json';
+import funcUrls from '../../backend/func2url.json';
 
 interface DataContextType {
   isLoading: boolean;

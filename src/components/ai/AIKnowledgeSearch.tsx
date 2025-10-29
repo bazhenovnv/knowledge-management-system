@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService } from '@/utils/databaseService';
-import funcUrls from '../../backend/func2url.json';
+import funcUrls from '../../../backend/func2url.json';
 
 interface Material {
   title: string;

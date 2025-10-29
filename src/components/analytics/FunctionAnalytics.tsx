@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import funcUrls from '../../backend/func2url.json';
+import funcUrls from '../../../backend/func2url.json';
 
 interface FunctionStat {
   function_name: string;

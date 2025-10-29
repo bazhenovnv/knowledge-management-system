@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { databaseService, DatabaseEmployee } from "@/utils/databaseService";
 import { TopEmployees } from "@/components/employees/TopEmployees";
 import { toast } from "sonner";
-import funcUrls from '../../backend/func2url.json';
+import funcUrls from '../../../backend/func2url.json';
 import NotificationForm from "@/components/notifications/NotificationForm";
 import DbRequestCounter from "@/components/database/DbRequestCounter";
 import FunctionCallCounter from "@/components/database/FunctionCallCounter";

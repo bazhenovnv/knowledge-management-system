@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import funcUrls from '../../backend/func2url.json';
+import funcUrls from '../../../backend/func2url.json';
 
 interface SupportMessage {
   id: number;

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import funcUrls from '../../backend/func2url.json';
+import funcUrls from '../../../backend/func2url.json';
 
 interface ConnectionStatusProps {
   apiUrl?: string;

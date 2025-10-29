@@ -1,5 +1,5 @@
 // Утилита для миграции данных из localStorage в PostgreSQL
-import funcUrls from '../backend/func2url.json';
+import funcUrls from '../../backend/func2url.json';
 
 const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
 

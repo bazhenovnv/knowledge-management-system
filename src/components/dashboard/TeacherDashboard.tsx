@@ -21,7 +21,7 @@ import Icon from "@/components/ui/icon";
 import { useState, useEffect } from "react";
 import { database } from "@/utils/database";
 import { toast } from "sonner";
-import funcUrls from '../../backend/func2url.json';
+import funcUrls from '../../../backend/func2url.json';
 
 import { TopEmployees } from "@/components/employees/TopEmployees";
 import NotificationForm from "@/components/notifications/NotificationForm";
