@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
+import { useAppearance } from "@/hooks/useAppearance";
 import { AuthForm } from "@/components/auth/AuthForm";
 import { Navigation } from "@/components/layout/Navigation";
+import { ContentWrapper } from "@/components/layout/ContentWrapper";
 import { EmployeeDashboard } from "@/components/dashboard/EmployeeDashboard";
 import { TeacherDashboard } from "@/components/dashboard/TeacherDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
@@ -95,6 +97,8 @@ const Index = () => {
     handlePasswordReset,
   } = useAuth();
 
+  const { getBackgroundStyle, getContentBackgroundColor } = useAppearance();
+
   const renderDashboard = () => {
     switch (userRole) {
       case "employee":
@@ -139,27 +143,28 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <div className="sticky top-0 z-50 bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <Navigation
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-              sidebarOpen={sidebarOpen}
-              setSidebarOpen={setSidebarOpen}
-              onLogout={handleLogout}
-              userRole={userRole}
-              userName={userName}
-              employeeId={1}
-            />
-          </Tabs>
+    <ContentWrapper>
+      <div className="min-h-screen flex flex-col" style={getBackgroundStyle()}>
+        <div className="sticky top-0 z-50" style={getBackgroundStyle()}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <Navigation
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
+                onLogout={handleLogout}
+                userRole={userRole}
+                userName={userName}
+                employeeId={1}
+              />
+            </Tabs>
+          </div>
         </div>
-      </div>
-      
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        
+        <div className="flex-1 overflow-auto">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsContent value="dashboard" className="space-y-6">
             {renderDashboard()}
           </TabsContent>
@@ -247,9 +252,10 @@ const Index = () => {
         </div>
       </div>
 
-      {/* AI Помощник Алиса */}
-      <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
-    </div>
+        {/* AI Помощник Алиса */}
+        <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
+      </div>
+    </ContentWrapper>
   );
 };
 

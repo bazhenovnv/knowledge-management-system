@@ -25,6 +25,13 @@ interface ProjectSettings {
   enableAnalytics: boolean;
 }
 
+interface AppearanceSettings {
+  backgroundColor: string;
+  backgroundImage: string;
+  contentBackgroundColor: string;
+  useBackgroundImage: boolean;
+}
+
 const defaultTextSections: TextSection[] = [
   {
     id: "welcome",
@@ -55,10 +62,18 @@ const defaultSettings: ProjectSettings = {
   enableAnalytics: true
 };
 
+const defaultAppearance: AppearanceSettings = {
+  backgroundColor: "#f3f4f6",
+  backgroundImage: "",
+  contentBackgroundColor: "#ffffff",
+  useBackgroundImage: false
+};
+
 export default function AdminSettings() {
   const navigate = useNavigate();
   const [textSections, setTextSections] = useState<TextSection[]>([]);
   const [settings, setSettings] = useState<ProjectSettings>(defaultSettings);
+  const [appearance, setAppearance] = useState<AppearanceSettings>(defaultAppearance);
   const [activeSection, setActiveSection] = useState<string>("welcome");
   const { toast } = useToast();
 
@@ -69,6 +84,7 @@ export default function AdminSettings() {
   const loadData = () => {
     const savedSections = localStorage.getItem("adminTextSections");
     const savedSettings = localStorage.getItem("adminProjectSettings");
+    const savedAppearance = localStorage.getItem("appAppearanceSettings");
 
     if (savedSections) {
       setTextSections(JSON.parse(savedSections));
@@ -78,6 +94,10 @@ export default function AdminSettings() {
 
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
+    }
+
+    if (savedAppearance) {
+      setAppearance(JSON.parse(savedAppearance));
     }
   };
 
@@ -94,6 +114,15 @@ export default function AdminSettings() {
     toast({
       title: "Сохранено",
       description: "Настройки проекта обновлены",
+    });
+  };
+
+  const saveAppearance = () => {
+    localStorage.setItem("appAppearanceSettings", JSON.stringify(appearance));
+    window.dispatchEvent(new Event('appearanceChanged'));
+    toast({
+      title: "Сохранено",
+      description: "Настройки внешнего вида обновлены",
     });
   };
 
@@ -165,7 +194,7 @@ export default function AdminSettings() {
         </div>
 
         <Tabs defaultValue="texts" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="texts">
               <Icon name="FileText" className="mr-2" size={18} />
               Тексты разделов
@@ -173,6 +202,10 @@ export default function AdminSettings() {
             <TabsTrigger value="settings">
               <Icon name="Sliders" className="mr-2" size={18} />
               Настройки проекта
+            </TabsTrigger>
+            <TabsTrigger value="appearance">
+              <Icon name="Palette" className="mr-2" size={18} />
+              Внешний вид
             </TabsTrigger>
           </TabsList>
 
@@ -347,6 +380,111 @@ export default function AdminSettings() {
                 <Button onClick={saveSettings} className="w-full">
                   <Icon name="Save" className="mr-2" size={16} />
                   Сохранить настройки
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="appearance" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Настройка внешнего вида</CardTitle>
+                <CardDescription>
+                  Измените цвета и фоны всех страниц приложения
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="backgroundColor">Цвет фона приложения</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        id="backgroundColor"
+                        type="color"
+                        value={appearance.backgroundColor}
+                        onChange={(e) => setAppearance({ ...appearance, backgroundColor: e.target.value })}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={appearance.backgroundColor}
+                        onChange={(e) => setAppearance({ ...appearance, backgroundColor: e.target.value })}
+                        placeholder="#f3f4f6"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">Фон всего приложения</p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contentBackgroundColor">Цвет фона контента</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Input
+                        id="contentBackgroundColor"
+                        type="color"
+                        value={appearance.contentBackgroundColor}
+                        onChange={(e) => setAppearance({ ...appearance, contentBackgroundColor: e.target.value })}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        value={appearance.contentBackgroundColor}
+                        onChange={(e) => setAppearance({ ...appearance, contentBackgroundColor: e.target.value })}
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">Фон карточек и разделов</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label>Использовать фоновое изображение</Label>
+                      <p className="text-sm text-gray-500">Вместо цвета фона</p>
+                    </div>
+                    <Button
+                      variant={appearance.useBackgroundImage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setAppearance({ ...appearance, useBackgroundImage: !appearance.useBackgroundImage })}
+                    >
+                      {appearance.useBackgroundImage ? "Включено" : "Выключено"}
+                    </Button>
+                  </div>
+
+                  {appearance.useBackgroundImage && (
+                    <div>
+                      <Label htmlFor="backgroundImage">URL фонового изображения</Label>
+                      <Input
+                        id="backgroundImage"
+                        value={appearance.backgroundImage}
+                        onChange={(e) => setAppearance({ ...appearance, backgroundImage: e.target.value })}
+                        placeholder="https://example.com/background.jpg"
+                        className="mt-2"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        Вставьте ссылку на изображение или загрузите в раздел База знаний
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 rounded-lg border-2 border-dashed" style={{
+                  backgroundColor: appearance.useBackgroundImage && appearance.backgroundImage 
+                    ? 'transparent' 
+                    : appearance.backgroundColor,
+                  backgroundImage: appearance.useBackgroundImage && appearance.backgroundImage 
+                    ? `url(${appearance.backgroundImage})` 
+                    : 'none',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}>
+                  <div className="p-4 rounded" style={{ backgroundColor: appearance.contentBackgroundColor }}>
+                    <h3 className="font-semibold mb-2">Предварительный просмотр</h3>
+                    <p className="text-sm text-gray-600">Так будут выглядеть карточки и разделы</p>
+                  </div>
+                </div>
+
+                <Button onClick={saveAppearance} className="w-full">
+                  <Icon name="Save" className="mr-2" size={16} />
+                  Применить настройки
                 </Button>
               </CardContent>
             </Card>
