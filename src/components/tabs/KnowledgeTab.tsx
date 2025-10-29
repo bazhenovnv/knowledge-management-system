@@ -63,6 +63,7 @@ export const KnowledgeTab = ({
       videos: [] as string[]
     }
   });
+  const [subsectionSearchQuery, setSubsectionSearchQuery] = useState("");
 
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -82,6 +83,17 @@ export const KnowledgeTab = ({
 
   const imageHandlers = useImageHandlers();
   const { scrollRef, showIndicator } = useScrollPosition('knowledgeTab', materials.length);
+  
+  const highlightText = (text: string) => {
+    if (!subsectionSearchQuery) return text;
+    const regex = new RegExp(`(${subsectionSearchQuery})`, 'gi');
+    return text.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+  };
+  
+  const containsSearchQuery = (text: string) => {
+    if (!subsectionSearchQuery) return true;
+    return text.toLowerCase().includes(subsectionSearchQuery.toLowerCase());
+  };
 
   useEffect(() => {
     loadMaterials();
@@ -103,6 +115,7 @@ export const KnowledgeTab = ({
     } else {
       localStorage.removeItem('knowledgeSubsection');
     }
+    setSubsectionSearchQuery("");
   }, [selectedSubsection]);
 
   useEffect(() => {
@@ -1293,8 +1306,33 @@ export const KnowledgeTab = ({
                     <Icon name="FileText" size={48} className="mx-auto mb-4 opacity-50" />
                     <p>Инструкции загружаются...</p>
                   </div>
-                ) : (
-                  instructions.map((instruction) => (
+                ) : (() => {
+                  const filteredInstructions = instructions.filter(instruction => {
+                    if (!subsectionSearchQuery) return true;
+                    const query = subsectionSearchQuery.toLowerCase();
+                    return instruction.title.toLowerCase().includes(query) ||
+                           instruction.description.toLowerCase().includes(query) ||
+                           instruction.steps.some(step => step.toLowerCase().includes(query));
+                  });
+                  
+                  if (filteredInstructions.length === 0 && subsectionSearchQuery) {
+                    return (
+                      <div className="text-center py-8 text-gray-500">
+                        <Icon name="Search" size={48} className="mx-auto mb-4 opacity-50" />
+                        <p>Ничего не найдено по запросу "{subsectionSearchQuery}"</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSubsectionSearchQuery("")}
+                          className="mt-4"
+                        >
+                          Сбросить поиск
+                        </Button>
+                      </div>
+                    );
+                  }
+                  
+                  return filteredInstructions.map((instruction) => (
                     <div key={instruction.id} className="bg-gray-50 rounded-lg p-5 mb-5 last:mb-0">
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
@@ -1391,8 +1429,8 @@ export const KnowledgeTab = ({
                         </p>
                       </div>
                     </div>
-                  ))
-                )}
+                  ));
+                })()}
               </div>
             </div>
 
@@ -1476,6 +1514,18 @@ export const KnowledgeTab = ({
             </div>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">{selectedSubsection}</h2>
+          
+          {/* Поиск внутри подраздела */}
+          <div className="mb-4">
+            <Input
+              type="text"
+              placeholder={`Поиск в разделе "${selectedSubsection}"...`}
+              value={subsectionSearchQuery}
+              onChange={(e) => setSubsectionSearchQuery(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          
           {renderSubsectionContent()}
         </div>
       ) : (

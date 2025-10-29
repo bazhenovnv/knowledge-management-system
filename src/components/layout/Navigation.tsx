@@ -122,17 +122,6 @@ export const Navigation = ({
           >
             <Icon name="Settings" size={16} />
           </Button>
-          {userRole === 'admin' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.location.href = '/admin-settings'}
-              className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-              title="Внешний вид"
-            >
-              <Icon name="Palette" size={16} />
-            </Button>
-          )}
           {onLogout && (
             <Button
               variant="outline"
@@ -248,17 +237,6 @@ export const Navigation = ({
                   </Button>
                   {userRole === "admin" && (
                     <>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start bg-purple-50 hover:bg-purple-100"
-                        onClick={() => {
-                          window.location.href = '/admin-settings';
-                          setSidebarOpen(false);
-                        }}
-                      >
-                        <Icon name="Palette" size={16} className="mr-2" />
-                        Внешний вид
-                      </Button>
                       <Button
                         variant="ghost"
                         className="w-full justify-start bg-orange-50 hover:bg-orange-100"
