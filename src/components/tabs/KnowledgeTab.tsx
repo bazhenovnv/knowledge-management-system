@@ -56,6 +56,7 @@ export const KnowledgeTab = ({
   const [instructionForm, setInstructionForm] = useState({
     title: '',
     description: '',
+    category: 'Онлайн кассы',
     icon_name: 'FileText',
     icon_color: 'blue-600',
     steps: [''],
@@ -64,6 +65,19 @@ export const KnowledgeTab = ({
       videos: [] as string[]
     }
   });
+  
+  const [selectedInstructionCategory, setSelectedInstructionCategory] = useState<string | null>(null);
+  
+  const instructionCategories = [
+    { name: 'Онлайн кассы', icon: 'CreditCard', color: 'blue' },
+    { name: 'Торговые весы', icon: 'Scale', color: 'green' },
+    { name: 'Сканеры ШК', icon: 'ScanLine', color: 'purple' },
+    { name: 'Принтеры этикеток', icon: 'Printer', color: 'orange' },
+    { name: '1С программы', icon: 'Database', color: 'red' },
+    { name: 'POS-терминалы', icon: 'Monitor', color: 'indigo' },
+    { name: 'ТСД', icon: 'Smartphone', color: 'pink' },
+    { name: 'Мониторы покупателя', icon: 'Tv', color: 'teal' }
+  ];
   const [subsectionSearchQuery, setSubsectionSearchQuery] = useState("");
 
   const [formData, setFormData] = useState<FormData>({
@@ -362,6 +376,7 @@ export const KnowledgeTab = ({
     setInstructionForm({
       title: '',
       description: '',
+      category: 'Онлайн кассы',
       icon_name: 'FileText',
       icon_color: 'blue-600',
       steps: [''],
@@ -377,6 +392,7 @@ export const KnowledgeTab = ({
     setInstructionForm({
       title: instruction.title,
       description: instruction.description,
+      category: instruction.category || 'Онлайн кассы',
       icon_name: instruction.icon_name,
       icon_color: instruction.icon_color,
       steps: instruction.steps.length > 0 ? instruction.steps : [''],
@@ -1189,6 +1205,19 @@ export const KnowledgeTab = ({
                       rows={3}
                     />
                   </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Категория</label>
+                    <select
+                      value={instructionForm.category}
+                      onChange={(e) => setInstructionForm(prev => ({ ...prev, category: e.target.value }))}
+                      className="w-full p-3 border rounded-lg"
+                    >
+                      {instructionCategories.map(cat => (
+                        <option key={cat.name} value={cat.name}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -1338,45 +1367,89 @@ export const KnowledgeTab = ({
               </Card>
             )}
 
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-xl font-semibold mb-4 text-gray-900">Инструкции по работе с оборудованием</h3>
-              <p className="text-gray-700 mb-6">
-                Подробные руководства по настройке, подключению и эксплуатации кассового оборудования.
-              </p>
-              
-              <div>
-                {instructions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Icon name="FileText" size={48} className="mx-auto mb-4 opacity-50" />
-                    <p>Инструкции загружаются...</p>
-                  </div>
-                ) : (() => {
-                  const filteredInstructions = instructions.filter(instruction => {
-                    if (!subsectionSearchQuery) return true;
-                    const query = subsectionSearchQuery.toLowerCase();
-                    return instruction.title.toLowerCase().includes(query) ||
-                           instruction.description.toLowerCase().includes(query) ||
-                           instruction.steps.some(step => step.toLowerCase().includes(query));
-                  });
-                  
-                  if (filteredInstructions.length === 0 && subsectionSearchQuery) {
+            {!selectedInstructionCategory ? (
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Инструкции по работе с оборудованием</h3>
+                <p className="text-gray-700 mb-6">
+                  Выберите категорию оборудования для просмотра инструкций
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {instructionCategories.map((category) => {
+                    const categoryCount = instructions.filter(i => i.category === category.name).length;
                     return (
-                      <div className="text-center py-8 text-gray-500">
-                        <Icon name="Search" size={48} className="mx-auto mb-4 opacity-50" />
-                        <p>Ничего не найдено по запросу "{subsectionSearchQuery}"</p>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => setSubsectionSearchQuery("")}
-                          className="mt-4"
-                        >
-                          Сбросить поиск
-                        </Button>
-                      </div>
+                      <Card 
+                        key={category.name}
+                        className="cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => setSelectedInstructionCategory(category.name)}
+                      >
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-3">
+                            <div className={`p-3 bg-${category.color}-100 rounded-lg`}>
+                              <Icon name={category.icon} size={24} className={`text-${category.color}-600`} />
+                            </div>
+                            <div>
+                              <div className="text-base">{category.name}</div>
+                              <div className="text-sm text-gray-500 font-normal">{categoryCount} инструкций</div>
+                            </div>
+                          </CardTitle>
+                        </CardHeader>
+                      </Card>
                     );
-                  }
-                  
-                  return filteredInstructions.map((instruction) => (
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <div className="flex items-center gap-4 mb-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSelectedInstructionCategory(null)}
+                  >
+                    <Icon name="ArrowLeft" size={16} className="mr-2" />
+                    Назад
+                  </Button>
+                  <h3 className="text-xl font-semibold text-gray-900">{selectedInstructionCategory}</h3>
+                </div>
+                
+                <div>
+                  {(() => {
+                    const categoryInstructions = instructions.filter(i => i.category === selectedInstructionCategory);
+                    const filteredInstructions = categoryInstructions.filter(instruction => {
+                      if (!subsectionSearchQuery) return true;
+                      const query = subsectionSearchQuery.toLowerCase();
+                      return instruction.title.toLowerCase().includes(query) ||
+                             instruction.description.toLowerCase().includes(query) ||
+                             instruction.steps.some(step => step.toLowerCase().includes(query));
+                    });
+                    
+                    if (filteredInstructions.length === 0 && subsectionSearchQuery) {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          <Icon name="Search" size={48} className="mx-auto mb-4 opacity-50" />
+                          <p>Ничего не найдено по запросу "{subsectionSearchQuery}"</p>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setSubsectionSearchQuery("")}
+                            className="mt-4"
+                          >
+                            Сбросить поиск
+                          </Button>
+                        </div>
+                      );
+                    }
+                    
+                    if (filteredInstructions.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-gray-500">
+                          <Icon name="FileText" size={48} className="mx-auto mb-4 opacity-50" />
+                          <p>Нет инструкций в этой категории</p>
+                        </div>
+                      );
+                    }
+                    
+                    return filteredInstructions.map((instruction) => (
                     <div key={instruction.id} className="bg-gray-50 rounded-lg p-5 mb-5 last:mb-0">
                       <div className="flex items-start justify-between mb-3">
                         <h4 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
@@ -1472,9 +1545,10 @@ export const KnowledgeTab = ({
                       </div>
                     </div>
                   ));
-                })()}
+                  })()}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
               <div className="flex items-start gap-3">

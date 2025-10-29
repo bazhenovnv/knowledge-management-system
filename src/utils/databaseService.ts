@@ -60,6 +60,7 @@ export interface Instruction {
   id: number;
   title: string;
   description: string;
+  category: string;
   icon_name: string;
   icon_color: string;
   steps: string[];
