@@ -46,14 +46,14 @@ export const MaterialFormModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4 overflow-y-auto"
       onClick={onClose}
     >
       <Card
-        className="max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="max-w-4xl w-full my-8 flex flex-col max-h-[calc(100vh-4rem)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <CardHeader>
+        <CardHeader className="flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle>
               {isEditing ? 'Редактировать материал' : 'Создать материал'}
@@ -64,7 +64,7 @@ export const MaterialFormModal = ({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 overflow-y-auto flex-1">
           <div>
             <Label>Название</Label>
             <Input
