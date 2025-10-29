@@ -150,7 +150,7 @@ const Index = () => {
     <ContentWrapper>
       <div className="min-h-screen flex flex-col" style={getBackgroundStyle()}>
         <div className="sticky top-0 z-50" style={getBackgroundStyle()}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="px-4 pt-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <Navigation
                 activeTab={activeTab}
@@ -169,7 +169,7 @@ const Index = () => {
         </div>
         
         <div className="flex-1 overflow-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <div className="px-4 pb-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsContent value="dashboard" className="space-y-6">
             {renderDashboard()}
