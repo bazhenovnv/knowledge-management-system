@@ -111,6 +111,16 @@ export const Navigation = ({
           >
             <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.location.href = '/video-conferences'}
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-shadow"
+            title="Видеоконференции"
+          >
+            <Icon name="Video" size={16} className="mr-1" />
+            <span className="hidden lg:inline">Конференции</span>
+          </Button>
           <NotificationBell employeeId={employeeId} isAdmin={userRole === 'admin'} />
           <SupportChat 
             employeeId={employeeId} 

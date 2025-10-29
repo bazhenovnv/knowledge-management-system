@@ -862,6 +862,118 @@ class DatabaseService {
       return false;
     }
   }
+
+  // ========================
+  // МЕТОДЫ ДЛЯ ВИДЕОКОНФЕРЕНЦИЙ
+  // ========================
+
+  async getConferences(): Promise<any[]> {
+    try {
+      const response = await this.makeRequest<any[]>('?action=get_conferences', { method: 'GET' });
+      
+      if (response.error) {
+        console.error('Get conferences error:', response.error);
+        return [];
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      console.error('Get conferences error:', error);
+      return [];
+    }
+  }
+
+  async getConference(id: number): Promise<any | null> {
+    try {
+      const response = await this.makeRequest<any>(`?action=get_conference&id=${id}`, { method: 'GET' });
+      
+      if (response.error) {
+        console.error('Get conference error:', response.error);
+        return null;
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      console.error('Get conference error:', error);
+      return null;
+    }
+  }
+
+  async createConference(data: any): Promise<any | null> {
+    try {
+      const response = await this.makeRequest<any>('?action=create_conference', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      
+      if (response.error) {
+        console.error('Create conference error:', response.error);
+        return null;
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      console.error('Create conference error:', error);
+      return null;
+    }
+  }
+
+  async updateConference(id: number, data: any): Promise<any | null> {
+    try {
+      const response = await this.makeRequest<any>('?action=update_conference', {
+        method: 'PUT',
+        body: JSON.stringify({ id, ...data })
+      });
+      
+      if (response.error) {
+        console.error('Update conference error:', response.error);
+        return null;
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      console.error('Update conference error:', error);
+      return null;
+    }
+  }
+
+  async joinConference(conferenceId: number, employeeId: number): Promise<boolean> {
+    try {
+      const response = await this.makeRequest<any>('?action=join_conference', {
+        method: 'POST',
+        body: JSON.stringify({ conference_id: conferenceId, employee_id: employeeId })
+      });
+      
+      if (response.error) {
+        console.error('Join conference error:', response.error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Join conference error:', error);
+      return false;
+    }
+  }
+
+  async leaveConference(conferenceId: number, employeeId: number): Promise<boolean> {
+    try {
+      const response = await this.makeRequest<any>('?action=leave_conference', {
+        method: 'POST',
+        body: JSON.stringify({ conference_id: conferenceId, employee_id: employeeId })
+      });
+      
+      if (response.error) {
+        console.error('Leave conference error:', response.error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Leave conference error:', error);
+      return false;
+    }
+  }
 }
 
 // Создаем единственный экземпляр сервиса

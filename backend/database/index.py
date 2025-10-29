@@ -89,6 +89,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = get_instructions(cursor)
             elif action == 'get_instruction_categories':
                 result = get_instruction_categories(cursor)
+            elif action == 'get_conferences':
+                result = get_conferences(cursor)
+            elif action == 'get_conference':
+                conference_id = params.get('id')
+                result = get_conference(cursor, conference_id)
             else:
                 result = {'error': 'Неизвестное действие'}
                 
@@ -121,6 +126,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = create_instruction(cursor, conn, body_data)
             elif action == 'create_instruction_category':
                 result = create_instruction_category(cursor, conn, body_data)
+            elif action == 'create_conference':
+                result = create_conference(cursor, conn, body_data)
+            elif action == 'join_conference':
+                result = join_conference(cursor, conn, body_data)
+            elif action == 'leave_conference':
+                result = leave_conference(cursor, conn, body_data)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -135,6 +146,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = update_instruction(cursor, conn, body_data)
             elif action == 'update_instruction_category':
                 result = update_instruction_category(cursor, conn, body_data)
+            elif action == 'update_conference':
+                result = update_conference(cursor, conn, body_data)
             else:
                 result = update_item(cursor, conn, table, item_id, body_data)
             
@@ -1769,3 +1782,191 @@ def delete_instruction_category(cursor, conn, category_id: int) -> Dict[str, Any
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка удаления категории: {str(e)}'}
+
+
+def get_conferences(cursor) -> Dict[str, Any]:
+    """Получить все видеоконференции"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            SELECT c.*, e.full_name as creator_name,
+                   (SELECT COUNT(*) FROM {schema}.video_conference_participants 
+                    WHERE conference_id = c.id AND is_active = true) as active_participants
+            FROM {schema}.video_conferences c
+            LEFT JOIN {schema}.employees e ON c.created_by = e.id
+            ORDER BY c.scheduled_time DESC
+        """)
+        
+        conferences = cursor.fetchall()
+        return {'data': [dict(conf) for conf in conferences]}
+    except Exception as e:
+        return {'error': f'Ошибка получения конференций: {str(e)}'}
+
+
+def get_conference(cursor, conference_id: str) -> Dict[str, Any]:
+    """Получить конференцию по ID"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            SELECT c.*, e.full_name as creator_name
+            FROM {schema}.video_conferences c
+            LEFT JOIN {schema}.employees e ON c.created_by = e.id
+            WHERE c.id = %s
+        """, (conference_id,))
+        
+        conference = cursor.fetchone()
+        if not conference:
+            return {'error': 'Конференция не найдена'}
+        
+        cursor.execute(f"""
+            SELECT p.*, e.full_name as participant_name
+            FROM {schema}.video_conference_participants p
+            LEFT JOIN {schema}.employees e ON p.employee_id = e.id
+            WHERE p.conference_id = %s
+            ORDER BY p.joined_at DESC
+        """, (conference_id,))
+        
+        participants = cursor.fetchall()
+        
+        result = dict(conference)
+        result['participants'] = [dict(p) for p in participants]
+        
+        return {'data': result}
+    except Exception as e:
+        return {'error': f'Ошибка получения конференции: {str(e)}'}
+
+
+def create_conference(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создать новую видеоконференцию"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        import secrets
+        room_id = secrets.token_urlsafe(16)
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.video_conferences 
+            (title, description, created_by, scheduled_time, status, room_id, max_participants)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING *
+        """, (
+            data.get('title'),
+            data.get('description'),
+            data.get('created_by'),
+            data.get('scheduled_time'),
+            data.get('status', 'scheduled'),
+            room_id,
+            data.get('max_participants', 50)
+        ))
+        
+        conference = cursor.fetchone()
+        conn.commit()
+        
+        return {'data': dict(conference)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка создания конференции: {str(e)}'}
+
+
+def update_conference(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Обновить конференцию"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        conference_id = data.get('id')
+        
+        updates = []
+        values = []
+        
+        if 'title' in data:
+            updates.append('title = %s')
+            values.append(data['title'])
+        
+        if 'description' in data:
+            updates.append('description = %s')
+            values.append(data['description'])
+        
+        if 'status' in data:
+            updates.append('status = %s')
+            values.append(data['status'])
+            
+            if data['status'] == 'active' and 'started_at' not in data:
+                updates.append('started_at = NOW()')
+            elif data['status'] == 'ended':
+                updates.append('ended_at = NOW()')
+        
+        if 'scheduled_time' in data:
+            updates.append('scheduled_time = %s')
+            values.append(data['scheduled_time'])
+        
+        if not updates:
+            return {'error': 'Нет полей для обновления'}
+        
+        updates.append('updated_at = NOW()')
+        values.append(conference_id)
+        
+        cursor.execute(f"""
+            UPDATE {schema}.video_conferences
+            SET {', '.join(updates)}
+            WHERE id = %s
+            RETURNING *
+        """, tuple(values))
+        
+        conference = cursor.fetchone()
+        conn.commit()
+        
+        if not conference:
+            return {'error': 'Конференция не найдена'}
+        
+        return {'data': dict(conference)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка обновления конференции: {str(e)}'}
+
+
+def join_conference(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Присоединиться к конференции"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.video_conference_participants 
+            (conference_id, employee_id, joined_at, is_active)
+            VALUES (%s, %s, NOW(), true)
+            ON CONFLICT (conference_id, employee_id) 
+            DO UPDATE SET joined_at = NOW(), is_active = true, left_at = NULL
+            RETURNING *
+        """, (data.get('conference_id'), data.get('employee_id')))
+        
+        participant = cursor.fetchone()
+        conn.commit()
+        
+        return {'data': dict(participant)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка присоединения к конференции: {str(e)}'}
+
+
+def leave_conference(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Покинуть конференцию"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            UPDATE {schema}.video_conference_participants
+            SET left_at = NOW(), is_active = false
+            WHERE conference_id = %s AND employee_id = %s
+            RETURNING *
+        """, (data.get('conference_id'), data.get('employee_id')))
+        
+        participant = cursor.fetchone()
+        conn.commit()
+        
+        if not participant:
+            return {'error': 'Участник не найден'}
+        
+        return {'data': dict(participant)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка выхода из конференции: {str(e)}'}
