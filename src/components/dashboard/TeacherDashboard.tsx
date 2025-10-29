@@ -332,7 +332,7 @@ export const TeacherDashboard = ({
             <CardTitle>Активные студенты</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Icon name="Loader2" size={24} className="animate-spin mr-2" />
                 <span>Загрузка студентов...</span>
