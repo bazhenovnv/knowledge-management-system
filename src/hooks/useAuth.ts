@@ -63,84 +63,58 @@ export const useAuth = () => {
     localStorage.setItem("userId", userId.toString());
   }, [isLoggedIn, userRole, userName, userId]);
 
-  const handleLogin = (email: string, password: string) => {
-    // Обязательная проверка полей
+  const handleLogin = async (email: string, password: string) => {
     if (!email || !password) {
       toast.error("Введите email и пароль");
       return;
     }
 
-    // Проверка формата email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Введите корректный email");
       return;
     }
 
-    // Проверка минимальной длины пароля
     if (password.length < 6) {
       toast.error("Пароль должен содержать минимум 6 символов");
       return;
     }
 
-    // Проверяем тестовые аккаунты с паролем
-    if (email === "admin@example.com" && password === "admin123") {
-      setUserRole("admin");
-      setUserName("Администратор");
-      setUserId(1);
-      setIsLoggedIn(true);
-      initializeAutoBackup("admin");
-      toast.success("Вход выполнен как Администратор");
-      return;
-    } else if (email === "teacher@example.com" && password === "teacher123") {
-      setUserRole("teacher");
-      setUserName("Преподаватель");
-      setUserId(2);
-      setIsLoggedIn(true);
-      toast.success("Вход выполнен как Преподаватель");
-      return;
-    } else if (email === "employee@example.com" && password === "employee123") {
-      setUserRole("employee");
-      setUserName("Сотрудник");
-      setUserId(3);
-      setIsLoggedIn(true);
-      toast.success("Вход выполнен как Сотрудник");
-      return;
-    }
+    try {
+      const response = await fetch('https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-    // Ищем пользователя в базе данных
-    const employee = database.findEmployeeByEmail(email.toLowerCase());
-    
-    if (!employee) {
-      toast.error("Пользователь с таким email не найден");
-      return;
-    }
+      const data = await response.json();
 
-    // Проверка пароля
-    // Если у пользователя есть сохраненный пароль, используем его
-    // Иначе используем временное правило: email без @domain как пароль
-    const expectedPassword = employee.password || employee.email.split('@')[0];
-    
-    if (password !== expectedPassword) {
-      toast.error("Неверный пароль");
-      return;
-    }
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
 
-    // Успешный вход
-    setUserRole(employee.role);
-    setUserName(employee.name);
-    setUserId(employee.id);
-    setIsLoggedIn(true);
-    
-    // Создаём автобэкап для администратора
-    if (employee.role === 'admin') {
-      initializeAutoBackup('admin');
+      if (data.success && data.employee) {
+        const emp = data.employee;
+        setUserRole(emp.role);
+        setUserName(emp.full_name);
+        setUserId(emp.id);
+        setIsLoggedIn(true);
+        
+        if (data.session?.token) {
+          localStorage.setItem('authToken', data.session.token);
+        }
+        
+        if (emp.role === 'admin') {
+          initializeAutoBackup('admin');
+        }
+        
+        toast.success(`Добро пожаловать, ${emp.full_name}!`);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('Ошибка подключения к серверу');
     }
-    
-    toast.success(`Добро пожаловать, ${employee.name}!`);
-    
-    // Обновляем время последнего входа
-    database.updateEmployee(employee.id, { lastLoginAt: new Date() });
   };
 
   const handleLogout = () => {

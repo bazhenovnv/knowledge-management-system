@@ -53,7 +53,7 @@ def verify_password(password: str, hashed: str) -> bool:
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
-    Business: Unified authentication API for registration, login, check, and logout
+    Business: Unified authentication API for login, registration, check, and logout
     Args: event with httpMethod, body, headers, queryStringParameters; context with request_id
     Returns: HTTP response based on action parameter
     '''
