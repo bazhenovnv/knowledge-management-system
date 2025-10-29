@@ -72,6 +72,8 @@ export const KnowledgeTab = ({
   const [isManagingCategories, setIsManagingCategories] = useState(false);
   const [categoryForm, setCategoryForm] = useState({ name: '', icon_name: 'Folder' });
   const [editingCategory, setEditingCategory] = useState<{ id: number; name: string; icon_name: string } | null>(null);
+  const [deletingCategory, setDeletingCategory] = useState<{ id: number; name: string } | null>(null);
+  const [transferTargetCategory, setTransferTargetCategory] = useState<string>('');
   
   const [subsectionSearchQuery, setSubsectionSearchQuery] = useState("");
 
@@ -367,13 +369,48 @@ export const KnowledgeTab = ({
     }
   };
 
-  const handleDeleteCategory = async (id: number) => {
-    if (!confirm("Вы уверены, что хотите удалить эту категорию?")) return;
+  const handleDeleteCategory = async (categoryId: number, categoryName: string) => {
+    const categoryInstructions = instructions.filter(i => i.category === categoryName);
+    
+    if (categoryInstructions.length > 0) {
+      setDeletingCategory({ id: categoryId, name: categoryName });
+      const otherCategories = instructionCategories.filter(c => c.id !== categoryId);
+      if (otherCategories.length > 0) {
+        setTransferTargetCategory(otherCategories[0].name);
+      }
+    } else {
+      if (!confirm("Вы уверены, что хотите удалить эту категорию?")) return;
+
+      try {
+        const success = await databaseService.deleteInstructionCategory(categoryId);
+        if (success) {
+          toast.success("Категория удалена");
+          loadInstructionCategories();
+        }
+      } catch (error) {
+        toast.error("Не удалось удалить категорию");
+      }
+    }
+  };
+
+  const handleTransferAndDelete = async () => {
+    if (!deletingCategory || !transferTargetCategory) return;
 
     try {
-      const success = await databaseService.deleteInstructionCategory(id);
+      const categoryInstructions = instructions.filter(i => i.category === deletingCategory.name);
+      
+      for (const instruction of categoryInstructions) {
+        await databaseService.updateInstruction(instruction.id, {
+          category: transferTargetCategory
+        });
+      }
+
+      const success = await databaseService.deleteInstructionCategory(deletingCategory.id);
       if (success) {
-        toast.success("Категория удалена");
+        toast.success(`${categoryInstructions.length} инструкций перенесено, категория удалена`);
+        setDeletingCategory(null);
+        setTransferTargetCategory('');
+        loadInstructions();
         loadInstructionCategories();
       }
     } catch (error) {
@@ -2029,17 +2066,83 @@ export const KnowledgeTab = ({
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleDeleteCategory(category.id)}
-                          disabled={categoryCount > 0}
-                          title={categoryCount > 0 ? 'Удалите сначала все инструкции из этой категории' : 'Удалить категорию'}
+                          onClick={() => handleDeleteCategory(category.id, category.name)}
+                          title={categoryCount > 0 ? 'Перенести инструкции и удалить категорию' : 'Удалить категорию'}
                         >
-                          <Icon name="Trash2" size={16} className={categoryCount > 0 ? 'text-gray-400' : 'text-red-600'} />
+                          <Icon name="Trash2" size={16} className="text-red-600" />
                         </Button>
                       </div>
                     </div>
                   );
                 })}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deletingCategory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-orange-100 rounded-lg">
+                <Icon name="AlertTriangle" size={24} className="text-orange-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">Перенос инструкций</h3>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                В категории <strong>"{deletingCategory.name}"</strong> находится{' '}
+                <strong>{instructions.filter(i => i.category === deletingCategory.name).length}</strong>{' '}
+                {instructions.filter(i => i.category === deletingCategory.name).length === 1 ? 'инструкция' : 'инструкций'}.
+              </p>
+
+              <p className="text-gray-700">
+                Выберите категорию, в которую нужно перенести инструкции перед удалением:
+              </p>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Перенести в категорию:
+                </label>
+                <select
+                  value={transferTargetCategory}
+                  onChange={(e) => setTransferTargetCategory(e.target.value)}
+                  className="w-full p-3 border rounded-lg"
+                >
+                  {instructionCategories
+                    .filter(c => c.id !== deletingCategory.id)
+                    .map(cat => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleTransferAndDelete}
+                  className="flex-1"
+                  disabled={!transferTargetCategory}
+                >
+                  <Icon name="ArrowRight" size={16} className="mr-2" />
+                  Перенести и удалить
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDeletingCategory(null);
+                    setTransferTargetCategory('');
+                  }}
+                  className="flex-1"
+                >
+                  Отмена
+                </Button>
+              </div>
+
+              <p className="text-xs text-gray-500">
+                Все инструкции будут перенесены в выбранную категорию, после чего категория "{deletingCategory.name}" будет удалена.
+              </p>
             </div>
           </div>
         </div>
