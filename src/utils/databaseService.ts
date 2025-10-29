@@ -56,6 +56,17 @@ export interface DatabaseKnowledgeMaterial {
   updated_at: string;
 }
 
+export interface Instruction {
+  id: number;
+  title: string;
+  description: string;
+  icon_name: string;
+  icon_color: string;
+  steps: string[];
+  created_at: string;
+  updated_at: string;
+}
+
 interface DatabaseResponse<T> {
   data?: T;
   count?: number;
@@ -683,6 +694,83 @@ class DatabaseService {
     } catch (error) {
       console.error('Get unread support count error:', error);
       return { count: 0 };
+    }
+  }
+
+  // ========================
+  // МЕТОДЫ ДЛЯ ИНСТРУКЦИЙ
+  // ========================
+
+  async getInstructions(): Promise<Instruction[]> {
+    try {
+      const response = await this.makeRequest<Instruction[]>('?action=get_instructions', { method: 'GET' });
+      
+      if (response.error) {
+        console.error('Get instructions error:', response.error);
+        return [];
+      }
+      
+      return response.data || [];
+    } catch (error) {
+      console.error('Get instructions error:', error);
+      return [];
+    }
+  }
+
+  async createInstruction(instruction: Omit<Instruction, 'id' | 'created_at' | 'updated_at'>): Promise<Instruction | null> {
+    try {
+      const response = await this.makeRequest<Instruction>('?action=create_instruction', {
+        method: 'POST',
+        body: JSON.stringify(instruction)
+      });
+      
+      if (response.error) {
+        console.error('Create instruction error:', response.error);
+        return null;
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      console.error('Create instruction error:', error);
+      return null;
+    }
+  }
+
+  async updateInstruction(id: number, instruction: Partial<Omit<Instruction, 'id' | 'created_at' | 'updated_at'>>): Promise<Instruction | null> {
+    try {
+      const response = await this.makeRequest<Instruction>('?action=update_instruction', {
+        method: 'PUT',
+        body: JSON.stringify({ id, ...instruction })
+      });
+      
+      if (response.error) {
+        console.error('Update instruction error:', response.error);
+        return null;
+      }
+      
+      return response.data || null;
+    } catch (error) {
+      console.error('Update instruction error:', error);
+      return null;
+    }
+  }
+
+  async deleteInstruction(id: number): Promise<boolean> {
+    try {
+      const response = await this.makeRequest<{ success: boolean }>('?action=delete_instruction', {
+        method: 'DELETE',
+        body: JSON.stringify({ id })
+      });
+      
+      if (response.error) {
+        console.error('Delete instruction error:', response.error);
+        return false;
+      }
+      
+      return response.data?.success || false;
+    } catch (error) {
+      console.error('Delete instruction error:', error);
+      return false;
     }
   }
 }

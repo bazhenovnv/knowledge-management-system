@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Icon from "@/components/ui/icon";
-import { databaseService, DatabaseKnowledgeMaterial, FileAttachment } from "@/utils/databaseService";
+import { databaseService, DatabaseKnowledgeMaterial, FileAttachment, Instruction } from "@/utils/databaseService";
 import { toast } from "sonner";
 import { useDepartments } from "@/hooks/useDepartments";
 import { KnowledgeTabProps, getDifficultyColor, getDifficultyLabel, FormData } from "@/components/knowledge/types";
@@ -49,6 +49,16 @@ export const KnowledgeTab = ({
   const [editingMaterial, setEditingMaterial] = useState<DatabaseKnowledgeMaterial | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
+  const [instructions, setInstructions] = useState<Instruction[]>([]);
+  const [editingInstruction, setEditingInstruction] = useState<Instruction | null>(null);
+  const [isCreatingInstruction, setIsCreatingInstruction] = useState(false);
+  const [instructionForm, setInstructionForm] = useState({
+    title: '',
+    description: '',
+    icon_name: 'FileText',
+    icon_color: 'blue-600',
+    steps: ['']
+  });
 
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -72,6 +82,7 @@ export const KnowledgeTab = ({
   useEffect(() => {
     loadMaterials();
     loadSubsectionContent();
+    loadInstructions();
   }, []);
 
   useEffect(() => {
@@ -150,6 +161,82 @@ export const KnowledgeTab = ({
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadInstructions = async () => {
+    try {
+      const data = await databaseService.getInstructions();
+      setInstructions(data);
+    } catch (error) {
+      console.error('Error loading instructions:', error);
+      toast.error("Не удалось загрузить инструкции");
+    }
+  };
+
+  const handleCreateInstruction = async () => {
+    try {
+      await databaseService.createInstruction({
+        ...instructionForm,
+        steps: instructionForm.steps.filter(s => s.trim())
+      });
+      toast.success("Инструкция создана");
+      setIsCreatingInstruction(false);
+      resetInstructionForm();
+      loadInstructions();
+    } catch (error) {
+      toast.error("Не удалось создать инструкцию");
+    }
+  };
+
+  const handleUpdateInstruction = async () => {
+    if (!editingInstruction) return;
+    
+    try {
+      await databaseService.updateInstruction(editingInstruction.id, {
+        ...instructionForm,
+        steps: instructionForm.steps.filter(s => s.trim())
+      });
+      toast.success("Инструкция обновлена");
+      setEditingInstruction(null);
+      resetInstructionForm();
+      loadInstructions();
+    } catch (error) {
+      toast.error("Не удалось обновить инструкцию");
+    }
+  };
+
+  const handleDeleteInstruction = async (id: number) => {
+    if (!confirm("Вы уверены, что хотите удалить эту инструкцию?")) return;
+    
+    try {
+      await databaseService.deleteInstruction(id);
+      toast.success("Инструкция удалена");
+      loadInstructions();
+    } catch (error) {
+      toast.error("Не удалось удалить инструкцию");
+    }
+  };
+
+  const resetInstructionForm = () => {
+    setInstructionForm({
+      title: '',
+      description: '',
+      icon_name: 'FileText',
+      icon_color: 'blue-600',
+      steps: ['']
+    });
+  };
+
+  const startEditingInstruction = (instruction: Instruction) => {
+    setEditingInstruction(instruction);
+    setInstructionForm({
+      title: instruction.title,
+      description: instruction.description,
+      icon_name: instruction.icon_name,
+      icon_color: instruction.icon_color,
+      steps: instruction.steps.length > 0 ? instruction.steps : ['']
+    });
+    setIsCreatingInstruction(true);
   };
 
   const handleCreateMaterial = async () => {
@@ -835,6 +922,118 @@ export const KnowledgeTab = ({
       case "Инструкции":
         return (
           <div className="space-y-6">
+            {userRole === 'admin' && (
+              <div className="flex gap-2">
+                <Button onClick={() => {
+                  resetInstructionForm();
+                  setIsCreatingInstruction(true);
+                  setEditingInstruction(null);
+                }}>
+                  <Icon name="Plus" size={16} className="mr-2" />
+                  Создать инструкцию
+                </Button>
+              </div>
+            )}
+
+            {isCreatingInstruction && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {editingInstruction ? 'Редактирование инструкции' : 'Новая инструкция'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Название</label>
+                    <Input
+                      value={instructionForm.title}
+                      onChange={(e) => setInstructionForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Название инструкции"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Описание</label>
+                    <textarea
+                      value={instructionForm.description}
+                      onChange={(e) => setInstructionForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Краткое описание"
+                      className="w-full p-3 border rounded-lg"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Иконка</label>
+                      <Input
+                        value={instructionForm.icon_name}
+                        onChange={(e) => setInstructionForm(prev => ({ ...prev, icon_name: e.target.value }))}
+                        placeholder="FileText"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Цвет иконки</label>
+                      <Input
+                        value={instructionForm.icon_color}
+                        onChange={(e) => setInstructionForm(prev => ({ ...prev, icon_color: e.target.value }))}
+                        placeholder="blue-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Шаги</label>
+                    {instructionForm.steps.map((step, index) => (
+                      <div key={index} className="flex gap-2 mb-2">
+                        <Input
+                          value={step}
+                          onChange={(e) => {
+                            const newSteps = [...instructionForm.steps];
+                            newSteps[index] = e.target.value;
+                            setInstructionForm(prev => ({ ...prev, steps: newSteps }));
+                          }}
+                          placeholder={`Шаг ${index + 1}`}
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newSteps = instructionForm.steps.filter((_, i) => i !== index);
+                            setInstructionForm(prev => ({ ...prev, steps: newSteps.length > 0 ? newSteps : [''] }));
+                          }}
+                        >
+                          <Icon name="X" size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInstructionForm(prev => ({ ...prev, steps: [...prev.steps, ''] }))}
+                    >
+                      <Icon name="Plus" size={16} className="mr-2" />
+                      Добавить шаг
+                    </Button>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button onClick={editingInstruction ? handleUpdateInstruction : handleCreateInstruction}>
+                      <Icon name="Save" size={16} className="mr-2" />
+                      {editingInstruction ? 'Сохранить' : 'Создать'}
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      setIsCreatingInstruction(false);
+                      setEditingInstruction(null);
+                      resetInstructionForm();
+                    }}>
+                      Отменить
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">Инструкции по работе с оборудованием</h3>
               <p className="text-gray-700 mb-6">
@@ -842,51 +1041,36 @@ export const KnowledgeTab = ({
               </p>
               
               <div className="space-y-6">
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
-                    <Icon name="FileText" size={20} className="text-blue-600" />
-                    Настройка онлайн-кассы
-                  </h4>
-                  <p className="text-gray-700 mb-3">
-                    Пошаговое руководство по первичной настройке кассы, регистрации в ФНС и подключению к ОФД.
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                    <li>Распаковка и подключение оборудования</li>
-                    <li>Регистрация в личном кабинете ФНС</li>
-                    <li>Подключение к оператору фискальных данных</li>
-                    <li>Настройка параметров печати чеков</li>
-                  </ul>
-                </div>
-
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
-                    <Icon name="Wrench" size={20} className="text-green-600" />
-                    Подключение периферийного оборудования
-                  </h4>
-                  <p className="text-gray-700 mb-3">
-                    Инструкции по подключению сканеров, весов, принтеров этикеток и POS-терминалов.
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                    <li>Подключение сканера штрих-кодов через USB/COM-порт</li>
-                    <li>Настройка весового оборудования</li>
-                    <li>Интеграция принтера этикеток</li>
-                    <li>Подключение эквайрингового терминала</li>
-                  </ul>
-                </div>
-
-                <div className="border-b pb-4">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-3 flex items-center gap-2">
-                    <Icon name="Settings" size={20} className="text-purple-600" />
-                    Работа с фискальным накопителем
-                  </h4>
-                  <p className="text-gray-700 mb-3">
-                    Инструкции по установке, замене и закрытию фискального накопителя.
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
-                    <li>Установка нового фискального накопителя</li>
-                    <li>Проверка срока действия ФН</li>
-                    <li>Процедура закрытия архива ФН</li>
-                    <li>Замена фискального накопителя</li>
+                {instructions.map((instruction) => (
+                  <div key={instruction.id} className="border-b pb-4 last:border-b-0">
+                    <div className="flex items-start justify-between mb-3">
+                      <h4 className="font-semibold text-lg text-gray-900 flex items-center gap-2">
+                        <Icon name={instruction.icon_name} size={20} className={`text-${instruction.icon_color}`} />
+                        {instruction.title}
+                      </h4>
+                      {userRole === 'admin' && (
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => startEditingInstruction(instruction)}>
+                            <Icon name="Pencil" size={14} />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteInstruction(instruction.id)}>
+                            <Icon name="Trash2" size={14} />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-gray-700 mb-3">
+                      {instruction.description}
+                    </p>
+                    {instruction.steps.length > 0 && (
+                      <ul className="list-disc list-inside space-y-2 text-gray-600 ml-4">
+                        {instruction.steps.map((step, stepIndex) => (
+                          <li key={stepIndex}>{step}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
                   </ul>
                 </div>
 

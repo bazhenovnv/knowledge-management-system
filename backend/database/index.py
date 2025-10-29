@@ -85,6 +85,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = check_updates(cursor, employee_id, is_admin)
             elif action == 'get_subsections':
                 result = get_subsections(cursor)
+            elif action == 'get_instructions':
+                result = get_instructions(cursor)
             else:
                 result = {'error': 'Неизвестное действие'}
                 
@@ -113,6 +115,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = ai_search_knowledge(body_data)
             elif action == 'save_subsection':
                 result = save_subsection(cursor, conn, body_data)
+            elif action == 'create_instruction':
+                result = create_instruction(cursor, conn, body_data)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
             else:
@@ -123,13 +127,19 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             item_id = params.get('id')
             if action == 'update_test_full':
                 result = update_test_with_questions(cursor, conn, item_id, body_data)
+            elif action == 'update_instruction':
+                result = update_instruction(cursor, conn, body_data)
             else:
                 result = update_item(cursor, conn, table, item_id, body_data)
             
         elif method == 'DELETE':
-            item_id = params.get('id')
+            body_data = json.loads(event.get('body', '{}')) if event.get('body') else {}
+            item_id = params.get('id') or body_data.get('id')
             permanent = params.get('permanent', 'false').lower() == 'true'
-            if permanent:
+            
+            if action == 'delete_instruction':
+                result = delete_instruction(cursor, conn, int(item_id))
+            elif permanent:
                 result = permanent_delete_item(cursor, conn, table, item_id)
             else:
                 result = delete_item(cursor, conn, table, item_id)
@@ -1523,3 +1533,120 @@ def save_subsection(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         conn.rollback()
         return {'error': f'Ошибка сохранения подраздела: {str(e)}'}
+
+
+def get_instructions(cursor) -> Dict[str, Any]:
+    """Получить все инструкции"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        cursor.execute(f"""
+            SELECT id, title, description, icon_name, icon_color, steps, created_at, updated_at
+            FROM {schema}.instructions
+            ORDER BY created_at DESC
+        """)
+        
+        instructions = cursor.fetchall()
+        return {'data': [dict(inst) for inst in instructions]}
+    except Exception as e:
+        return {'error': f'Ошибка получения инструкций: {str(e)}'}
+
+
+def create_instruction(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создать новую инструкцию"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            INSERT INTO {schema}.instructions 
+            (title, description, icon_name, icon_color, steps)
+            VALUES (%s, %s, %s, %s, %s)
+            RETURNING id, title, description, icon_name, icon_color, steps, created_at, updated_at
+        """, (
+            data.get('title'),
+            data.get('description'),
+            data.get('icon_name', 'FileText'),
+            data.get('icon_color', 'blue-600'),
+            json.dumps(data.get('steps', []))
+        ))
+        
+        result = cursor.fetchone()
+        conn.commit()
+        
+        return {'data': dict(result)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка создания инструкции: {str(e)}'}
+
+
+def update_instruction(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
+    """Обновить инструкцию"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        instruction_id = data.get('id')
+        
+        if not instruction_id:
+            return {'error': 'Не указан ID инструкции'}
+        
+        update_fields = []
+        values = []
+        
+        if 'title' in data:
+            update_fields.append('title = %s')
+            values.append(data['title'])
+        if 'description' in data:
+            update_fields.append('description = %s')
+            values.append(data['description'])
+        if 'icon_name' in data:
+            update_fields.append('icon_name = %s')
+            values.append(data['icon_name'])
+        if 'icon_color' in data:
+            update_fields.append('icon_color = %s')
+            values.append(data['icon_color'])
+        if 'steps' in data:
+            update_fields.append('steps = %s')
+            values.append(json.dumps(data['steps']))
+        
+        update_fields.append('updated_at = CURRENT_TIMESTAMP')
+        values.append(instruction_id)
+        
+        query = f"""
+            UPDATE {schema}.instructions
+            SET {', '.join(update_fields)}
+            WHERE id = %s
+            RETURNING id, title, description, icon_name, icon_color, steps, created_at, updated_at
+        """
+        
+        cursor.execute(query, values)
+        result = cursor.fetchone()
+        conn.commit()
+        
+        if not result:
+            return {'error': 'Инструкция не найдена'}
+        
+        return {'data': dict(result)}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка обновления инструкции: {str(e)}'}
+
+
+def delete_instruction(cursor, conn, instruction_id: int) -> Dict[str, Any]:
+    """Удалить инструкцию"""
+    try:
+        schema = 't_p47619579_knowledge_management'
+        
+        cursor.execute(f"""
+            DELETE FROM {schema}.instructions
+            WHERE id = %s
+            RETURNING id
+        """, (instruction_id,))
+        
+        result = cursor.fetchone()
+        conn.commit()
+        
+        if not result:
+            return {'error': 'Инструкция не найдена'}
+        
+        return {'data': {'success': True}}
+    except Exception as e:
+        conn.rollback()
+        return {'error': f'Ошибка удаления инструкции: {str(e)}'}
