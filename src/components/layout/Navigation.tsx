@@ -110,6 +110,17 @@ export const Navigation = ({
         </div>
         <div className="flex items-center space-x-2">
           <ServerStatusIndicator compact />
+          {showBackButton && onBackClick && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBackClick}
+              className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black animate-pulse h-10 w-10 p-0"
+              title="Назад"
+            >
+              <Icon name="ArrowLeft" size={16} />
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
