@@ -14,6 +14,7 @@ import { MaterialViewModal } from "@/components/knowledge/MaterialViewModal";
 import { MaterialFormModal } from "@/components/knowledge/MaterialFormModal";
 import { RussiaMapDetailed } from "@/components/map/RussiaMapDetailed";
 import { useScrollPosition } from "@/hooks/useScrollPosition";
+import { BranchManager } from "@/components/branches/BranchManager";
 
 export const KnowledgeTab = ({
   searchQuery,
@@ -76,6 +77,7 @@ export const KnowledgeTab = ({
   const [transferTargetCategory, setTransferTargetCategory] = useState<string>('');
   
   const [subsectionSearchQuery, setSubsectionSearchQuery] = useState("");
+  const [showBranchManager, setShowBranchManager] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -862,9 +864,28 @@ export const KnowledgeTab = ({
           );
         }
         
+        if (showBranchManager) {
+          return <BranchManager onClose={() => setShowBranchManager(false)} />;
+        }
+        
         return (
           <div className="space-y-6">
-            <RussiaMapDetailed userRole={userRole} />
+            <div className="bg-white rounded-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Филиалы на карте</h3>
+                {userRole === 'admin' && (
+                  <Button
+                    onClick={() => setShowBranchManager(true)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Icon name="MapPin" size={16} className="mr-2" />
+                    Управление филиалами
+                  </Button>
+                )}
+              </div>
+              <RussiaMapDetailed userRole={userRole} />
+            </div>
             
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-semibold mb-4 text-gray-900">О компании</h3>

@@ -45,7 +45,11 @@ export interface Branch {
 
 const STORAGE_KEY = 'branches_db';
 
-export const BranchManager = () => {
+interface BranchManagerProps {
+  onClose?: () => void;
+}
+
+export const BranchManager = ({ onClose }: BranchManagerProps = {}) => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -194,9 +198,17 @@ export const BranchManager = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Филиалы компании</h2>
-          <p className="text-gray-600">Управление филиалами и их расположением на карте</p>
+        <div className="flex items-center gap-3">
+          {onClose && (
+            <Button variant="outline" size="sm" onClick={onClose}>
+              <Icon name="ArrowLeft" size={16} className="mr-2" />
+              Назад
+            </Button>
+          )}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Филиалы компании</h2>
+            <p className="text-gray-600">Управление филиалами и их расположением на карте</p>
+          </div>
         </div>
         <Button onClick={() => openDialog()}>
           <Icon name="Plus" size={16} className="mr-2" />
