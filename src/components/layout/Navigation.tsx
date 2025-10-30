@@ -84,7 +84,7 @@ export const Navigation = ({
   };
   return (
     <>
-      <div className="flex items-center justify-between mb-3 px-[7px] py-3 bg-emerald-100 shadow-md rounded-lg border-[0.25px] border-black animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="flex items-center justify-between mb-3 px-[7px] py-2 bg-emerald-100 shadow-md rounded-lg border-[0.25px] border-black animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="flex items-center space-x-4">
           <img 
             src="https://cdn.poehali.dev/files/ef4f26ae-4e82-46e1-a4de-1c072818869c.png" 
