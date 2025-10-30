@@ -508,6 +508,12 @@ export default function VideoCall() {
                   <Icon name="Video" size={24} />
                   Видеозвонок
                 </h2>
+                <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full">
+                  <Icon name="Users" size={16} className="text-blue-600" />
+                  <span className="text-sm font-medium text-blue-700">
+                    {isCalling ? '2' : isConnected ? '2' : '1'}
+                  </span>
+                </div>
                 {isCalling && (
                   <div className="flex items-center gap-2 text-gray-600 text-sm">
                     <Icon name="Clock" size={16} />
