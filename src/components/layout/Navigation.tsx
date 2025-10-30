@@ -89,7 +89,7 @@ export const Navigation = ({
           <img 
             src="https://cdn.poehali.dev/files/ef4f26ae-4e82-46e1-a4de-1c072818869c.png" 
             alt="Logo" 
-            className="object-contain w-10 h-10"
+            className="object-contain w-12 h-12"
           />
           <h1 className="font-bold text-gray-900 text-2xl">
             Центр развития и тестирования
