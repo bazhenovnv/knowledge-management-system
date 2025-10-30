@@ -131,7 +131,20 @@ export const Navigation = ({
           >
             <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
           </Button>
-          <NotificationBell employeeId={employeeId} isAdmin={userRole === 'admin'} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/notifications')}
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black relative"
+            title="Уведомления"
+          >
+            <Icon name="Bell" size={16} />
+            {unreadCount > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Badge>
+            )}
+          </Button>
           <SupportChat 
             employeeId={employeeId} 
             isAdmin={userRole === 'admin'}
