@@ -196,7 +196,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="tests" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="rounded-lg shadow-sm p-6 bg-transparent">
               {(() => {
                 try {
                   const currentUser = database.getCurrentUser();
