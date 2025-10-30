@@ -122,7 +122,7 @@ export default function LoginForm({ onSuccess, onRegisterClick, onForgotPassword
         <CardFooter className="flex flex-col space-y-4">
           <Button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black transition-all duration-300 shadow-md hover:scale-105 active:scale-95"
             disabled={isLoading}
           >
             {isLoading ? (

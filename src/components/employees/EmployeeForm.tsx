@@ -133,7 +133,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Отмена
           </Button>
-          <Button onClick={onSave}>
+          <Button onClick={onSave} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black">
             {isEditing ? 'Сохранить изменения' : 'Добавить сотрудника'}
           </Button>
         </DialogFooter>

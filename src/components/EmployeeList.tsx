@@ -505,7 +505,7 @@ const EmployeeList: React.FC = () => {
               Список сотрудников ({employees.length})
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => setIsAddingEmployee(true)} size="sm">
+              <Button onClick={() => setIsAddingEmployee(true)} size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black">
                 <Icon name="UserPlus" size={16} className="mr-2" />
                 Добавить
               </Button>

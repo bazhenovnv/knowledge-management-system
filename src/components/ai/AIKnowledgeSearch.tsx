@@ -116,7 +116,7 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
             <Button
               onClick={searchMaterials}
               disabled={loading || !query.trim()}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-[0.25px] border-black"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
             >
               {loading ? (
                 <>
@@ -151,7 +151,7 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
                         <Button
                           size="sm"
                           onClick={() => addToKnowledge(material)}
-                          className="ml-3 bg-green-600 hover:bg-green-700"
+                          className="ml-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
                         >
                           <Icon name="Plus" size={16} className="mr-1" />
                           Добавить

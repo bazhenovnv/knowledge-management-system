@@ -100,7 +100,7 @@ const DatabaseTest: React.FC = () => {
               <Button 
                 onClick={testConnection} 
                 disabled={isLoading}
-                className="flex items-center space-x-2"
+                className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
               >
                 {isLoading ? (
                   <Icon name="Loader2" size={16} className="animate-spin" />

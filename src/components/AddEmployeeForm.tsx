@@ -195,7 +195,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
           </div>
 
           <div className="flex items-center space-x-3 pt-4">
-            <Button type="submit" disabled={isLoading} className="flex items-center space-x-2">
+            <Button type="submit" disabled={isLoading} className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black">
               {isLoading ? (
                 <Icon name="Loader2" size={16} className="animate-spin" />
               ) : (

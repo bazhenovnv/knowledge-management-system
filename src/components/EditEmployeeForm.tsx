@@ -216,7 +216,7 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
           <Button 
             type="submit" 
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
           >
             {isLoading ? (
               <>
