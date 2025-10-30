@@ -48,7 +48,15 @@ export default function VideoCall() {
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    const newPeer = new Peer();
+    const newPeer = new Peer({
+      debug: 0,
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ]
+      }
+    });
 
     newPeer.on('open', (id) => {
       setMyPeerId(id);
@@ -65,6 +73,17 @@ export default function VideoCall() {
       }
     });
 
+    newPeer.on('error', (error) => {
+      console.error('PeerJS error:', error);
+      if (error.type === 'network') {
+        console.error('Проблема с сетью. Проверьте подключение к интернету.');
+      } else if (error.type === 'peer-unavailable') {
+        console.error('Собеседник недоступен. Проверьте ID комнаты.');
+      } else if (error.type === 'server-error') {
+        console.error('Ошибка сервера PeerJS. Попробуйте позже.');
+      }
+    });
+
     newPeer.on('connection', (conn) => {
       setConnection(conn);
       setIsConnected(true);
@@ -78,6 +97,10 @@ export default function VideoCall() {
         }]);
       });
 
+      conn.on('error', (error) => {
+        console.error('Connection error:', error);
+      });
+
       conn.on('close', () => {
         setIsConnected(false);
         setConnection(null);
@@ -85,11 +108,9 @@ export default function VideoCall() {
     });
 
     newPeer.on('call', (mediaConnection) => {
-      // Show incoming call notification
       setIncomingCall(mediaConnection);
       setCallerPeerId(mediaConnection.peer);
       
-      // Play ringtone
       if (!ringtoneRef.current) {
         ringtoneRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSyBzvLXiTYIG2m98OScTgwOUKXh8LRkGwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz');
         ringtoneRef.current.loop = true;
@@ -100,8 +121,15 @@ export default function VideoCall() {
     setPeer(newPeer);
 
     return () => {
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current = null;
+      }
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+      }
+      if (callTimerRef.current) {
+        clearInterval(callTimerRef.current);
       }
       newPeer.destroy();
     };
@@ -113,28 +141,43 @@ export default function VideoCall() {
 
   const connectToPeerById = (peerId: string, peerInstance?: Peer) => {
     const activePeer = peerInstance || peer;
-    if (!activePeer || !peerId) return;
+    if (!activePeer || !peerId) {
+      console.error('Нет активного peer или ID для подключения');
+      return;
+    }
 
-    const conn = activePeer.connect(peerId);
-    
-    conn.on('open', () => {
-      setConnection(conn);
-      setIsConnected(true);
-    });
+    try {
+      const conn = activePeer.connect(peerId, { reliable: true });
+      
+      conn.on('open', () => {
+        setConnection(conn);
+        setIsConnected(true);
+        console.log('Соединение установлено с:', peerId);
+      });
 
-    conn.on('data', (data) => {
-      const message = data as string;
-      setMessages(prev => [...prev, { 
-        text: message, 
-        sender: 'peer', 
-        timestamp: new Date() 
-      }]);
-    });
+      conn.on('data', (data) => {
+        const message = data as string;
+        setMessages(prev => [...prev, { 
+          text: message, 
+          sender: 'peer', 
+          timestamp: new Date() 
+        }]);
+      });
 
-    conn.on('close', () => {
-      setIsConnected(false);
-      setConnection(null);
-    });
+      conn.on('error', (error) => {
+        console.error('Ошибка подключения:', error);
+        alert('Не удалось подключиться к собеседнику. Проверьте ID комнаты.');
+      });
+
+      conn.on('close', () => {
+        setIsConnected(false);
+        setConnection(null);
+        console.log('Соединение закрыто');
+      });
+    } catch (error) {
+      console.error('Ошибка при создании подключения:', error);
+      alert('Не удалось создать подключение');
+    }
   };
 
   const connectToPeer = () => {
@@ -142,12 +185,19 @@ export default function VideoCall() {
   };
 
   const startCall = async () => {
-    if (!peer || !remotePeerId) return;
+    if (!peer || !remotePeerId) {
+      alert('Нет подключения или ID собеседника');
+      return;
+    }
 
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
+        video: { width: 1280, height: 720 }, 
+        audio: { 
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } 
       });
       
       setStream(mediaStream);
@@ -159,24 +209,39 @@ export default function VideoCall() {
       setCall(mediaConnection);
       setIsCalling(true);
       
-      // Start call timer
       setCallDuration(0);
       callTimerRef.current = window.setInterval(() => {
         setCallDuration(prev => prev + 1);
       }, 1000);
 
       mediaConnection.on('stream', (remoteStream) => {
+        console.log('Получен поток от собеседника');
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
         }
       });
 
+      mediaConnection.on('error', (error) => {
+        console.error('Ошибка медиа-соединения:', error);
+        alert('Ошибка во время звонка');
+        endCall();
+      });
+
       mediaConnection.on('close', () => {
+        console.log('Звонок завершен');
         endCall();
       });
     } catch (error) {
-      console.error('Error starting call:', error);
-      alert('Не удалось начать звонок');
+      console.error('Ошибка доступа к медиа-устройствам:', error);
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          alert('Доступ к камере/микрофону запрещен. Разрешите доступ в настройках браузера.');
+        } else if (error.name === 'NotFoundError') {
+          alert('Камера или микрофон не найдены. Подключите устройства.');
+        } else {
+          alert('Не удалось начать звонок: ' + error.message);
+        }
+      }
     }
   };
 
@@ -294,10 +359,18 @@ export default function VideoCall() {
   const acceptCall = async () => {
     if (!incomingCall) return;
 
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+    }
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
+        video: { width: 1280, height: 720 },
+        audio: { 
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
       });
       
       setStream(mediaStream);
@@ -323,17 +396,33 @@ export default function VideoCall() {
       }, 1000);
 
       incomingCall.on('stream', (remoteStream) => {
+        console.log('Получен поток от звонящего');
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
         }
       });
 
+      incomingCall.on('error', (error) => {
+        console.error('Ошибка входящего звонка:', error);
+        alert('Ошибка во время звонка');
+        endCall();
+      });
+
       incomingCall.on('close', () => {
+        console.log('Входящий звонок завершен');
         endCall();
       });
     } catch (error) {
-      console.error('Error accessing media devices:', error);
-      alert('Не удалось получить доступ к камере и микрофону');
+      console.error('Ошибка доступа к медиа-устройствам:', error);
+      if (error instanceof Error) {
+        if (error.name === 'NotAllowedError') {
+          alert('Доступ к камере/микрофону запрещен. Разрешите доступ в настройках браузера.');
+        } else if (error.name === 'NotFoundError') {
+          alert('Камера или микрофон не найдены. Подключите устройства.');
+        } else {
+          alert('Не удалось получить доступ к камере и микрофону: ' + error.message);
+        }
+      }
       rejectCall();
     }
   };
