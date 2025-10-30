@@ -135,7 +135,7 @@ export const MigrationButton = () => {
               ) : (
                 <Button 
                   onClick={handleMigration}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-2 border-blue-600"
                   size="lg"
                 >
                   <Icon name="Database" size={20} className="mr-2" />

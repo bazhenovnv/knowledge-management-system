@@ -298,9 +298,8 @@ export const AdminDashboard = ({
             setAnalyticsRefresh(prev => prev + 1);
             setTimeout(() => setIsRefreshing(false), 1000);
           }}
-          variant="outline"
           size="sm"
-          className="gap-2"
+          className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-2 border-blue-600"
           disabled={isRefreshing}
         >
           <Icon name="RefreshCw" size={16} className={isRefreshing ? 'animate-spin' : ''} />
@@ -359,7 +358,7 @@ export const AdminDashboard = ({
               <Button
                 onClick={handleExportTestResults}
                 size="sm"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-2 border-blue-600"
               >
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт результатов
@@ -371,7 +370,7 @@ export const AdminDashboard = ({
               <Button
                 onClick={handleExportEmployees}
                 size="sm"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-2 border-blue-600"
               >
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт сотрудников
@@ -383,7 +382,7 @@ export const AdminDashboard = ({
               <Button
                 onClick={handleImportEmployees}
                 size="sm"
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-2 border-blue-600"
               >
                 <Icon name="Upload" size={16} className="mr-2" />
                 Импорт сотрудников
@@ -401,7 +400,7 @@ export const AdminDashboard = ({
             <Button
               onClick={() => window.dispatchEvent(new CustomEvent('navigateToEmployees'))}
               size="sm"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-2 border-blue-600"
             >
               <Icon name="Users" size={16} className="mr-2" />
               Управлять сотрудниками
