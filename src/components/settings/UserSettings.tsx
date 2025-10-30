@@ -17,6 +17,7 @@ import DatabaseSettings from "./DatabaseSettings";
 import AppSettings from "./AppSettings";
 import ProfileSettings from "./ProfileSettings";
 import AppearanceSettings from "./AppearanceSettings";
+import { BranchManager } from "@/components/branches/BranchManager";
 
 interface User {
   id: number;
@@ -133,12 +134,13 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-7' : 'grid-cols-3'}`}>
+        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-8' : 'grid-cols-3'}`}>
           <TabsTrigger value="profile">Профиль</TabsTrigger>
           <TabsTrigger value="notifications">Уведомления</TabsTrigger>
           <TabsTrigger value="scheduled">Планировщик</TabsTrigger>
           {user.role === 'admin' && (
             <>
+              <TabsTrigger value="branches">Филиалы</TabsTrigger>
               <TabsTrigger value="appearance">Внешний вид</TabsTrigger>
               <TabsTrigger value="departments">Отделы</TabsTrigger>
               <TabsTrigger value="app">Приложение</TabsTrigger>
@@ -163,6 +165,10 @@ export default function UserSettings({ userId }: UserSettingsProps) {
 
         {user.role === 'admin' && (
           <>
+            <TabsContent value="branches">
+              <BranchManager />
+            </TabsContent>
+            
             <TabsContent value="appearance">
               <AppearanceSettings />
             </TabsContent>
