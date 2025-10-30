@@ -514,6 +514,15 @@ export const RussiaMapDetailed = ({ userRole }: RussiaMapDetailedProps) => {
         branch={selectedBranch}
         isOpen={!!selectedBranch}
         onClose={() => setSelectedBranch(null)}
+        userRole={userRole}
+        onEdit={(branch) => {
+          console.log('Editing branch:', branch);
+          // TODO: Implement edit functionality
+        }}
+        onDelete={(branch) => {
+          console.log('Deleting branch:', branch);
+          // TODO: Implement delete functionality
+        }}
       />
     </div>
   );
