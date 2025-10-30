@@ -871,19 +871,7 @@ export const KnowledgeTab = ({
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">Филиалы на карте</h3>
-                {userRole === 'admin' && (
-                  <Button
-                    onClick={() => setShowBranchManager(true)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Icon name="MapPin" size={16} className="mr-2" />
-                    Управление филиалами
-                  </Button>
-                )}
-              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Филиалы на карте</h3>
               <RussiaMapDetailed userRole={userRole} />
             </div>
             
@@ -1716,8 +1704,8 @@ export const KnowledgeTab = ({
     <div className="space-y-6 relative">
       {selectedSubsection ? (
         <div className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            {selectedSubsection === "Торговое оборудование" && (
+          {selectedSubsection === "Торговое оборудование" && (
+            <div className="mb-4">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -1729,16 +1717,8 @@ export const KnowledgeTab = ({
                 <Icon name="Download" size={20} className="text-cyan-600" />
                 <span className="font-medium">Драйверы оборудования</span>
               </Button>
-            )}
-            <div className={selectedSubsection === "Торговое оборудование" ? "" : "ml-auto"}>
-              {userRole === "admin" && !isEditingSubsection && selectedSubsection !== "Инструкции" && (
-                <Button onClick={() => setIsEditingSubsection(true)}>
-                  <Icon name="Edit" size={16} className="mr-2" />
-                  Редактировать
-                </Button>
-              )}
             </div>
-          </div>
+          )}
           <h2 className="text-2xl font-bold text-gray-900 mb-6">{selectedSubsection}</h2>
           
           {/* Поиск внутри подраздела */}
