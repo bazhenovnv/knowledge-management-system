@@ -155,7 +155,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
 
   return (
     <>
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 bg-transparent">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
       <TabsList className="grid w-full max-w-md grid-cols-2">
         <TabsTrigger value="tests">
           <Icon name="FileText" size={16} className="mr-2" />
@@ -171,7 +171,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
         {/* Заголовок и статистика */}
         <Card className="bg-transparent border-transparent shadow-none">
           <CardHeader>
-            <div className="flex items-center justify-between bg-[#ffffff]">
+            <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Тесты из базы данных</CardTitle>
                 <CardDescription>
