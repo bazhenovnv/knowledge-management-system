@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import { VideoConference } from '@/components/VideoConference';
 import { databaseService } from '@/utils/databaseService';
 import { toast } from 'sonner';
+import { Footer } from '@/components/layout/Footer';
 
 interface Conference {
   id: number;
@@ -359,6 +360,7 @@ export default function VideoConferencesPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

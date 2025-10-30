@@ -8,6 +8,7 @@ import { ConsoleHeader } from '@/components/admin/ConsoleHeader';
 import { ConsoleFilters } from '@/components/admin/ConsoleFilters';
 import { LogItem } from '@/components/admin/LogItem';
 import Icon from '@/components/ui/icon';
+import { Footer } from '@/components/layout/Footer';
 
 const AdminConsole = () => {
   const navigate = useNavigate();
@@ -145,6 +146,7 @@ ${log.details ? `Details:\n${log.details}\n\n` : ''}${log.stackTrace ? `Stack Tr
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/ui/icon";
 import { useState } from "react";
+import { Footer } from "@/components/layout/Footer";
 
 const GuideIndex = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -234,6 +235,7 @@ const GuideIndex = () => {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };

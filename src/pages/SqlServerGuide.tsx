@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Icon from "@/components/ui/icon";
 import { useState } from "react";
+import { Footer } from "@/components/layout/Footer";
 
 const SqlServerGuide = () => {
   const [expandedStep, setExpandedStep] = useState<number | null>(1);
@@ -313,6 +314,7 @@ const SqlServerGuide = () => {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };

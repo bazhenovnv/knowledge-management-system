@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
+import { Footer } from '@/components/layout/Footer';
 
 interface Message {
   text: string;
@@ -716,6 +717,7 @@ export default function VideoCall() {
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

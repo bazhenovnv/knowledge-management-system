@@ -4,6 +4,7 @@ import { EmployeeDashboard } from '@/components/dashboard/EmployeeDashboard';
 import { TeacherDashboard } from '@/components/dashboard/TeacherDashboard';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { getDefaultEmployees, getCurrentUser, SimpleEmployee } from '@/utils/simpleData';
+import { Footer } from '@/components/layout/Footer';
 
 export default function SimpleIndex() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -63,6 +64,7 @@ export default function SimpleIndex() {
       <div className="pt-8">
         {renderContent()}
       </div>
+      <Footer />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DatabaseTest from '@/components/DatabaseTest';
+import { Footer } from '@/components/layout/Footer';
 
 const DatabaseTestPage: React.FC = () => {
   return (
@@ -30,6 +31,7 @@ const DatabaseTestPage: React.FC = () => {
           <DatabaseTest />
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import Icon from "@/components/ui/icon";
+import { Footer } from "@/components/layout/Footer";
 
 interface TextSection {
   id: string;
@@ -491,6 +492,7 @@ export default function AdminSettings() {
           </TabsContent>
         </Tabs>
       </div>
+      <Footer />
     </div>
   );
 }

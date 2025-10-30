@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Icon from "@/components/ui/icon";
 import { useNotifications } from "@/hooks/useNotifications";
+import { Footer } from "@/components/layout/Footer";
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
@@ -198,6 +199,7 @@ export default function NotificationsPage() {
           )}
         </ScrollArea>
       </div>
+      <Footer />
     </div>
   );
 }

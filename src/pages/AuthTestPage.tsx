@@ -5,6 +5,7 @@ import TestLogin from '@/components/TestLogin';
 import TestRegister from '@/components/TestRegister';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
+import { Footer } from '@/components/layout/Footer';
 
 export default function AuthTestPage() {
   const [currentView, setCurrentView] = useState<'main' | 'login' | 'register' | 'test-login' | 'test-register'>('main');
@@ -97,6 +98,7 @@ export default function AuthTestPage() {
       )}
       
       {renderView()}
+      <Footer />
     </div>
   );
 }

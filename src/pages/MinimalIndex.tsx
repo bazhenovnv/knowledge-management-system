@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { Footer } from '@/components/layout/Footer';
 
 export default function MinimalIndex() {
   const [user] = useState({
@@ -102,6 +103,7 @@ export default function MinimalIndex() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
+import { Footer } from '@/components/layout/Footer';
 
 const TestSqlConnection = () => {
   const { toast } = useToast();
@@ -125,6 +126,7 @@ const TestSqlConnection = () => {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { databaseService } from '@/utils/databaseService';
+import { Footer } from '@/components/layout/Footer';
 
 export default function DemoEmployeesPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -155,6 +156,7 @@ export default function DemoEmployeesPage() {
           </CardContent>
         </Card>
       </div>
+      <Footer />
     </div>
   );
 }

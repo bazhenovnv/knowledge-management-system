@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon from '@/components/ui/icon';
 import EmployeeList from '@/components/EmployeeList';
+import { Footer } from '@/components/layout/Footer';
 
 export default function EmployeeManagementPage() {
   return (
@@ -54,6 +55,7 @@ export default function EmployeeManagementPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

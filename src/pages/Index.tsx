@@ -23,6 +23,7 @@ import UserSettings from "@/components/settings/UserSettings";
 import { DatabaseSetup } from "@/components/setup/DatabaseSetup";
 import SupportChat from "@/components/support/SupportChat";
 import { ConferencesTab } from "@/components/conferences/ConferencesTab";
+import { Footer } from "@/components/layout/Footer";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState(() => {
@@ -274,6 +275,9 @@ const Index = () => {
 
         {/* AI Помощник Алиса */}
         <AliceAssistant onNavigate={setActiveTab} userRole={userRole} />
+        
+        {/* Футер */}
+        <Footer />
       </div>
     </ContentWrapper>
   );

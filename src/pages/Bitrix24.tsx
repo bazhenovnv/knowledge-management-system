@@ -9,6 +9,7 @@ import { Navigation } from '@/components/layout/Navigation';
 import TaskList from '@/components/bitrix24/TaskList';
 import ContactList from '@/components/bitrix24/ContactList';
 import { bitrix24Service, Bitrix24Task, Bitrix24Contact } from '@/services/bitrix24';
+import { Footer } from '@/components/layout/Footer';
 
 export default function Bitrix24() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -240,6 +241,7 @@ export default function Bitrix24() {
           </TabsContent>
         </Tabs>
       </div>
+      <Footer />
     </div>
   );
 }

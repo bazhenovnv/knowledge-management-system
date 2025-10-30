@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import AddEmployeeForm from '@/components/AddEmployeeForm';
 import { DatabaseEmployee } from '@/utils/databaseService';
+import { Footer } from '@/components/layout/Footer';
 
 export default function AddEmployeeTestPage() {
   const [showForm, setShowForm] = useState(false);
@@ -73,6 +74,7 @@ export default function AddEmployeeTestPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
