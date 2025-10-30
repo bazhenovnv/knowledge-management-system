@@ -453,6 +453,26 @@ export default function VideoCall() {
               <Icon name="Link" size={24} />
               Ссылка на комнату
             </h2>
+            <div className="mb-4 bg-blue-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <Icon name="Users" size={16} />
+                Участники ({isCalling || isConnected ? 2 : 1})
+              </h3>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 bg-white p-2 rounded">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium">Вы</span>
+                  <span className="ml-auto text-xs text-green-600">Онлайн</span>
+                </div>
+                {(isConnected || isCalling) && (
+                  <div className="flex items-center gap-2 bg-white p-2 rounded">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium">Собеседник</span>
+                    <span className="ml-auto text-xs text-green-600">Онлайн</span>
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="flex gap-2 mb-3">
               <Input 
                 value={roomUrl || `${window.location.origin}/video-call?room=${myPeerId}`}
