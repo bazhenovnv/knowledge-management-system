@@ -46,7 +46,7 @@ const App = () => (
           <GlobalConsoleLogger />
           <Toaster />
           <Sonner />
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/bitrix24" element={<Bitrix24 />} />
