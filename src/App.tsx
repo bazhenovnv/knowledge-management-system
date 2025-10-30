@@ -18,6 +18,7 @@ import DemoEmployeesPage from "./pages/DemoEmployeesPage";
 import AdminSettings from "./pages/AdminSettings";
 import AdminConsole from "./pages/AdminConsole";
 import NotificationsPage from "./pages/NotificationsPage";
+import BranchesPage from "./pages/BranchesPage";
 import GuideIndex from "./pages/GuideIndex";
 import SqlServerGuide from "./pages/SqlServerGuide";
 import SecretsManager from "./pages/SecretsManager";
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/admin-settings" element={<AdminSettings />} />
             <Route path="/admin-console" element={<AdminConsole />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/branches" element={<BranchesPage />} />
             <Route path="/guide" element={<GuideIndex />} />
             <Route path="/sql-guide" element={<SqlServerGuide />} />
             <Route path="/secrets" element={<SecretsManager />} />

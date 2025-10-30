@@ -176,6 +176,14 @@ export default function AdminSettings() {
           </div>
           <div className="flex gap-2">
             <Button 
+              onClick={() => navigate('/branches')}
+              variant="outline"
+              size="lg"
+            >
+              <Icon name="Building" className="mr-2" size={20} />
+              Филиалы
+            </Button>
+            <Button 
               onClick={() => navigate('/test-sql')}
               variant="outline"
               size="lg"
