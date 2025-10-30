@@ -1817,7 +1817,7 @@ export const KnowledgeTab = ({
               </div>
             )}
           </div>
-          <select
+          <select className="px-4 py-2 border rounded-lg bg-[#ffffff]"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-2 border rounded-lg bg-white"
