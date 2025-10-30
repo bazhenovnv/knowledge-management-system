@@ -136,7 +136,7 @@ export const Navigation = ({
                 e.preventDefault();
                 onLogout();
               }}
-              className="text-red-600 border-red-600 hover:bg-red-50 shadow-lg hover:shadow-xl transition-shadow"
+              className="text-red-600 border-red-600 hover:bg-red-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px]"
             >
               <Icon name="LogOut" size={16} className="mr-2" />
               Выход
