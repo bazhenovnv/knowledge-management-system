@@ -110,11 +110,11 @@ const SupportChat = ({ employeeId, isAdmin, compact = false }: SupportChatProps)
     return (
       <Button
         onClick={() => setIsOpen(true)}
-        variant={compact ? "ghost" : "default"}
-        size={compact ? "icon" : "default"}
+        variant={compact ? "outline" : "default"}
+        size={compact ? "sm" : "default"}
         className={
           compact
-            ? "relative"
+            ? "relative text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
             : "fixed bottom-6 right-6 rounded-full w-14 h-14 shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 z-50"
         }
         title="Техническая поддержка"
