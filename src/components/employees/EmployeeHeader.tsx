@@ -35,13 +35,13 @@ export const EmployeeHeader: React.FC<EmployeeHeaderProps> = ({
           <Icon name="Users" size={14} />
           <span>{filteredEmployees.length} активных</span>
         </Badge>
-        <Button onClick={onRefresh} variant="outline" size="sm">
+        <Button onClick={onRefresh} variant="outline" size="sm" className="border-[0.25px] border-black">
           <Icon name="RefreshCw" size={16} className="mr-1" />
           Обновить
         </Button>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black">
               <Icon name="UserPlus" size={16} className="mr-2" />
               Добавить сотрудника
             </Button>

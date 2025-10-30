@@ -82,7 +82,7 @@ const AdvancedEmployeeManagement: React.FC<AdvancedEmployeeManagementProps> = ({
         <div className="flex space-x-2">
           <Button
             onClick={() => setIsAddDialogOpen(true)}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
           >
             <Icon name="UserPlus" size={16} />
             <span>Добавить сотрудника</span>
@@ -90,7 +90,7 @@ const AdvancedEmployeeManagement: React.FC<AdvancedEmployeeManagementProps> = ({
           <Button
             variant="outline"
             onClick={() => setIsNotificationFormOpen(true)}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 border-[0.25px] border-black"
           >
             <Icon name="Bell" size={16} />
             <span>Уведомить всех</span>
@@ -98,7 +98,7 @@ const AdvancedEmployeeManagement: React.FC<AdvancedEmployeeManagementProps> = ({
           <Button
             variant="outline"
             onClick={() => exportToExcel(employees, 'all_employees')}
-            className="flex items-center space-x-2"
+            className="flex items-center space-x-2 border-[0.25px] border-black"
           >
             <Icon name="Download" size={16} />
             <span>Экспорт</span>

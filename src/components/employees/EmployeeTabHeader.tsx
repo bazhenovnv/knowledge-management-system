@@ -27,7 +27,7 @@ const EmployeeTabHeader: React.FC<EmployeeTabHeaderProps> = ({
       <div className="flex items-center space-x-2">
         <Button 
           onClick={onBulkNotification}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+          className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
         >
           <Icon name="Bell" size={16} />
           <span>Отправить уведомление</span>
@@ -36,7 +36,7 @@ const EmployeeTabHeader: React.FC<EmployeeTabHeaderProps> = ({
         {userRole === "admin" && (
           <Button 
             onClick={onAddEmployee}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
           >
             <Icon name="UserPlus" size={16} className="mr-2" />
             Добавить сотрудника
@@ -46,7 +46,7 @@ const EmployeeTabHeader: React.FC<EmployeeTabHeaderProps> = ({
         {(userRole === "admin" || userRole === "teacher") && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black">
                 <Icon name="Download" size={16} className="mr-2" />
                 Выгрузить отчет
                 <Icon name="ChevronDown" size={16} className="ml-2" />
