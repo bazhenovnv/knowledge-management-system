@@ -258,7 +258,7 @@ const Index = () => {
           )}
 
           <TabsContent value="settings" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="rounded-lg shadow-sm bg-transparent">
               <UserSettings userId={userId} />
             </div>
             {userRole === "admin" && (
