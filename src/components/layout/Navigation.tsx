@@ -326,7 +326,7 @@ export const Navigation = ({
           className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
-          <span className="hidden sm:inline text-lg">
+          <span className="hidden sm:inline text-lg text-slate-900">
             Панель
           </span>
         </TabsTrigger>
