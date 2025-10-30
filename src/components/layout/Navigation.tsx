@@ -323,7 +323,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
         >
           <Icon name="LayoutDashboard" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg data-[state=active]:text-white">
@@ -337,7 +337,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
         >
           <Icon name="BookOpen" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg data-[state=active]:text-white">
@@ -351,7 +351,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.25px] border-black"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 test-button-animate test-button-glow test-button-hover relative shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.25px] border-black"
         >
           <Icon name="FileText" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg data-[state=active]:text-white">
@@ -370,7 +370,7 @@ export const Navigation = ({
               window.dispatchEvent(new CustomEvent('resetSubsection'));
             }
           }}
-          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
+          className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
         >
           <Icon name="BarChart3" size={16} className="mr-2" />
           <span className="hidden sm:inline text-lg data-[state=active]:text-white">
@@ -386,7 +386,7 @@ export const Navigation = ({
                   window.dispatchEvent(new CustomEvent('resetSubsection'));
                 }
               }}
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
             >
               <Icon name="ClipboardList" size={16} className="mr-2" />
               <span className="hidden sm:inline text-lg data-[state=active]:text-white">
@@ -400,7 +400,7 @@ export const Navigation = ({
                   window.dispatchEvent(new CustomEvent('resetSubsection'));
                 }
               }}
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
             >
               <Icon name="Users" size={16} className="mr-2" />
               <span className="hidden sm:inline text-lg data-[state=active]:text-white">
@@ -414,7 +414,7 @@ export const Navigation = ({
                   window.dispatchEvent(new CustomEvent('resetSubsection'));
                 }
               }}
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-gradient-to-r from-blue-600 to-purple-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white bg-emerald-100 text-gray-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 border-[0.5px] border-black"
             >
               <Icon name="Video" size={16} className="mr-2" />
               <span className="hidden sm:inline text-lg data-[state=active]:text-white">Конференция</span>
