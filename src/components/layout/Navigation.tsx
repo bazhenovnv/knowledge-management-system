@@ -296,7 +296,7 @@ export const Navigation = ({
         </div>
       </div>
 
-      <div className="flex items-stretch gap-2 mb-8">
+      <div className="flex items-stretch gap-2 mb-8 animate-in fade-in slide-in-from-top-6 duration-700">
         {showBackButton && onBackClick && (
           <Button
             variant="default"
