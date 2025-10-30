@@ -279,7 +279,7 @@ export const BranchManager = ({ onClose }: BranchManagerProps = {}) => {
                         )}
                       </div>
 
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mt-3 pt-3 border-t">
                         <Button
                           variant="outline"
                           size="sm"
@@ -287,20 +287,10 @@ export const BranchManager = ({ onClose }: BranchManagerProps = {}) => {
                             e.stopPropagation();
                             openDialog(branch);
                           }}
-                          className="flex-1"
+                          className="flex-1 hover:bg-blue-50"
                         >
-                          <Icon name="Edit" size={14} className="mr-1" />
-                          Изменить
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleBranchStatus(branch.id);
-                          }}
-                        >
-                          <Icon name={branch.isActive ? "EyeOff" : "Eye"} size={14} />
+                          <Icon name="Edit" size={16} className="mr-1" />
+                          Редактировать
                         </Button>
                         <Button
                           variant="outline"
@@ -310,8 +300,9 @@ export const BranchManager = ({ onClose }: BranchManagerProps = {}) => {
                             setDeletingBranch(branch);
                             setIsDeleteDialogOpen(true);
                           }}
+                          className="hover:bg-red-50 hover:border-red-300"
                         >
-                          <Icon name="Trash2" size={14} className="text-red-600" />
+                          <Icon name="Trash2" size={16} className="text-red-600" />
                         </Button>
                       </div>
                     </CardContent>
