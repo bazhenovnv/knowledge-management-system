@@ -53,15 +53,26 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Icon name="Bell" size={20} />
-            <span>Отправить уведомление</span>
-            {selectedEmployee && (
-              <Badge variant="outline">
-                для {selectedEmployee.name}
-              </Badge>
-            )}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center space-x-2">
+              <Icon name="Bell" size={20} />
+              <span>Отправить уведомление</span>
+              {selectedEmployee && (
+                <Badge variant="outline">
+                  для {selectedEmployee.name}
+                </Badge>
+              )}
+            </DialogTitle>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleClose}
+              className="h-8 w-8"
+            >
+              <Icon name="X" size={16} />
+            </Button>
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -109,13 +120,14 @@ const NotificationForm: React.FC<NotificationFormProps> = ({
             </div>
           )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose}>
+          <DialogFooter className="flex gap-2">
+            <Button type="button" variant="outline" onClick={handleClose} className="border-[0.25px] border-black">
+              <Icon name="X" size={16} className="mr-2" />
               Отмена
             </Button>
             <Button 
               type="submit" 
-              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
             >
               <Icon name="Send" size={16} />
               <span>
