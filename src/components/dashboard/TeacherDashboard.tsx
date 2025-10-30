@@ -445,9 +445,8 @@ export const TeacherDashboard = ({
               <p className="text-sm font-medium text-gray-700">Результаты тестов</p>
               <Button
                 onClick={handleExportTestResults}
-                variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт результатов
@@ -458,9 +457,8 @@ export const TeacherDashboard = ({
               <p className="text-sm font-medium text-gray-700">Список студентов</p>
               <Button
                 onClick={handleExportStudents}
-                variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт студентов
@@ -471,9 +469,8 @@ export const TeacherDashboard = ({
               <p className="text-sm font-medium text-gray-700">Импорт студентов</p>
               <Button
                 onClick={handleImportStudents}
-                variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <Icon name="Upload" size={16} className="mr-2" />
                 Импорт студентов

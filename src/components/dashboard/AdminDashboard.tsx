@@ -358,9 +358,8 @@ export const AdminDashboard = ({
               <p className="text-sm font-medium text-gray-700">Результаты тестов</p>
               <Button
                 onClick={handleExportTestResults}
-                variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт результатов
@@ -371,9 +370,8 @@ export const AdminDashboard = ({
               <p className="text-sm font-medium text-gray-700">Список сотрудников</p>
               <Button
                 onClick={handleExportEmployees}
-                variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <Icon name="Download" size={16} className="mr-2" />
                 Экспорт сотрудников
@@ -384,9 +382,8 @@ export const AdminDashboard = ({
               <p className="text-sm font-medium text-gray-700">Импорт сотрудников</p>
               <Button
                 onClick={handleImportEmployees}
-                variant="outline"
                 size="sm"
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
               >
                 <Icon name="Upload" size={16} className="mr-2" />
                 Импорт сотрудников
@@ -403,8 +400,8 @@ export const AdminDashboard = ({
             <h3 className="text-lg font-semibold">Краткая сводка по сотрудникам</h3>
             <Button
               onClick={() => window.dispatchEvent(new CustomEvent('navigateToEmployees'))}
-              variant="outline"
               size="sm"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
             >
               <Icon name="Users" size={16} className="mr-2" />
               Управлять сотрудниками
