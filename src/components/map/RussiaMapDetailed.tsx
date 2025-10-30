@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BranchModal } from './BranchModal';
+import { BranchEditDialog } from './BranchEditDialog';
 import { Branch } from './RussiaMap';
 import Icon from '@/components/ui/icon';
 
@@ -309,14 +310,59 @@ interface RussiaMapDetailedProps {
 export const RussiaMapDetailed = ({ userRole }: RussiaMapDetailedProps) => {
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [hoveredBranch, setHoveredBranch] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [showManagementPanel, setShowManagementPanel] = useState(false);
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
 
   const krasnodar = branches[0];
 
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <h3 className="text-2xl font-bold mb-6">Филиальная сеть по России</h3>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-2xl font-bold">Филиальная сеть по России</h3>
+          {userRole === 'admin' && (
+            <Button
+              variant="outline"
+              onClick={() => setShowManagementPanel(!showManagementPanel)}
+              className="hover:bg-blue-50"
+            >
+              <Icon name={showManagementPanel ? 'X' : 'Settings'} size={16} className="mr-2" />
+              {showManagementPanel ? 'Закрыть панель' : 'Управление филиалами'}
+            </Button>
+          )}
+        </div>
+
+        {/* Панель управления филиалами */}
+        {userRole === 'admin' && showManagementPanel && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-gray-900">Панель управления</h4>
+              <Button
+                onClick={() => {
+                  setIsAddingNew(true);
+                  setEditingBranch({
+                    id: String(Date.now()),
+                    city: '',
+                    address: '',
+                    phone: '',
+                    email: '',
+                    employees: 0,
+                    description: '',
+                    images: [],
+                    x: 50,
+                    y: 50
+                  });
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Icon name="Plus" size={16} className="mr-2" />
+                Добавить филиал
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600">Кликните на карточку филиала в списке ниже для редактирования или удаления</p>
+          </div>
+        )}
         
         {/* Карта */}
         <div className="relative w-full bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl overflow-hidden" style={{ paddingBottom: '56.25%' }}>
@@ -467,21 +513,65 @@ export const RussiaMapDetailed = ({ userRole }: RussiaMapDetailedProps) => {
           {branches.map((branch) => (
             <div
               key={branch.id}
-              className="p-4 border rounded-lg hover:shadow-md hover:border-blue-400 cursor-pointer transition-all duration-200 bg-white"
+              className="p-4 border rounded-lg hover:shadow-md hover:border-blue-400 transition-all duration-200 bg-white"
               onMouseEnter={() => setHoveredBranch(branch.id)}
               onMouseLeave={() => setHoveredBranch(null)}
-              onClick={() => setSelectedBranch(branch)}
             >
               <div className="flex items-start justify-between mb-2">
-                <h4 className="font-semibold text-lg text-blue-900">{branch.city}</h4>
-                {branch.id === '1' && (
-                  <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
-                    HQ
-                  </span>
-                )}
+                <h4 
+                  className="font-semibold text-lg text-blue-900 cursor-pointer hover:text-blue-600"
+                  onClick={() => setSelectedBranch(branch)}
+                >
+                  {branch.city}
+                </h4>
+                <div className="flex items-center gap-2">
+                  {branch.id === '1' && (
+                    <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">
+                      HQ
+                    </span>
+                  )}
+                  {userRole === 'admin' && showManagementPanel && (
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingBranch(branch);
+                          setIsAddingNew(false);
+                        }}
+                        className="h-7 w-7 p-0 hover:bg-blue-100"
+                      >
+                        <Icon name="Edit" size={14} className="text-blue-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Удалить филиал в городе ${branch.city}?`)) {
+                            console.log('Deleting:', branch);
+                            // TODO: Implement delete
+                          }
+                        }}
+                        className="h-7 w-7 p-0 hover:bg-red-100"
+                      >
+                        <Icon name="Trash2" size={14} className="text-red-600" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="text-sm text-gray-600 mb-3">{branch.description}</p>
-              <div className="space-y-1 text-sm">
+              <p 
+                className="text-sm text-gray-600 mb-3 cursor-pointer"
+                onClick={() => setSelectedBranch(branch)}
+              >
+                {branch.description}
+              </p>
+              <div 
+                className="space-y-1 text-sm cursor-pointer"
+                onClick={() => setSelectedBranch(branch)}
+              >
                 <div className="flex items-center gap-2 text-gray-500">
                   <Icon name="MapPin" size={14} />
                   <span className="truncate">{branch.address}</span>
@@ -500,19 +590,28 @@ export const RussiaMapDetailed = ({ userRole }: RussiaMapDetailedProps) => {
         </div>
       </Card>
 
-      {/* Модальное окно */}
+      {/* Модальное окно просмотра */}
       <BranchModal
         branch={selectedBranch}
         isOpen={!!selectedBranch}
         onClose={() => setSelectedBranch(null)}
         userRole={userRole}
-        onEdit={(branch) => {
-          console.log('Editing branch:', branch);
-          // TODO: Implement edit functionality
+      />
+
+      {/* Диалог редактирования */}
+      <BranchEditDialog
+        branch={editingBranch}
+        isOpen={!!editingBranch}
+        isNew={isAddingNew}
+        onClose={() => {
+          setEditingBranch(null);
+          setIsAddingNew(false);
         }}
-        onDelete={(branch) => {
-          console.log('Deleting branch:', branch);
-          // TODO: Implement delete functionality
+        onSave={(branch) => {
+          console.log('Saving branch:', branch);
+          // TODO: Implement save functionality
+          setEditingBranch(null);
+          setIsAddingNew(false);
         }}
       />
     </div>
