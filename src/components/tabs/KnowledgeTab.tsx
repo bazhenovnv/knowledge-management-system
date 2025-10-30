@@ -1756,7 +1756,7 @@ export const KnowledgeTab = ({
               className="h-auto py-6 px-4 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-all"
             >
               <Icon name="Users" size={24} className="text-blue-600" />
-              <span className="text-center font-medium">Структура компании</span>
+              <span className="text-center font-medium text-xs">Структура компании</span>
             </Button>
             <Button
               variant="outline"
