@@ -20,39 +20,10 @@ export const BranchModal = ({ branch, isOpen, onClose, userRole, onEdit, onDelet
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-              <Icon name="MapPin" className="text-blue-600" size={28} />
-              Филиал в городе {branch.city}
-            </DialogTitle>
-            {userRole === 'admin' && onEdit && onDelete && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    onEdit(branch);
-                    onClose();
-                  }}
-                  className="hover:bg-blue-50"
-                >
-                  <Icon name="Edit" size={16} className="mr-1" />
-                  Редактировать
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    onDelete(branch);
-                    onClose();
-                  }}
-                  className="hover:bg-red-50 hover:border-red-300"
-                >
-                  <Icon name="Trash2" size={16} className="text-red-600" />
-                </Button>
-              </div>
-            )}
-          </div>
+          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+            <Icon name="MapPin" className="text-blue-600" size={28} />
+            Филиал в городе {branch.city}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
