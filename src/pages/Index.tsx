@@ -172,11 +172,11 @@ const Index = () => {
         <div className="flex-1 overflow-auto">
           <div className="px-4 pb-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsContent value="dashboard" className="space-y-6">
+            <TabsContent value="dashboard" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {renderDashboard()}
           </TabsContent>
 
-          <TabsContent value="knowledge" className="space-y-6">
+          <TabsContent value="knowledge" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <KnowledgeTab
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -191,11 +191,11 @@ const Index = () => {
 
 
 
-          <TabsContent value="analytics" className="space-y-6">
+          <TabsContent value="analytics" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <AnalyticsTab />
           </TabsContent>
 
-          <TabsContent value="tests" className="space-y-6">
+          <TabsContent value="tests" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white rounded-lg shadow-sm p-6">
               {(() => {
                 try {
@@ -214,7 +214,7 @@ const Index = () => {
 
           {(userRole === "admin" || userRole === "teacher") && (
             <>
-              <TabsContent value="assignments" className="space-y-6">
+              <TabsContent value="assignments" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {userRole === "admin" || userRole === "teacher" ? (
                   <div className="bg-white rounded-lg shadow-sm p-6">
                     <AssignmentManager 
@@ -228,7 +228,7 @@ const Index = () => {
                   </div>
                 )}
               </TabsContent>
-              <TabsContent value="employees" className="space-y-6">
+              <TabsContent value="employees" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   {(() => {
                     try {
@@ -245,7 +245,7 @@ const Index = () => {
                   })()}
                 </div>
               </TabsContent>
-              <TabsContent value="conferences" className="space-y-6">
+              <TabsContent value="conferences" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="bg-white rounded-lg shadow-sm p-6">
                   <ConferencesTab 
                     userRole={userRole}
@@ -257,7 +257,7 @@ const Index = () => {
             </>
           )}
 
-          <TabsContent value="settings" className="space-y-6">
+          <TabsContent value="settings" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="bg-white rounded-lg shadow-sm">
               <UserSettings userId={userId} />
             </div>
