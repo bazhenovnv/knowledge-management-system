@@ -155,7 +155,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
 
   return (
     <>
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 bg-transparent">
       <TabsList className="grid w-full max-w-md grid-cols-2">
         <TabsTrigger value="tests">
           <Icon name="FileText" size={16} className="mr-2" />
