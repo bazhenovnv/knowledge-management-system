@@ -114,7 +114,7 @@ export const EmployeeManagement = () => {
         <h1 className="text-2xl font-bold">Управление сотрудниками</h1>
         <Dialog open={isAddingEmployee} onOpenChange={setIsAddingEmployee}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black">
               <Icon name="Plus" size={16} className="mr-2" />
               Добавить сотрудника
             </Button>

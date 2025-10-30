@@ -181,7 +181,10 @@ export function ConferencesTab({ userRole, userId, userName }: ConferencesTabPro
         </div>
         
         {(userRole === 'admin' || userRole === 'teacher') && (
-          <Button onClick={() => setIsCreating(true)}>
+          <Button 
+            onClick={() => setIsCreating(true)}
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
+          >
             <Icon name="Plus" size={16} className="mr-2" />
             Создать конференцию
           </Button>
