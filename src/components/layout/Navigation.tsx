@@ -86,11 +86,18 @@ export const Navigation = ({
     <>
       <div className="flex items-center justify-between mb-3 px-[7px] py-2 bg-emerald-100 shadow-md rounded-lg border-[0.25px] border-black animate-in fade-in slide-in-from-top-4 duration-500">
         <div className="flex items-center space-x-4">
-          <img 
-            src="https://cdn.poehali.dev/files/ef4f26ae-4e82-46e1-a4de-1c072818869c.png" 
-            alt="Logo" 
-            className="object-contain w-12 h-12 transition-transform duration-300 hover:scale-110 hover:rotate-12 cursor-pointer"
-          />
+          <a 
+            href="https://ab-onlinekassa.ru/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            title="Перейти на сайт компании"
+          >
+            <img 
+              src="https://cdn.poehali.dev/files/ef4f26ae-4e82-46e1-a4de-1c072818869c.png" 
+              alt="Logo" 
+              className="object-contain w-12 h-12 transition-transform duration-300 hover:scale-110 hover:rotate-12 cursor-pointer"
+            />
+          </a>
           <h1 className="font-bold text-gray-900 text-2xl">
             Центр развития и тестирования
           </h1>
