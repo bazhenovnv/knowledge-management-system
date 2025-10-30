@@ -47,8 +47,11 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loadTest();
-    loadCourses();
+    // Отключена автозагрузка - только при наличии backend
+    if (funcUrls['database'] && testId) {
+      loadTest();
+      loadCourses();
+    }
   }, [testId]);
 
   const loadTest = async () => {

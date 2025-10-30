@@ -22,7 +22,8 @@ export const TopFunctionsWidget = ({ refreshTrigger }: TopFunctionsWidgetProps) 
   const [totalCalls, setTotalCalls] = useState(0);
 
   useEffect(() => {
-    fetchTopFunctions();
+    // Отключена автозагрузка
+    // fetchTopFunctions();
   }, [refreshTrigger]);
 
   const fetchTopFunctions = async () => {

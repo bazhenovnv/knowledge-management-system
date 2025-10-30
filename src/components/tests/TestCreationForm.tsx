@@ -43,7 +43,10 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loadCourses();
+    // Отключена автозагрузка курсов
+    if (funcUrls['database']) {
+      loadCourses();
+    }
   }, []);
 
   const loadCourses = async () => {

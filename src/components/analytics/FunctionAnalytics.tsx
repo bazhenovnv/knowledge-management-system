@@ -30,7 +30,8 @@ export const FunctionAnalytics = ({ refreshTrigger }: FunctionAnalyticsProps) =>
   const [currentMonth, setCurrentMonth] = useState('');
 
   useEffect(() => {
-    fetchStats();
+    // Отключена автозагрузка
+    // fetchStats();
   }, [refreshTrigger]);
 
   const fetchStats = async () => {

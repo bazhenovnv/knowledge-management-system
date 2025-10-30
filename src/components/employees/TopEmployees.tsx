@@ -84,7 +84,10 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
       }
     };
 
-    loadEmployeesData();
+    // Отключена автозагрузка - загрузка только по требованию
+    if (funcUrls['database']) {
+      loadEmployeesData();
+    }
   }, []);
 
   const getAttentionReason = (employee: EmployeeWithStats) => {

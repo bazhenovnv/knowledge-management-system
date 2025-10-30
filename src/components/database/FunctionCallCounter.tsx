@@ -20,9 +20,10 @@ export const FunctionCallCounter = ({ isAdmin, refreshTrigger }: FunctionCallCou
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchStats();
-    }
+    // Отключена автозагрузка
+    // if (isAdmin) {
+    //   fetchStats();
+    // }
   }, [isAdmin, refreshTrigger]);
 
   const fetchStats = async () => {

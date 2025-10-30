@@ -107,10 +107,9 @@ export default function ConnectionStatus({
   };
 
   useEffect(() => {
-    checkConnection();
+    // Автопроверка отключена - только по требованию пользователя
+    // checkConnection();
     
-    // Автообновление отключено
-
     return () => {
       if (reconnectTimeout.current) {
         clearTimeout(reconnectTimeout.current);

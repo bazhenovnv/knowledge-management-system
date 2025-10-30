@@ -17,11 +17,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<any>(null);
 
   const refreshData = useCallback(async () => {
+    if (!funcUrls['database']) {
+      setStats({
+        totalEmployees: 0,
+        activeEmployees: 0,
+        inactiveEmployees: 0,
+        totalTests: 0,
+        totalTestResults: 0,
+        averageScore: 0,
+        activeCourses: 0,
+        newRegistrations: 0,
+        employees: [],
+        testResults: []
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
-      const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+      const BACKEND_URL = funcUrls['database'];
       
-      // Проверяем доступность бэкенда
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
       
@@ -85,7 +100,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setLastUpdated(new Date());
       toast.success('Данные обновлены');
     } catch (error) {
-      // Работаем в офлайн-режиме без вывода ошибок
       setStats({
         totalEmployees: 0,
         activeEmployees: 0,
