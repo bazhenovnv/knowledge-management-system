@@ -437,7 +437,7 @@ export default function VideoCall() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8 py-3">
+        <div className="flex justify-between items-center mb-8 py-3 px-6 bg-white rounded-lg shadow-lg">
           <h1 className="text-4xl font-bold text-gray-800">
             Видеозвонки P2P
           </h1>
