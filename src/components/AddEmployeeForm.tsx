@@ -159,7 +159,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
                   <SelectValue placeholder="Выберите отдел" />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map((dept) => (
+                  {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
                       {dept}
                     </SelectItem>
