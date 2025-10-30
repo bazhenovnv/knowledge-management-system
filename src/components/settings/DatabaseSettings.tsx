@@ -288,7 +288,7 @@ export default function DatabaseSettings() {
             <Button 
               onClick={exportDatabase} 
               disabled={isExporting}
-              className="w-full"
+              className="w-full border-[0.25px] border-black"
               variant="outline"
             >
               {isExporting ? (
@@ -325,7 +325,7 @@ export default function DatabaseSettings() {
             <Button 
               onClick={importDatabase} 
               disabled={isImporting}
-              className="w-full"
+              className="w-full border-[0.25px] border-black"
               variant="outline"
             >
               {isImporting ? (
