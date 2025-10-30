@@ -95,7 +95,7 @@ export const Navigation = ({
             Центр развития и тестирования
           </h1>
           {userName && (
-            <div className="items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 hidden md:flex">
+            <div className="items-center space-x-2 bg-white/70 backdrop-blur-sm rounded-lg px-3 py-2 hidden md:flex border-[0.25px] border-black">
               <Icon name="User" size={16} className="text-gray-600" />
               <span className="text-sm font-medium text-gray-700">{userName}</span>
             </div>
@@ -108,7 +108,7 @@ export const Navigation = ({
             size="sm"
             onClick={refreshData}
             disabled={isLoading}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow"
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
             title={lastUpdated ? `Обновлено: ${lastUpdated.toLocaleTimeString()}` : "Обновить данные"}
           >
             <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
@@ -123,7 +123,7 @@ export const Navigation = ({
             variant="outline"
             size="sm"
             onClick={() => setActiveTab("settings")}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow"
+            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
             title="Настройки"
           >
             <Icon name="Settings" size={16} />
