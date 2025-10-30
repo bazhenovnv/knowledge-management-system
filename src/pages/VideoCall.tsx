@@ -36,12 +36,15 @@ export default function VideoCall() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [callDuration, setCallDuration] = useState(0);
+  const [incomingCall, setIncomingCall] = useState<MediaConnection | null>(null);
+  const [callerPeerId, setCallerPeerId] = useState<string>('');
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const callTimerRef = useRef<number | null>(null);
+  const ringtoneRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const newPeer = new Peer();
@@ -80,35 +83,17 @@ export default function VideoCall() {
       });
     });
 
-    newPeer.on('call', async (mediaConnection) => {
-      try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-          video: true, 
-          audio: true 
-        });
-        
-        setStream(mediaStream);
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = mediaStream;
-        }
-
-        mediaConnection.answer(mediaStream);
-        setCall(mediaConnection);
-        setIsCalling(true);
-
-        mediaConnection.on('stream', (remoteStream) => {
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStream;
-          }
-        });
-
-        mediaConnection.on('close', () => {
-          endCall();
-        });
-      } catch (error) {
-        console.error('Error accessing media devices:', error);
-        alert('Не удалось получить доступ к камере и микрофону');
+    newPeer.on('call', (mediaConnection) => {
+      // Show incoming call notification
+      setIncomingCall(mediaConnection);
+      setCallerPeerId(mediaConnection.peer);
+      
+      // Play ringtone
+      if (!ringtoneRef.current) {
+        ringtoneRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSyBzvLXiTYIG2m98OScTgwOUKXh8LRkGwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz0I0yBSV9z/HZljgJElyx6OyrWBELTKXh8bllHAU2jdXxxH0pBSh+zvDaj0EKGGG26+maUQ0NTqTg8bVnHwU7k9jz');
+        ringtoneRef.current.loop = true;
       }
+      ringtoneRef.current.play().catch(e => console.error('Ringtone play error:', e));
     });
 
     setPeer(newPeer);
@@ -302,6 +287,67 @@ export default function VideoCall() {
       mediaRecorder.stop();
       setMediaRecorder(null);
       setIsRecording(false);
+    }
+  };
+
+  const acceptCall = async () => {
+    if (!incomingCall) return;
+
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      
+      setStream(mediaStream);
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = mediaStream;
+      }
+
+      incomingCall.answer(mediaStream);
+      setCall(incomingCall);
+      setIsCalling(true);
+      setIncomingCall(null);
+
+      // Stop ringtone
+      if (ringtoneRef.current) {
+        ringtoneRef.current.pause();
+        ringtoneRef.current.currentTime = 0;
+      }
+
+      // Start call timer
+      setCallDuration(0);
+      callTimerRef.current = window.setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+
+      incomingCall.on('stream', (remoteStream) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+        }
+      });
+
+      incomingCall.on('close', () => {
+        endCall();
+      });
+    } catch (error) {
+      console.error('Error accessing media devices:', error);
+      alert('Не удалось получить доступ к камере и микрофону');
+      rejectCall();
+    }
+  };
+
+  const rejectCall = () => {
+    if (incomingCall) {
+      incomingCall.close();
+      setIncomingCall(null);
+      setCallerPeerId('');
+    }
+    
+    // Stop ringtone
+    if (ringtoneRef.current) {
+      ringtoneRef.current.pause();
+      ringtoneRef.current.currentTime = 0;
     }
   };
 
@@ -522,6 +568,39 @@ export default function VideoCall() {
                 )}
               </div>
             </div>
+
+            {/* Incoming call notification */}
+            {incomingCall && (
+              <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-500 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                      <Icon name="Phone" size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-lg">Входящий звонок</p>
+                      <p className="text-sm text-gray-600">От: {callerPeerId.slice(0, 8)}...</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={acceptCall}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Icon name="Phone" size={16} className="mr-2" />
+                      Принять
+                    </Button>
+                    <Button 
+                      onClick={rejectCall}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      <Icon name="PhoneOff" size={16} className="mr-2" />
+                      Отклонить
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
