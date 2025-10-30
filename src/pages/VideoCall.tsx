@@ -441,7 +441,7 @@ export default function VideoCall() {
           <h1 className="text-4xl font-bold text-gray-800">
             Видеозвонки P2P
           </h1>
-          <Button onClick={createNewRoom} variant="outline" className="border-[0.5px] border-black">
+          <Button onClick={createNewRoom} variant="outline" className="border-[0.25px] border-black">
             <Icon name="Plus" size={16} className="mr-2" />
             Новая комната
           </Button>
@@ -459,7 +459,7 @@ export default function VideoCall() {
                 readOnly 
                 className="flex-1 text-sm"
               />
-              <Button onClick={copyRoomLink} variant="outline" className="border-[0.5px] border-black">
+              <Button onClick={copyRoomLink} variant="outline" className="border-[0.25px] border-black">
                 <Icon name="Copy" size={16} className="mr-2" />
                 Копировать
               </Button>
@@ -486,7 +486,7 @@ export default function VideoCall() {
                 onClick={connectToPeer} 
                 disabled={!remotePeerId || isConnected}
                 variant="outline"
-                className="border-[0.5px] border-black"
+                className="border-[0.25px] border-black"
               >
                 <Icon name="Link" size={16} />
               </Button>
@@ -520,7 +520,7 @@ export default function VideoCall() {
                   <Button 
                     onClick={startCall} 
                     disabled={!isConnected}
-                    className="bg-green-600 hover:bg-green-700 border-[0.5px] border-black"
+                    className="bg-green-600 hover:bg-green-700 border-[0.25px] border-black"
                   >
                     <Icon name="Video" size={16} className="mr-2" />
                     Начать звонок
@@ -531,7 +531,7 @@ export default function VideoCall() {
                       onClick={toggleVideo}
                       variant={isVideoEnabled ? "outline" : "destructive"}
                       size="icon"
-                      className={isVideoEnabled ? "border-[0.5px] border-black" : ""}
+                      className={isVideoEnabled ? "border-[0.25px] border-black" : ""}
                     >
                       <Icon name={isVideoEnabled ? "Video" : "VideoOff"} size={18} />
                     </Button>
@@ -539,7 +539,7 @@ export default function VideoCall() {
                       onClick={toggleAudio}
                       variant={isAudioEnabled ? "outline" : "destructive"}
                       size="icon"
-                      className={isAudioEnabled ? "border-[0.5px] border-black" : ""}
+                      className={isAudioEnabled ? "border-[0.25px] border-black" : ""}
                     >
                       <Icon name={isAudioEnabled ? "Mic" : "MicOff"} size={18} />
                     </Button>
@@ -547,7 +547,7 @@ export default function VideoCall() {
                       onClick={toggleScreenShare}
                       variant="outline"
                       size="icon"
-                      className={isScreenSharing ? "border-[0.5px] border-black bg-gray-100" : "border-[0.5px] border-black"}
+                      className={isScreenSharing ? "border-[0.25px] border-black bg-gray-100" : "border-[0.25px] border-black"}
                     >
                       <Icon name={isScreenSharing ? "MonitorX" : "Monitor"} size={18} />
                     </Button>
@@ -555,13 +555,13 @@ export default function VideoCall() {
                       onClick={isRecording ? stopRecording : startRecording}
                       variant={isRecording ? "destructive" : "outline"}
                       size="icon"
-                      className={!isRecording ? "border-[0.5px] border-black" : ""}
+                      className={!isRecording ? "border-[0.25px] border-black" : ""}
                     >
                       <Icon name={isRecording ? "Square" : "Circle"} size={18} />
                     </Button>
                     <Button 
                       onClick={endCall}
-                      className="bg-red-600 hover:bg-red-700 border-[0.5px] border-black"
+                      className="bg-red-600 hover:bg-red-700 border-[0.25px] border-black"
                     >
                       <Icon name="PhoneOff" size={16} className="mr-2" />
                       Завершить
@@ -587,14 +587,14 @@ export default function VideoCall() {
                   <div className="flex gap-2">
                     <Button 
                       onClick={acceptCall}
-                      className="bg-green-600 hover:bg-green-700 border-[0.5px] border-black"
+                      className="bg-green-600 hover:bg-green-700 border-[0.25px] border-black"
                     >
                       <Icon name="Phone" size={16} className="mr-2" />
                       Принять
                     </Button>
                     <Button 
                       onClick={rejectCall}
-                      className="bg-red-600 hover:bg-red-700 border-[0.5px] border-black"
+                      className="bg-red-600 hover:bg-red-700 border-[0.25px] border-black"
                     >
                       <Icon name="PhoneOff" size={16} className="mr-2" />
                       Отклонить
@@ -682,7 +682,7 @@ export default function VideoCall() {
                 onClick={sendMessage} 
                 disabled={!isConnected || !messageInput.trim()}
                 variant="outline"
-                className="border-[0.5px] border-black"
+                className="border-[0.25px] border-black"
               >
                 <Icon name="Send" size={16} />
               </Button>
