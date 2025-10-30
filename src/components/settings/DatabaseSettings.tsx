@@ -288,8 +288,7 @@ export default function DatabaseSettings() {
             <Button 
               onClick={exportDatabase} 
               disabled={isExporting}
-              className="w-full border-[0.25px] border-black"
-              variant="outline"
+              className="w-full"
             >
               {isExporting ? (
                 <>
@@ -325,8 +324,7 @@ export default function DatabaseSettings() {
             <Button 
               onClick={importDatabase} 
               disabled={isImporting}
-              className="w-full border-[0.25px] border-black"
-              variant="outline"
+              className="w-full"
             >
               {isImporting ? (
                 <>
@@ -479,7 +477,7 @@ export default function DatabaseSettings() {
                 <Button 
                   onClick={() => setShowClearDialog(true)}
                   variant="destructive"
-                  className="w-full"
+                  className="w-full border-[0.25px] border-black"
                 >
                   <Icon name="Trash2" size={16} className="mr-2" />
                   Очистить базу данных
@@ -496,7 +494,7 @@ export default function DatabaseSettings() {
                 <Button 
                   onClick={() => setShowResetDialog(true)}
                   variant="destructive"
-                  className="w-full"
+                  className="w-full border-[0.25px] border-black"
                 >
                   <Icon name="RotateCcw" size={16} className="mr-2" />
                   Сбросить к демо-данным

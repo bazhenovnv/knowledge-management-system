@@ -181,7 +181,6 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
                 />
                 <Button 
                   type="button" 
-                  variant="outline" 
                   size="sm"
                   onClick={() => document.getElementById('avatar-upload')?.click()}
                   disabled={isUploadingPhoto}
