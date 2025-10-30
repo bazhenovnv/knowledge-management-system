@@ -35,11 +35,13 @@ export default function VideoCall() {
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [callDuration, setCallDuration] = useState(0);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const callTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const newPeer = new Peer();
@@ -170,6 +172,12 @@ export default function VideoCall() {
       const mediaConnection = peer.call(remotePeerId, mediaStream);
       setCall(mediaConnection);
       setIsCalling(true);
+      
+      // Start call timer
+      setCallDuration(0);
+      callTimerRef.current = window.setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
 
       mediaConnection.on('stream', (remoteStream) => {
         if (remoteVideoRef.current) {
@@ -218,6 +226,13 @@ export default function VideoCall() {
     if (isRecording) {
       stopRecording();
     }
+
+    // Stop call timer
+    if (callTimerRef.current) {
+      clearInterval(callTimerRef.current);
+      callTimerRef.current = null;
+    }
+    setCallDuration(0);
   };
 
   const toggleVideo = () => {
@@ -440,10 +455,18 @@ export default function VideoCall() {
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="md:col-span-2 p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Icon name="Video" size={24} />
-                Видеозвонок
-              </h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <Icon name="Video" size={24} />
+                  Видеозвонок
+                </h2>
+                {isCalling && (
+                  <div className="flex items-center gap-2 text-gray-600 text-sm">
+                    <Icon name="Clock" size={16} />
+                    <span className="font-mono">{Math.floor(callDuration / 60).toString().padStart(2, '0')}:{(callDuration % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                )}
+              </div>
               <div className="flex gap-2">
                 {!isCalling ? (
                   <Button 
