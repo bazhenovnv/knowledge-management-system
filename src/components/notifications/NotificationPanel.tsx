@@ -102,14 +102,24 @@ export const NotificationPanel = ({
       </SheetTrigger>
       <SheetContent side="right" className="w-96">
         <SheetHeader>
-          <SheetTitle className="flex items-center justify-between">
-            <span>Уведомления</span>
-            {unreadCount > 0 && (
-              <Badge variant="secondary" className="ml-2">
-                {unreadCount} новых
-              </Badge>
-            )}
-          </SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="flex items-center">
+              <span>Уведомления</span>
+              {unreadCount > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {unreadCount} новых
+                </Badge>
+              )}
+            </SheetTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+            >
+              <Icon name="X" size={18} />
+            </Button>
+          </div>
         </SheetHeader>
 
         <div className="mt-6 space-y-4">
