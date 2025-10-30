@@ -171,7 +171,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
         {/* Заголовок и статистика */}
         <Card className="bg-transparent border-transparent shadow-none">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between bg-[#ffffff]">
               <div>
                 <CardTitle>Тесты из базы данных</CardTitle>
                 <CardDescription>
