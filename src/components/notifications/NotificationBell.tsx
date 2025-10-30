@@ -94,9 +94,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button 
-          variant="ghost" 
-          size="icon" 
-          className={cn("relative", className)}
+          variant="outline" 
+          size="sm" 
+          className={cn("relative text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black", className)}
           title="Оповещения"
         >
           <Icon name="Bell" size={20} />
