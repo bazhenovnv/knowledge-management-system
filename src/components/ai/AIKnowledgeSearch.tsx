@@ -116,7 +116,7 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
             <Button
               onClick={searchMaterials}
               disabled={loading || !query.trim()}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 border-[0.25px] border-black"
             >
               {loading ? (
                 <>
