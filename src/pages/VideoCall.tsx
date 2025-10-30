@@ -458,29 +458,33 @@ export default function VideoCall() {
                   <>
                     <Button 
                       onClick={toggleVideo}
-                      variant={isVideoEnabled ? "default" : "destructive"}
+                      variant={isVideoEnabled ? "outline" : "destructive"}
                       size="icon"
+                      className={isVideoEnabled ? "border-black" : ""}
                     >
                       <Icon name={isVideoEnabled ? "Video" : "VideoOff"} size={18} />
                     </Button>
                     <Button 
                       onClick={toggleAudio}
-                      variant={isAudioEnabled ? "default" : "destructive"}
+                      variant={isAudioEnabled ? "outline" : "destructive"}
                       size="icon"
+                      className={isAudioEnabled ? "border-black" : ""}
                     >
                       <Icon name={isAudioEnabled ? "Mic" : "MicOff"} size={18} />
                     </Button>
                     <Button 
                       onClick={toggleScreenShare}
-                      variant={isScreenSharing ? "secondary" : "default"}
+                      variant="outline"
                       size="icon"
+                      className={isScreenSharing ? "border-black bg-gray-100" : "border-black"}
                     >
                       <Icon name={isScreenSharing ? "MonitorX" : "Monitor"} size={18} />
                     </Button>
                     <Button 
                       onClick={isRecording ? stopRecording : startRecording}
-                      variant={isRecording ? "destructive" : "default"}
+                      variant={isRecording ? "destructive" : "outline"}
                       size="icon"
+                      className={!isRecording ? "border-black" : ""}
                     >
                       <Icon name={isRecording ? "Square" : "Circle"} size={18} />
                     </Button>
