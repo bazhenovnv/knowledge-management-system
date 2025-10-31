@@ -10,6 +10,8 @@ import {
 
 export type SortField = 'name' | 'department' | 'position' | 'hire_date' | 'created_at';
 export type SortOrder = 'asc' | 'desc';
+export type StatusFilter = 'all' | 'active' | 'inactive';
+export type RoleFilter = 'all' | 'admin' | 'teacher' | 'employee';
 
 interface EmployeeToolbarProps {
   searchTerm: string;
@@ -22,6 +24,10 @@ interface EmployeeToolbarProps {
   sortField: SortField;
   sortOrder: SortOrder;
   onSortChange: (field: SortField) => void;
+  statusFilter: StatusFilter;
+  roleFilter: RoleFilter;
+  onStatusFilterChange: (status: StatusFilter) => void;
+  onRoleFilterChange: (role: RoleFilter) => void;
 }
 
 export function EmployeeToolbar({
@@ -34,7 +40,11 @@ export function EmployeeToolbar({
   employeeCount,
   sortField,
   sortOrder,
-  onSortChange
+  onSortChange,
+  statusFilter,
+  roleFilter,
+  onStatusFilterChange,
+  onRoleFilterChange
 }: EmployeeToolbarProps) {
   const getSortLabel = (field: SortField): string => {
     const labels = {
@@ -45,6 +55,25 @@ export function EmployeeToolbar({
       created_at: 'Дата создания'
     };
     return labels[field];
+  };
+
+  const getStatusLabel = (status: StatusFilter): string => {
+    const labels = {
+      all: 'Все',
+      active: 'Активные',
+      inactive: 'Неактивные'
+    };
+    return labels[status];
+  };
+
+  const getRoleLabel = (role: RoleFilter): string => {
+    const labels = {
+      all: 'Все роли',
+      admin: 'Администраторы',
+      teacher: 'Преподаватели',
+      employee: 'Сотрудники'
+    };
+    return labels[role];
   };
   return (
     <div className="mb-6 space-y-4">
@@ -64,7 +93,57 @@ export function EmployeeToolbar({
           />
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Icon name="Filter" size={18} className="mr-2" />
+                Статус: {getStatusLabel(statusFilter)}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onStatusFilterChange('all')}>
+                <Icon name="Users" size={16} className="mr-2" />
+                Все {statusFilter === 'all' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onStatusFilterChange('active')}>
+                <Icon name="UserCheck" size={16} className="mr-2" />
+                Активные {statusFilter === 'active' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onStatusFilterChange('inactive')}>
+                <Icon name="UserX" size={16} className="mr-2" />
+                Неактивные {statusFilter === 'inactive' && '✓'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Icon name="Shield" size={18} className="mr-2" />
+                {getRoleLabel(roleFilter)}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onRoleFilterChange('all')}>
+                <Icon name="Users" size={16} className="mr-2" />
+                Все роли {roleFilter === 'all' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRoleFilterChange('admin')}>
+                <Icon name="ShieldCheck" size={16} className="mr-2" />
+                Администраторы {roleFilter === 'admin' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRoleFilterChange('teacher')}>
+                <Icon name="GraduationCap" size={16} className="mr-2" />
+                Преподаватели {roleFilter === 'teacher' && '✓'}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRoleFilterChange('employee')}>
+                <Icon name="User" size={16} className="mr-2" />
+                Сотрудники {roleFilter === 'employee' && '✓'}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">

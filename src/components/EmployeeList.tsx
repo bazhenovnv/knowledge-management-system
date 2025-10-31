@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { EmployeeCard } from './employee/EmployeeCard';
-import { EmployeeToolbar, SortField, SortOrder } from './employee/EmployeeToolbar';
+import { EmployeeToolbar, SortField, SortOrder, StatusFilter, RoleFilter } from './employee/EmployeeToolbar';
 import { EmployeeImport } from './employee/EmployeeImport';
 import { EmployeeExport } from './employee/EmployeeExport';
 import Icon from '@/components/ui/icon';
@@ -29,6 +29,8 @@ const EmployeeList: React.FC = () => {
   const [employeeToDelete, setEmployeeToDelete] = useState<DatabaseEmployee | null>(null);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
   const importRef = React.useRef<{ handleImportClick: () => void }>(null);
 
   useEffect(() => {
@@ -37,7 +39,7 @@ const EmployeeList: React.FC = () => {
 
   useEffect(() => {
     filterAndSortEmployees();
-  }, [employees, searchTerm, sortField, sortOrder]);
+  }, [employees, searchTerm, sortField, sortOrder, statusFilter, roleFilter]);
 
   const loadEmployees = async () => {
     console.log('🔄 Loading employees from database...');
@@ -57,6 +59,16 @@ const EmployeeList: React.FC = () => {
 
   const filterAndSortEmployees = () => {
     let result = [...employees];
+
+    if (statusFilter !== 'all') {
+      result = result.filter(emp => 
+        statusFilter === 'active' ? emp.is_active : !emp.is_active
+      );
+    }
+
+    if (roleFilter !== 'all') {
+      result = result.filter(emp => emp.role === roleFilter);
+    }
 
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
@@ -188,6 +200,10 @@ const EmployeeList: React.FC = () => {
         sortField={sortField}
         sortOrder={sortOrder}
         onSortChange={handleSortChange}
+        statusFilter={statusFilter}
+        roleFilter={roleFilter}
+        onStatusFilterChange={setStatusFilter}
+        onRoleFilterChange={setRoleFilter}
       />
 
       {filteredEmployees.length === 0 ? (
