@@ -1,37 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
 import Icon from "@/components/ui/icon";
 import { Footer } from "@/components/layout/Footer";
-
-interface TextSection {
-  id: string;
-  title: string;
-  content: string;
-  description: string;
-}
-
-interface ProjectSettings {
-  projectName: string;
-  companyName: string;
-  supportEmail: string;
-  maxEmployees: number;
-  enableNotifications: boolean;
-  enableAnalytics: boolean;
-}
-
-interface AppearanceSettings {
-  backgroundColor: string;
-  backgroundImage: string;
-  contentBackgroundColor: string;
-  useBackgroundImage: boolean;
-}
+import { 
+  TextSectionsTab, 
+  type TextSection 
+} from "@/components/admin/TextSectionsTab";
+import { 
+  ProjectSettingsTab, 
+  type ProjectSettings 
+} from "@/components/admin/ProjectSettingsTab";
+import { 
+  AppearanceTab, 
+  type AppearanceSettings 
+} from "@/components/admin/AppearanceTab";
 
 const defaultTextSections: TextSection[] = [
   {
@@ -76,7 +60,6 @@ export default function AdminSettings() {
   const [settings, setSettings] = useState<ProjectSettings>(defaultSettings);
   const [appearance, setAppearance] = useState<AppearanceSettings>(defaultAppearance);
   const [activeSection, setActiveSection] = useState<string>("welcome");
-  const { toast } = useToast();
 
   useEffect(() => {
     loadData();
@@ -101,65 +84,6 @@ export default function AdminSettings() {
       setAppearance(JSON.parse(savedAppearance));
     }
   };
-
-  const saveTextSections = () => {
-    localStorage.setItem("adminTextSections", JSON.stringify(textSections));
-    toast({
-      title: "Сохранено",
-      description: "Тексты успешно обновлены",
-    });
-  };
-
-  const saveSettings = () => {
-    localStorage.setItem("adminProjectSettings", JSON.stringify(settings));
-    toast({
-      title: "Сохранено",
-      description: "Настройки проекта обновлены",
-    });
-  };
-
-  const saveAppearance = () => {
-    localStorage.setItem("appAppearanceSettings", JSON.stringify(appearance));
-    window.dispatchEvent(new Event('appearanceChanged'));
-    toast({
-      title: "Сохранено",
-      description: "Настройки внешнего вида обновлены",
-    });
-  };
-
-  const updateTextSection = (id: string, field: keyof TextSection, value: string) => {
-    setTextSections(sections =>
-      sections.map(section =>
-        section.id === id ? { ...section, [field]: value } : section
-      )
-    );
-  };
-
-  const addNewSection = () => {
-    const newSection: TextSection = {
-      id: `custom_${Date.now()}`,
-      title: "Новый раздел",
-      content: "",
-      description: "Описание нового раздела"
-    };
-    setTextSections([...textSections, newSection]);
-    setActiveSection(newSection.id);
-  };
-
-  const deleteSection = (id: string) => {
-    if (textSections.length <= 1) {
-      toast({
-        title: "Ошибка",
-        description: "Нельзя удалить последний раздел",
-        variant: "destructive"
-      });
-      return;
-    }
-    setTextSections(sections => sections.filter(s => s.id !== id));
-    setActiveSection(textSections[0]?.id || "");
-  };
-
-  const currentSection = textSections.find(s => s.id === activeSection);
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
@@ -218,288 +142,31 @@ export default function AdminSettings() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="texts" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Редактирование текстов</h2>
-              <Button onClick={addNewSection} size="sm">
-                <Icon name="Plus" className="mr-2" size={16} />
-                Добавить раздел
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="lg:col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-lg">Разделы</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {textSections.map(section => (
-                    <Button
-                      key={section.id}
-                      variant={activeSection === section.id ? "default" : "outline"}
-                      className="w-full justify-start"
-                      onClick={() => setActiveSection(section.id)}
-                    >
-                      <Icon name="FileText" className="mr-2" size={16} />
-                      {section.title}
-                    </Button>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Редактировать раздел</CardTitle>
-                  <CardDescription>
-                    {currentSection?.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {currentSection && (
-                    <>
-                      <div>
-                        <Label htmlFor="section-title">Название раздела</Label>
-                        <Input
-                          id="section-title"
-                          value={currentSection.title}
-                          onChange={(e) => updateTextSection(currentSection.id, "title", e.target.value)}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="section-description">Описание</Label>
-                        <Input
-                          id="section-description"
-                          value={currentSection.description}
-                          onChange={(e) => updateTextSection(currentSection.id, "description", e.target.value)}
-                        />
-                      </div>
-
-                      <div>
-                        <Label htmlFor="section-content">Содержание</Label>
-                        <Textarea
-                          id="section-content"
-                          value={currentSection.content}
-                          onChange={(e) => updateTextSection(currentSection.id, "content", e.target.value)}
-                          rows={8}
-                        />
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button onClick={saveTextSections} className="flex-1">
-                          <Icon name="Save" className="mr-2" size={16} />
-                          Сохранить
-                        </Button>
-                        {!["welcome", "about", "footer"].includes(currentSection.id) && (
-                          <Button
-                            variant="destructive"
-                            onClick={() => deleteSection(currentSection.id)}
-                          >
-                            <Icon name="Trash2" className="mr-2" size={16} />
-                            Удалить
-                          </Button>
-                        )}
-                      </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="texts">
+            <TextSectionsTab
+              textSections={textSections}
+              setTextSections={setTextSections}
+              activeSection={activeSection}
+              setActiveSection={setActiveSection}
+            />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Основные настройки</CardTitle>
-                <CardDescription>
-                  Конфигурация проекта и системные параметры
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="projectName">Название проекта</Label>
-                    <Input
-                      id="projectName"
-                      value={settings.projectName}
-                      onChange={(e) => setSettings({ ...settings, projectName: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="companyName">Название компании</Label>
-                    <Input
-                      id="companyName"
-                      value={settings.companyName}
-                      onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="supportEmail">Email поддержки</Label>
-                    <Input
-                      id="supportEmail"
-                      type="email"
-                      value={settings.supportEmail}
-                      onChange={(e) => setSettings({ ...settings, supportEmail: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="maxEmployees">Макс. сотрудников</Label>
-                    <Input
-                      id="maxEmployees"
-                      type="number"
-                      value={settings.maxEmployees}
-                      onChange={(e) => setSettings({ ...settings, maxEmployees: parseInt(e.target.value) || 0 })}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Уведомления</Label>
-                      <p className="text-sm text-gray-500">Отправлять email уведомления</p>
-                    </div>
-                    <Button
-                      variant={settings.enableNotifications ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSettings({ ...settings, enableNotifications: !settings.enableNotifications })}
-                    >
-                      {settings.enableNotifications ? "Включено" : "Выключено"}
-                    </Button>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Аналитика</Label>
-                      <p className="text-sm text-gray-500">Собирать данные использования</p>
-                    </div>
-                    <Button
-                      variant={settings.enableAnalytics ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSettings({ ...settings, enableAnalytics: !settings.enableAnalytics })}
-                    >
-                      {settings.enableAnalytics ? "Включено" : "Выключено"}
-                    </Button>
-                  </div>
-                </div>
-
-                <Button onClick={saveSettings} className="w-full">
-                  <Icon name="Save" className="mr-2" size={16} />
-                  Сохранить настройки
-                </Button>
-              </CardContent>
-            </Card>
+          <TabsContent value="settings">
+            <ProjectSettingsTab
+              settings={settings}
+              setSettings={setSettings}
+            />
           </TabsContent>
 
-          <TabsContent value="appearance" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Настройка внешнего вида</CardTitle>
-                <CardDescription>
-                  Измените цвета и фоны всех страниц приложения
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="backgroundColor">Цвет фона приложения</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Input
-                        id="backgroundColor"
-                        type="color"
-                        value={appearance.backgroundColor}
-                        onChange={(e) => setAppearance({ ...appearance, backgroundColor: e.target.value })}
-                        className="w-20 h-10"
-                      />
-                      <Input
-                        value={appearance.backgroundColor}
-                        onChange={(e) => setAppearance({ ...appearance, backgroundColor: e.target.value })}
-                        placeholder="#f3f4f6"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">Фон всего приложения</p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="contentBackgroundColor">Цвет фона контента</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Input
-                        id="contentBackgroundColor"
-                        type="color"
-                        value={appearance.contentBackgroundColor}
-                        onChange={(e) => setAppearance({ ...appearance, contentBackgroundColor: e.target.value })}
-                        className="w-20 h-10"
-                      />
-                      <Input
-                        value={appearance.contentBackgroundColor}
-                        onChange={(e) => setAppearance({ ...appearance, contentBackgroundColor: e.target.value })}
-                        placeholder="#ffffff"
-                      />
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">Фон карточек и разделов</p>
-                  </div>
-                </div>
-
-                <div className="space-y-3 pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Использовать фоновое изображение</Label>
-                      <p className="text-sm text-gray-500">Вместо цвета фона</p>
-                    </div>
-                    <Button
-                      variant={appearance.useBackgroundImage ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setAppearance({ ...appearance, useBackgroundImage: !appearance.useBackgroundImage })}
-                    >
-                      {appearance.useBackgroundImage ? "Включено" : "Выключено"}
-                    </Button>
-                  </div>
-
-                  {appearance.useBackgroundImage && (
-                    <div>
-                      <Label htmlFor="backgroundImage">URL фонового изображения</Label>
-                      <Input
-                        id="backgroundImage"
-                        value={appearance.backgroundImage}
-                        onChange={(e) => setAppearance({ ...appearance, backgroundImage: e.target.value })}
-                        placeholder="https://example.com/background.jpg"
-                        className="mt-2"
-                      />
-                      <p className="text-sm text-gray-500 mt-1">
-                        Вставьте ссылку на изображение или загрузите в раздел База знаний
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4 rounded-lg border-2 border-dashed" style={{
-                  backgroundColor: appearance.useBackgroundImage && appearance.backgroundImage 
-                    ? 'transparent' 
-                    : appearance.backgroundColor,
-                  backgroundImage: appearance.useBackgroundImage && appearance.backgroundImage 
-                    ? `url(${appearance.backgroundImage})` 
-                    : 'none',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }}>
-                  <div className="p-4 rounded" style={{ backgroundColor: appearance.contentBackgroundColor }}>
-                    <h3 className="font-semibold mb-2">Предварительный просмотр</h3>
-                    <p className="text-sm text-gray-600">Так будут выглядеть карточки и разделы</p>
-                  </div>
-                </div>
-
-                <Button onClick={saveAppearance} className="w-full">
-                  <Icon name="Save" className="mr-2" size={16} />
-                  Применить настройки
-                </Button>
-              </CardContent>
-            </Card>
+          <TabsContent value="appearance">
+            <AppearanceTab
+              appearance={appearance}
+              setAppearance={setAppearance}
+            />
           </TabsContent>
         </Tabs>
       </div>
+
       <Footer />
     </div>
   );
