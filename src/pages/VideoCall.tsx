@@ -51,6 +51,7 @@ export default function VideoCall() {
   const [myName, setMyName] = useState<string>('');
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
+  const [remoteName, setRemoteName] = useState<string>('Собеседник');
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -107,15 +108,15 @@ export default function VideoCall() {
     if ((isConnected || isCalling) && remotePeerId) {
       newParticipants.push({
         id: remotePeerId,
-        name: 'Собеседник',
-        avatar: generateAvatar('Собеседник'),
+        name: remoteName,
+        avatar: generateAvatar(remoteName),
         isOnline: true,
         isSelf: false
       });
     }
 
     setParticipants(newParticipants);
-  }, [myPeerId, myName, isConnected, isCalling, remotePeerId]);
+  }, [myPeerId, myName, isConnected, isCalling, remotePeerId, remoteName]);
 
   useEffect(() => {
     const newPeer = new Peer({
@@ -223,15 +224,21 @@ export default function VideoCall() {
         setConnection(conn);
         setIsConnected(true);
         console.log('Соединение установлено с:', peerId);
+        conn.send(JSON.stringify({ type: 'name', name: myName }));
       });
 
       conn.on('data', (data) => {
-        const message = data as string;
-        setMessages(prev => [...prev, { 
-          text: message, 
-          sender: 'peer', 
-          timestamp: new Date() 
-        }]);
+        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+        
+        if (parsedData.type === 'name') {
+          setRemoteName(parsedData.name);
+        } else if (parsedData.type === 'message') {
+          setMessages(prev => [...prev, { 
+            text: parsedData.text, 
+            sender: 'peer', 
+            timestamp: new Date() 
+          }]);
+        }
       });
 
       conn.on('error', (error) => {
@@ -574,7 +581,7 @@ export default function VideoCall() {
   const sendMessage = () => {
     if (!connection || !messageInput.trim()) return;
 
-    connection.send(messageInput);
+    connection.send(JSON.stringify({ type: 'message', text: messageInput }));
     setMessages(prev => [...prev, { 
       text: messageInput, 
       sender: 'me', 
@@ -626,6 +633,10 @@ export default function VideoCall() {
       setMyName(tempName.trim());
       localStorage.setItem('userName', tempName.trim());
       setIsEditingName(false);
+      
+      if (connection) {
+        connection.send(JSON.stringify({ type: 'name', name: tempName.trim() }));
+      }
     }
   };
 
