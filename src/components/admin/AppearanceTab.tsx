@@ -135,7 +135,6 @@ export function AppearanceTab({ appearance, setAppearance }: AppearanceTabProps)
                 <p className="text-xs text-red-500">Используйте HEX формат (например, #f3f4f6)</p>
               )}
             </div>
-            </div>
           ) : (
             <div className="space-y-2">
               <Label htmlFor="bg-image">URL изображения</Label>
