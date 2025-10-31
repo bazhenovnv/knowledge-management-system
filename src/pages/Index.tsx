@@ -165,6 +165,7 @@ const Index = () => {
                 employeeId={1}
                 showBackButton={showBackButton}
                 onBackClick={onBackClick}
+                isAuthenticated={isLoggedIn}
               />
             </Tabs>
           </div>

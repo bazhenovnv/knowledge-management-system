@@ -32,6 +32,7 @@ interface NavigationProps {
   employeeId?: number;
   showBackButton?: boolean;
   onBackClick?: () => void;
+  isAuthenticated?: boolean;
 }
 
 export const Navigation = ({
@@ -45,6 +46,7 @@ export const Navigation = ({
   employeeId = 1,
   showBackButton = false,
   onBackClick,
+  isAuthenticated = false,
 }: NavigationProps) => {
   const {
     notifications,
@@ -109,7 +111,7 @@ export const Navigation = ({
           )}
         </div>
         <div className="flex items-center space-x-2">
-          <ServerStatusIndicator compact />
+          <ServerStatusIndicator compact autoCheckOnMount={isAuthenticated} />
           {showBackButton && onBackClick && (
             <Button
               variant="outline"

@@ -87,6 +87,7 @@ export const useAuth = () => {
       setIsLoggedIn(true);
       initializeAutoBackup("admin");
       toast.success("Вход выполнен как Администратор");
+      window.dispatchEvent(new Event('checkBackendConnection'));
       return;
     } else if (email === "teacher@example.com" && password === "teacher123") {
       setUserRole("teacher");
@@ -94,6 +95,7 @@ export const useAuth = () => {
       setUserId(2);
       setIsLoggedIn(true);
       toast.success("Вход выполнен как Преподаватель");
+      window.dispatchEvent(new Event('checkBackendConnection'));
       return;
     } else if (email === "employee@example.com" && password === "employee123") {
       setUserRole("employee");
@@ -101,6 +103,7 @@ export const useAuth = () => {
       setUserId(3);
       setIsLoggedIn(true);
       toast.success("Вход выполнен как Сотрудник");
+      window.dispatchEvent(new Event('checkBackendConnection'));
       return;
     }
 
@@ -134,6 +137,7 @@ export const useAuth = () => {
         }
         
         toast.success(`Добро пожаловать, ${emp.full_name}!`);
+        window.dispatchEvent(new Event('checkBackendConnection'));
       }
     } catch (error) {
       console.error('Login error:', error);

@@ -59,6 +59,7 @@ export default function SimpleIndex() {
         onLogout={handleLogout}
         userRole={currentEmployee.role}
         userName={currentEmployee.full_name}
+        isAuthenticated={true}
       />
       
       <div className="pt-8">

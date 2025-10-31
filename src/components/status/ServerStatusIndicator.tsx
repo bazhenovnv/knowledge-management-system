@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
@@ -14,16 +14,26 @@ interface ServerStatusIndicatorProps {
   apiUrl?: string;
   checkInterval?: number;
   compact?: boolean;
+  autoCheckOnMount?: boolean;
 }
 
 export default function ServerStatusIndicator({ 
   apiUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
-  compact = false
+  compact = false,
+  autoCheckOnMount = false
 }: ServerStatusIndicatorProps) {
-  const [status, setStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  const [status, setStatus] = useState<'online' | 'offline' | 'checking'>('offline');
   const [ping, setPing] = useState<number | null>(null);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [isManualChecking, setIsManualChecking] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const previousStatusRef = useRef<'online' | 'offline' | 'checking'>('offline');
+
+  const playSuccessSound = () => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(err => console.log('Audio play failed:', err));
+    }
+  };
 
   const checkConnection = async (isManual: boolean = false) => {
     if (isManual) {
@@ -34,6 +44,7 @@ export default function ServerStatusIndicator({
     }
 
     const startTime = Date.now();
+    const prevStatus = previousStatusRef.current;
     
     try {
       const controller = new AbortController();
@@ -55,8 +66,14 @@ export default function ServerStatusIndicator({
       if (response.ok) {
         setStatus('online');
         setPing(responseTime);
+        previousStatusRef.current = 'online';
         
-        if (isManual) {
+        if (prevStatus === 'offline' && !isManual) {
+          playSuccessSound();
+          toast.success('Соединение восстановлено', {
+            description: `Задержка: ${responseTime}ms`
+          });
+        } else if (isManual) {
           toast.success('Соединение установлено', {
             description: `Задержка: ${responseTime}ms`
           });
@@ -64,6 +81,7 @@ export default function ServerStatusIndicator({
       } else {
         setStatus('offline');
         setPing(null);
+        previousStatusRef.current = 'offline';
         
         if (isManual) {
           toast.error('Сервер недоступен', {
@@ -74,6 +92,7 @@ export default function ServerStatusIndicator({
     } catch (error) {
       setStatus('offline');
       setPing(null);
+      previousStatusRef.current = 'offline';
       
       if (isManual) {
         toast.warning('Работа в офлайн-режиме', {
@@ -93,16 +112,37 @@ export default function ServerStatusIndicator({
   };
 
   useEffect(() => {
-    // Начальная проверка соединения при загрузке
-    checkConnection(false);
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     
-    // Автоматическая проверка каждые 30 секунд
-    const intervalId = setInterval(() => {
+    const createSuccessSound = () => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    };
+    
+    audioRef.current = { play: createSuccessSound } as any;
+    
+    if (autoCheckOnMount) {
       checkConnection(false);
-    }, 30000);
-    
-    return () => clearInterval(intervalId);
-  }, [apiUrl]);
+      
+      const intervalId = setInterval(() => {
+        checkConnection(false);
+      }, 30000);
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [apiUrl, autoCheckOnMount]);
 
   useEffect(() => {
     const handleOnline = () => checkConnection();
@@ -110,13 +150,17 @@ export default function ServerStatusIndicator({
       setStatus('offline');
       setPing(null);
     };
+    
+    const handleManualCheck = () => checkConnection(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('checkBackendConnection', handleManualCheck);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('checkBackendConnection', handleManualCheck);
     };
   }, []);
 

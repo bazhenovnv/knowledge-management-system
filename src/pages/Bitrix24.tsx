@@ -54,7 +54,13 @@ export default function Bitrix24() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation />
+      <Navigation 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        sidebarOpen={false}
+        setSidebarOpen={() => {}}
+        isAuthenticated={false}
+      />
       
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
