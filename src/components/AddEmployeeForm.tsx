@@ -25,7 +25,8 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
     department: '',
     position: '',
     role: 'employee' as 'admin' | 'teacher' | 'employee',
-    hire_date: new Date().toISOString().split('T')[0]
+    hire_date: new Date().toISOString().split('T')[0],
+    zoom_link: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,7 +69,8 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
           department: '',
           position: '',
           role: 'employee',
-          hire_date: new Date().toISOString().split('T')[0]
+          hire_date: new Date().toISOString().split('T')[0],
+          zoom_link: ''
         });
       } else {
         toast.error('Ошибка при добавлении сотрудника');
@@ -191,6 +193,20 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
               onChange={(e) => handleInputChange('position', e.target.value)}
               placeholder="Senior разработчик"
               required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="zoom_link" className="flex items-center gap-2">
+              <Icon name="Video" size={16} />
+              Ссылка на конференцию
+            </Label>
+            <Input
+              id="zoom_link"
+              type="url"
+              value={formData.zoom_link}
+              onChange={(e) => handleInputChange('zoom_link', e.target.value)}
+              placeholder="https://zoom.us/j/..."
             />
           </div>
 

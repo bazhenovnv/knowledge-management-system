@@ -32,7 +32,8 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
     department: employee.department,
     position: employee.position,
     role: employee.role as 'admin' | 'teacher' | 'employee',
-    hire_date: employee.hire_date || new Date().toISOString().split('T')[0]
+    hire_date: employee.hire_date || new Date().toISOString().split('T')[0],
+    zoom_link: employee.zoom_link || ''
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -148,6 +149,21 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
                 disabled={isLoading}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="zoom_link" className="flex items-center gap-2">
+              <Icon name="Video" size={16} />
+              Ссылка на конференцию
+            </Label>
+            <Input
+              id="zoom_link"
+              type="url"
+              value={formData.zoom_link}
+              onChange={(e) => handleInputChange('zoom_link', e.target.value)}
+              disabled={isLoading}
+              placeholder="https://zoom.us/j/..."
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

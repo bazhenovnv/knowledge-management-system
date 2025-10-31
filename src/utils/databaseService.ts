@@ -11,6 +11,7 @@ export interface DatabaseEmployee {
   role: 'admin' | 'teacher' | 'employee';
   phone?: string;
   hire_date?: string;
+  zoom_link?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
