@@ -41,7 +41,11 @@ export default function ServerStatusIndicator({
 
       const response = await fetch(`${apiUrl}?action=stats`, {
         method: 'GET',
-        signal: controller.signal
+        signal: controller.signal,
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
       clearTimeout(timeoutId);
@@ -89,9 +93,15 @@ export default function ServerStatusIndicator({
   };
 
   useEffect(() => {
-    // Начальная проверка отключена - используем локальные данные
-    setStatus('offline');
-    // Автообновление отключено
+    // Начальная проверка соединения при загрузке
+    checkConnection(false);
+    
+    // Автоматическая проверка каждые 30 секунд
+    const intervalId = setInterval(() => {
+      checkConnection(false);
+    }, 30000);
+    
+    return () => clearInterval(intervalId);
   }, [apiUrl]);
 
   useEffect(() => {
