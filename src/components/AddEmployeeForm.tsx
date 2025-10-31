@@ -56,6 +56,22 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
         return;
       }
 
+      // Проверка URL конференции (если заполнен)
+      if (formData.zoom_link && formData.zoom_link.trim()) {
+        try {
+          const url = new URL(formData.zoom_link.trim());
+          if (!['http:', 'https:'].includes(url.protocol)) {
+            toast.error('Ссылка на конференцию должна начинаться с http:// или https://');
+            setIsLoading(false);
+            return;
+          }
+        } catch {
+          toast.error('Введите корректную ссылку на конференцию (например: https://zoom.us/j/123456789)');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const newEmployee = await databaseService.createEmployee(formData);
       
       if (newEmployee) {
