@@ -17,6 +17,11 @@ interface Message {
     type: string;
     url: string;
   };
+  reactions?: {
+    emoji: string;
+    sender: 'me' | 'peer';
+  }[];
+  id: string;
 }
 
 interface Participant {
@@ -58,6 +63,7 @@ export default function VideoCall() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
   const [remoteName, setRemoteName] = useState<string>('Собеседник');
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -175,8 +181,16 @@ export default function VideoCall() {
           setMessages(prev => [...prev, { 
             text: parsedData.text, 
             sender: 'peer', 
-            timestamp: new Date() 
+            timestamp: new Date(),
+            reactions: [],
+            id: parsedData.id
           }]);
+        } else if (parsedData.type === 'reaction') {
+          setMessages(prev => prev.map(msg => 
+            msg.id === parsedData.messageId
+              ? { ...msg, reactions: parsedData.reactions }
+              : msg
+          ));
         } else if (parsedData.type === 'file') {
           const blob = new Blob([parsedData.data], { type: parsedData.fileType });
           const url = URL.createObjectURL(blob);
@@ -189,7 +203,9 @@ export default function VideoCall() {
               size: parsedData.fileSize,
               type: parsedData.fileType,
               url: url
-            }
+            },
+            reactions: [],
+            id: parsedData.id
           }]);
         }
       });
@@ -266,8 +282,16 @@ export default function VideoCall() {
           setMessages(prev => [...prev, { 
             text: parsedData.text, 
             sender: 'peer', 
-            timestamp: new Date() 
+            timestamp: new Date(),
+            reactions: [],
+            id: parsedData.id
           }]);
+        } else if (parsedData.type === 'reaction') {
+          setMessages(prev => prev.map(msg => 
+            msg.id === parsedData.messageId
+              ? { ...msg, reactions: parsedData.reactions }
+              : msg
+          ));
         } else if (parsedData.type === 'file') {
           const blob = new Blob([parsedData.data], { type: parsedData.fileType });
           const url = URL.createObjectURL(blob);
@@ -280,7 +304,9 @@ export default function VideoCall() {
               size: parsedData.fileSize,
               type: parsedData.fileType,
               url: url
-            }
+            },
+            reactions: [],
+            id: parsedData.id
           }]);
         }
       });
@@ -591,13 +617,50 @@ export default function VideoCall() {
   const sendMessage = () => {
     if (!connection || !messageInput.trim()) return;
 
-    connection.send(JSON.stringify({ type: 'message', text: messageInput }));
+    const messageId = Math.random().toString(36).substring(2, 15);
+    connection.send(JSON.stringify({ type: 'message', text: messageInput, id: messageId }));
     setMessages(prev => [...prev, { 
       text: messageInput, 
       sender: 'me', 
-      timestamp: new Date() 
+      timestamp: new Date(),
+      reactions: [],
+      id: messageId
     }]);
     setMessageInput('');
+  };
+
+  const addReaction = (messageId: string, emoji: string) => {
+    if (!connection) return;
+
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === messageId) {
+        const existingReaction = msg.reactions?.find(r => r.sender === 'me');
+        let newReactions: { emoji: string; sender: 'me' | 'peer' }[];
+        
+        if (existingReaction) {
+          if (existingReaction.emoji === emoji) {
+            newReactions = msg.reactions?.filter(r => r.sender !== 'me') || [];
+          } else {
+            newReactions = msg.reactions?.map(r => 
+              r.sender === 'me' ? { ...r, emoji } : r
+            ) || [];
+          }
+        } else {
+          newReactions = [...(msg.reactions || []), { emoji, sender: 'me' }];
+        }
+
+        connection.send(JSON.stringify({
+          type: 'reaction',
+          messageId,
+          reactions: newReactions
+        }));
+
+        return { ...msg, reactions: newReactions };
+      }
+      return msg;
+    }));
+
+    setShowEmojiPicker(null);
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -608,12 +671,14 @@ export default function VideoCall() {
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
+      const messageId = Math.random().toString(36).substring(2, 15);
       connection.send(JSON.stringify({
         type: 'file',
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
-        data: Array.from(uint8Array)
+        data: Array.from(uint8Array),
+        id: messageId
       }));
 
       const url = URL.createObjectURL(file);
@@ -625,7 +690,9 @@ export default function VideoCall() {
           size: file.size,
           type: file.type,
           url: url
-        }
+        },
+        reactions: [],
+        id: messageId
       }]);
 
       if (fileInputRef.current) {
@@ -1063,6 +1130,41 @@ export default function VideoCall() {
                           minute: '2-digit' 
                         })}
                       </p>
+                    </div>
+                    
+                    <div className={`flex items-center gap-2 mt-2 ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                      {msg.reactions && msg.reactions.length > 0 && (
+                        <div className="flex gap-1 bg-white border rounded-full px-2 py-1 shadow-sm">
+                          {msg.reactions.map((reaction, idx) => (
+                            <span key={idx} className="text-sm" title={reaction.sender === 'me' ? 'Вы' : remoteName}>
+                              {reaction.emoji}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <div className="relative">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 rounded-full hover:bg-gray-200"
+                          onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)}
+                        >
+                          <Icon name="Smile" size={14} />
+                        </Button>
+                        {showEmojiPicker === msg.id && (
+                          <div className="absolute bottom-full mb-2 bg-white border rounded-lg shadow-lg p-2 flex gap-1 z-10">
+                            {['👍', '❤️', '😂', '😮', '😢', '🎉'].map(emoji => (
+                              <button
+                                key={emoji}
+                                onClick={() => addReaction(msg.id, emoji)}
+                                className="text-xl hover:scale-125 transition-transform p-1"
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
