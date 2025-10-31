@@ -133,14 +133,22 @@ export default function UserSettings({ userId }: UserSettingsProps) {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className={`grid w-full ${user.role === 'admin' ? 'grid-cols-7' : 'grid-cols-3'}`}>
+        <TabsList className={`grid w-full ${
+          user.role === 'admin' ? 'grid-cols-7' : 
+          user.role === 'teacher' ? 'grid-cols-5' : 
+          'grid-cols-4'
+        }`}>
           <TabsTrigger value="profile">Профиль</TabsTrigger>
           <TabsTrigger value="notifications">Уведомления</TabsTrigger>
           <TabsTrigger value="scheduled">Планировщик</TabsTrigger>
+          {(user.role === 'admin' || user.role === 'employee') && (
+            <TabsTrigger value="appearance">Внешний вид</TabsTrigger>
+          )}
+          {(user.role === 'admin' || user.role === 'teacher') && (
+            <TabsTrigger value="departments">Отделы</TabsTrigger>
+          )}
           {user.role === 'admin' && (
             <>
-              <TabsTrigger value="appearance">Внешний вид</TabsTrigger>
-              <TabsTrigger value="departments">Отделы</TabsTrigger>
               <TabsTrigger value="app">Приложение</TabsTrigger>
               <TabsTrigger value="database">База данных</TabsTrigger>
             </>
@@ -161,16 +169,20 @@ export default function UserSettings({ userId }: UserSettingsProps) {
           <ScheduledNotificationsPanel employeeId={userId} />
         </TabsContent>
 
+        {(user.role === 'admin' || user.role === 'employee') && (
+          <TabsContent value="appearance">
+            <AppearanceSettings />
+          </TabsContent>
+        )}
+
+        {(user.role === 'admin' || user.role === 'teacher') && (
+          <TabsContent value="departments">
+            <DepartmentSettings userRole={user.role} />
+          </TabsContent>
+        )}
+
         {user.role === 'admin' && (
           <>
-            <TabsContent value="appearance">
-              <AppearanceSettings />
-            </TabsContent>
-            
-            <TabsContent value="departments">
-              <DepartmentSettings userRole={user.role} />
-            </TabsContent>
-            
             <TabsContent value="app">
               <AppSettings />
             </TabsContent>
