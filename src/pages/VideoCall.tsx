@@ -8,9 +8,15 @@ import Icon from '@/components/ui/icon';
 import { Footer } from '@/components/layout/Footer';
 
 interface Message {
-  text: string;
+  text?: string;
   sender: 'me' | 'peer';
   timestamp: Date;
+  file?: {
+    name: string;
+    size: number;
+    type: string;
+    url: string;
+  };
 }
 
 interface Participant {
@@ -52,6 +58,7 @@ export default function VideoCall() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
   const [remoteName, setRemoteName] = useState<string>('Собеседник');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -160,12 +167,31 @@ export default function VideoCall() {
       setIsConnected(true);
       
       conn.on('data', (data) => {
-        const message = data as string;
-        setMessages(prev => [...prev, { 
-          text: message, 
-          sender: 'peer', 
-          timestamp: new Date() 
-        }]);
+        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+        
+        if (parsedData.type === 'name') {
+          setRemoteName(parsedData.name);
+        } else if (parsedData.type === 'message') {
+          setMessages(prev => [...prev, { 
+            text: parsedData.text, 
+            sender: 'peer', 
+            timestamp: new Date() 
+          }]);
+        } else if (parsedData.type === 'file') {
+          const blob = new Blob([parsedData.data], { type: parsedData.fileType });
+          const url = URL.createObjectURL(blob);
+          
+          setMessages(prev => [...prev, {
+            sender: 'peer',
+            timestamp: new Date(),
+            file: {
+              name: parsedData.fileName,
+              size: parsedData.fileSize,
+              type: parsedData.fileType,
+              url: url
+            }
+          }]);
+        }
       });
 
       conn.on('error', (error) => {
@@ -237,6 +263,20 @@ export default function VideoCall() {
             text: parsedData.text, 
             sender: 'peer', 
             timestamp: new Date() 
+          }]);
+        } else if (parsedData.type === 'file') {
+          const blob = new Blob([parsedData.data], { type: parsedData.fileType });
+          const url = URL.createObjectURL(blob);
+          
+          setMessages(prev => [...prev, {
+            sender: 'peer',
+            timestamp: new Date(),
+            file: {
+              name: parsedData.fileName,
+              size: parsedData.fileSize,
+              type: parsedData.fileType,
+              url: url
+            }
           }]);
         }
       });
@@ -590,6 +630,55 @@ export default function VideoCall() {
     setMessageInput('');
   };
 
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !connection) return;
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      connection.send(JSON.stringify({
+        type: 'file',
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        data: Array.from(uint8Array)
+      }));
+
+      const url = URL.createObjectURL(file);
+      setMessages(prev => [...prev, {
+        sender: 'me',
+        timestamp: new Date(),
+        file: {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: url
+        }
+      }]);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u043e\u0442\u043f\u0440\u0430\u0432\u043a\u0435 \u0444\u0430\u0439\u043b\u0430:', error);
+      alert('\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u0444\u0430\u0439\u043b');
+    }
+  };
+
+  const openFileDialog = () => {
+    fileInputRef.current?.click();
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 \u0411';
+    const k = 1024;
+    const sizes = ['\u0411', '\u041a\u0411', '\u041c\u0411', '\u0413\u0411'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
   const copyRoomLink = () => {
     const url = roomUrl || `${window.location.origin}/video-call?room=${myPeerId}`;
     navigator.clipboard.writeText(url);
@@ -940,7 +1029,31 @@ export default function VideoCall() {
                           : 'bg-white text-gray-800 border'
                       }`}
                     >
-                      <p className="text-sm">{msg.text}</p>
+                      {msg.file ? (
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded flex items-center justify-center ${
+                            msg.sender === 'me' ? 'bg-blue-500' : 'bg-gray-200'
+                          }`}>
+                            <Icon name="File" size={20} className={msg.sender === 'me' ? 'text-white' : 'text-gray-600'} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{msg.file.name}</p>
+                            <p className="text-xs opacity-70">{formatFileSize(msg.file.size)}</p>
+                          </div>
+                          <a 
+                            href={msg.file.url}
+                            download={msg.file.name}
+                            className={`p-2 rounded hover:bg-opacity-80 ${
+                              msg.sender === 'me' ? 'hover:bg-blue-500' : 'hover:bg-gray-100'
+                            }`}
+                            title="\u0421\u043a\u0430\u0447\u0430\u0442\u044c"
+                          >
+                            <Icon name="Download" size={16} />
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="text-sm">{msg.text}</p>
+                      )}
                       <p className="text-xs opacity-70 mt-1">
                         {msg.timestamp.toLocaleTimeString('ru-RU', { 
                           hour: '2-digit', 
@@ -955,11 +1068,27 @@ export default function VideoCall() {
             </div>
 
             <div className="flex gap-2">
+              <input 
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                onClick={openFileDialog}
+                disabled={!isConnected}
+                variant="outline"
+                size="icon"
+                className="border-[0.25px] border-black"
+                title="\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u0444\u0430\u0439\u043b"
+              >
+                <Icon name="Paperclip" size={16} />
+              </Button>
               <Input 
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Введите сообщение..."
+                placeholder="\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435..."
                 disabled={!isConnected}
               />
               <Button 
