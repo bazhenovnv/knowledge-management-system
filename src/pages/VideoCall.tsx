@@ -13,6 +13,14 @@ interface Message {
   timestamp: Date;
 }
 
+interface Participant {
+  id: string;
+  name: string;
+  avatar: string;
+  isOnline: boolean;
+  isSelf: boolean;
+}
+
 export default function VideoCall() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -39,6 +47,8 @@ export default function VideoCall() {
   const [callDuration, setCallDuration] = useState(0);
   const [incomingCall, setIncomingCall] = useState<MediaConnection | null>(null);
   const [callerPeerId, setCallerPeerId] = useState<string>('');
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [myName, setMyName] = useState<string>('');
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -46,6 +56,64 @@ export default function VideoCall() {
   const recordedChunksRef = useRef<Blob[]>([]);
   const callTimerRef = useRef<number | null>(null);
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
+
+  const generateAvatar = (name: string): string => {
+    const initials = name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+    
+    const colors = [
+      'bg-blue-500',
+      'bg-green-500', 
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-orange-500',
+      'bg-teal-500'
+    ];
+    
+    const colorIndex = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    return colors[colorIndex] + '|' + initials;
+  };
+
+  useEffect(() => {
+    const storedName = localStorage.getItem('userName');
+    if (storedName) {
+      setMyName(storedName);
+    } else {
+      const randomName = 'Участник ' + Math.floor(Math.random() * 1000);
+      setMyName(randomName);
+      localStorage.setItem('userName', randomName);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!myPeerId) return;
+    
+    const newParticipants: Participant[] = [
+      {
+        id: myPeerId,
+        name: myName || 'Вы',
+        avatar: generateAvatar(myName || 'Вы'),
+        isOnline: true,
+        isSelf: true
+      }
+    ];
+
+    if ((isConnected || isCalling) && remotePeerId) {
+      newParticipants.push({
+        id: remotePeerId,
+        name: 'Собеседник',
+        avatar: generateAvatar('Собеседник'),
+        isOnline: true,
+        isSelf: false
+      });
+    }
+
+    setParticipants(newParticipants);
+  }, [myPeerId, myName, isConnected, isCalling, remotePeerId]);
 
   useEffect(() => {
     const newPeer = new Peer({
@@ -568,21 +636,31 @@ export default function VideoCall() {
             <div className="mb-4 bg-blue-50 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
                 <Icon name="Users" size={16} />
-                Участники ({isCalling || isConnected ? 2 : 1})
+                Участники ({participants.length})
               </h3>
               <div className="space-y-2">
-                <div className="flex items-center gap-2 bg-white p-2 rounded">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium">Вы</span>
-                  <span className="ml-auto text-xs text-green-600">Онлайн</span>
-                </div>
-                {(isConnected || isCalling) && (
-                  <div className="flex items-center gap-2 bg-white p-2 rounded">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium">Собеседник</span>
-                    <span className="ml-auto text-xs text-green-600">Онлайн</span>
-                  </div>
-                )}
+                {participants.map((participant) => {
+                  const [bgColor, initials] = participant.avatar.split('|');
+                  return (
+                    <div key={participant.id} className="flex items-center gap-3 bg-white p-3 rounded-lg shadow-sm">
+                      <div className={`w-10 h-10 ${bgColor} rounded-full flex items-center justify-center text-white font-semibold text-sm`}>
+                        {initials}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{participant.name}</span>
+                          {participant.isSelf && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Вы</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-xs text-green-600">Онлайн</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             <div className="flex gap-2 mb-3">
