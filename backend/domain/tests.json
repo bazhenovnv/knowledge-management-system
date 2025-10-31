@@ -1,0 +1,35 @@
+{
+  "tests": [
+    {
+      "name": "Get domain when none exists",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 404
+    },
+    {
+      "name": "Connect new domain",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "domain": "ab-education.ru"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "domain": "string",
+        "connectedAt": "string",
+        "sslEnabled": "boolean"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get connected domain",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "domain": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
