@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import Icon from "@/components/ui/icon";
 import { database } from "@/utils/database";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 interface ProfileSettingsProps {
   userId: number;
@@ -33,6 +34,16 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
     newPassword: '',
     confirmPassword: ''
   });
+
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  useEffect(() => {
+    const appSettings = localStorage.getItem('app_settings');
+    if (appSettings) {
+      const settings = JSON.parse(appSettings);
+      setSoundEnabled(settings.enableSoundNotifications !== false);
+    }
+  }, []);
 
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,6 +103,17 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
 
   const handleEmailChange = () => {
     toast.info('Функция смены email будет доступна в следующей версии');
+  };
+
+  const handleSoundToggle = (checked: boolean) => {
+    setSoundEnabled(checked);
+    
+    const appSettings = localStorage.getItem('app_settings');
+    const settings = appSettings ? JSON.parse(appSettings) : {};
+    settings.enableSoundNotifications = checked;
+    localStorage.setItem('app_settings', JSON.stringify(settings));
+    
+    toast.success(checked ? 'Звуковые уведомления включены' : 'Звуковые уведомления выключены');
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -410,6 +432,59 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
               Изменить пароль
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      {/* Настройки уведомлений */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Icon name="Bell" size={20} className="mr-2 text-orange-600" />
+            Настройки уведомлений
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <Label>Звуковые уведомления</Label>
+                {soundEnabled && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                      const oscillator = audioContext.createOscillator();
+                      const gainNode = audioContext.createGain();
+                      
+                      oscillator.connect(gainNode);
+                      gainNode.connect(audioContext.destination);
+                      
+                      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                      
+                      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                      
+                      oscillator.start(audioContext.currentTime);
+                      oscillator.stop(audioContext.currentTime + 0.2);
+                      
+                      toast.success('Тестовый звук воспроизведен');
+                    }}
+                    className="h-6 text-xs"
+                  >
+                    <Icon name="Volume2" size={12} className="mr-1" />
+                    Тест
+                  </Button>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">Воспроизводить звук при восстановлении соединения с сервером</p>
+            </div>
+            <Switch
+              checked={soundEnabled}
+              onCheckedChange={handleSoundToggle}
+            />
+          </div>
         </CardContent>
       </Card>
 

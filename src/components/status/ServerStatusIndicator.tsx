@@ -30,7 +30,12 @@ export default function ServerStatusIndicator({
   const previousStatusRef = useRef<'online' | 'offline' | 'checking'>('offline');
 
   const playSuccessSound = () => {
-    if (audioRef.current) {
+    const appSettings = localStorage.getItem('app_settings');
+    const soundEnabled = appSettings 
+      ? JSON.parse(appSettings).enableSoundNotifications !== false
+      : true;
+    
+    if (soundEnabled && audioRef.current) {
       audioRef.current.play().catch(err => console.log('Audio play failed:', err));
     }
   };
