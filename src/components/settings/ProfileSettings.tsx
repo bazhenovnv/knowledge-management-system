@@ -10,6 +10,7 @@ import { database } from "@/utils/database";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { playSound, getSoundName, SoundType } from "@/utils/soundEffects";
 
 interface ProfileSettingsProps {
   userId: number;
@@ -36,12 +37,14 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
   });
 
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundType, setSoundType] = useState<SoundType>('notification');
 
   useEffect(() => {
     const appSettings = localStorage.getItem('app_settings');
     if (appSettings) {
       const settings = JSON.parse(appSettings);
       setSoundEnabled(settings.enableSoundNotifications !== false);
+      setSoundType(settings.soundNotificationType || 'notification');
     }
   }, []);
 
@@ -114,6 +117,17 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
     localStorage.setItem('app_settings', JSON.stringify(settings));
     
     toast.success(checked ? 'Звуковые уведомления включены' : 'Звуковые уведомления выключены');
+  };
+
+  const handleSoundTypeChange = (type: SoundType) => {
+    setSoundType(type);
+    
+    const appSettings = localStorage.getItem('app_settings');
+    const settings = appSettings ? JSON.parse(appSettings) : {};
+    settings.soundNotificationType = type;
+    localStorage.setItem('app_settings', JSON.stringify(settings));
+    
+    toast.success(`Выбран звук: ${getSoundName(type)}`);
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -444,46 +458,53 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
                 <Label>Звуковые уведомления</Label>
-                {soundEnabled && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-                      const oscillator = audioContext.createOscillator();
-                      const gainNode = audioContext.createGain();
-                      
-                      oscillator.connect(gainNode);
-                      gainNode.connect(audioContext.destination);
-                      
-                      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
-                      
-                      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                      
-                      oscillator.start(audioContext.currentTime);
-                      oscillator.stop(audioContext.currentTime + 0.2);
-                      
-                      toast.success('Тестовый звук воспроизведен');
-                    }}
-                    className="h-6 text-xs"
-                  >
-                    <Icon name="Volume2" size={12} className="mr-1" />
-                    Тест
-                  </Button>
-                )}
+                <p className="text-sm text-gray-600">Воспроизводить звук при восстановлении соединения с сервером</p>
               </div>
-              <p className="text-sm text-gray-600">Воспроизводить звук при восстановлении соединения с сервером</p>
+              <Switch
+                checked={soundEnabled}
+                onCheckedChange={handleSoundToggle}
+              />
             </div>
-            <Switch
-              checked={soundEnabled}
-              onCheckedChange={handleSoundToggle}
-            />
+
+            {soundEnabled && (
+              <div className="pl-4 border-l-2 border-gray-200 space-y-3">
+                <div>
+                  <Label htmlFor="soundType">Тип звука</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Select 
+                      value={soundType}
+                      onValueChange={(value) => handleSoundTypeChange(value as SoundType)}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="notification">{getSoundName('notification')}</SelectItem>
+                        <SelectItem value="success">{getSoundName('success')}</SelectItem>
+                        <SelectItem value="alert">{getSoundName('alert')}</SelectItem>
+                        <SelectItem value="chime">{getSoundName('chime')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        playSound(soundType);
+                        toast.success(`Звук "${getSoundName(soundType)}" воспроизведен`);
+                      }}
+                    >
+                      <Icon name="Volume2" size={16} className="mr-2" />
+                      Тест
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Выберите звук и нажмите "Тест" для прослушивания</p>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

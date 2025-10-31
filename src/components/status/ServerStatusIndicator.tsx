@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
+import { playSound, SoundType } from '@/utils/soundEffects';
 
 interface ServerStatusIndicatorProps {
   apiUrl?: string;
@@ -31,12 +32,12 @@ export default function ServerStatusIndicator({
 
   const playSuccessSound = () => {
     const appSettings = localStorage.getItem('app_settings');
-    const soundEnabled = appSettings 
-      ? JSON.parse(appSettings).enableSoundNotifications !== false
-      : true;
+    const settings = appSettings ? JSON.parse(appSettings) : {};
+    const soundEnabled = settings.enableSoundNotifications !== false;
+    const soundType: SoundType = settings.soundNotificationType || 'notification';
     
-    if (soundEnabled && audioRef.current) {
-      audioRef.current.play().catch(err => console.log('Audio play failed:', err));
+    if (soundEnabled) {
+      playSound(soundType);
     }
   };
 
@@ -117,26 +118,6 @@ export default function ServerStatusIndicator({
   };
 
   useEffect(() => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    const createSuccessSound = () => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.2);
-    };
-    
-    audioRef.current = { play: createSuccessSound } as any;
     
     if (autoCheckOnMount) {
       checkConnection(false);
