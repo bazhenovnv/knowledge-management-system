@@ -42,7 +42,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       
       const testResultsResponse = await fetch(
         `${BACKEND_URL}?action=list&table=test_results`,
-        { signal: controller.signal }
+        { 
+          signal: controller.signal,
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
       clearTimeout(timeoutId);
       
@@ -58,7 +64,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
         : 0;
       
       const employeesResponse = await fetch(
-        `${BACKEND_URL}?action=list&table=employees`
+        `${BACKEND_URL}?action=list&table=employees`,
+        {
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
       const employeesData = await employeesResponse.json();
       const allEmployees = employeesData.data || [];
@@ -73,13 +85,25 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const inactiveEmployees = allEmployees.length - activeEmployees;
       
       const testsResponse = await fetch(
-        `${BACKEND_URL}?action=list&table=tests`
+        `${BACKEND_URL}?action=list&table=tests`,
+        {
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
       const testsData = await testsResponse.json();
       const totalTests = testsData.data?.length || 0;
       
       const coursesResponse = await fetch(
-        `${BACKEND_URL}?action=list&table=courses`
+        `${BACKEND_URL}?action=list&table=courses`,
+        {
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
       const coursesData = await coursesResponse.json();
       const activeCourses = coursesData.data?.filter((c: any) => c.status === 'active').length || 0;
@@ -100,6 +124,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setLastUpdated(new Date());
       toast.success('Данные обновлены');
     } catch (error) {
+      console.error('Error refreshing data:', error);
       setStats({
         totalEmployees: 0,
         activeEmployees: 0,
