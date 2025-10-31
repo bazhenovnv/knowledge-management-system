@@ -70,6 +70,17 @@ export function EmployeeCard({ employee, onEdit, onDelete }: EmployeeCardProps) 
             </div>
           )}
         </div>
+        {employee.zoom_link && (
+          <a
+            href={employee.zoom_link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 mt-3 hover:underline"
+          >
+            <Icon name="Video" size={16} />
+            Конференция
+          </a>
+        )}
         <div className="flex gap-2 mt-4">
           <Button 
             variant="outline" 

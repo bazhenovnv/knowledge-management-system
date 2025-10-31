@@ -21,6 +21,7 @@ interface EmployeeToolbarProps {
   onExportExcel: () => void;
   onExportCSV: () => void;
   employeeCount: number;
+  filteredCount: number;
   sortField: SortField;
   sortOrder: SortOrder;
   onSortChange: (field: SortField) => void;
@@ -38,6 +39,7 @@ export function EmployeeToolbar({
   onExportExcel,
   onExportCSV,
   employeeCount,
+  filteredCount,
   sortField,
   sortOrder,
   onSortChange,
@@ -208,7 +210,11 @@ export function EmployeeToolbar({
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Всего сотрудников: <strong>{employeeCount}</strong>
+        {filteredCount === employeeCount ? (
+          <>Всего сотрудников: <strong>{employeeCount}</strong></>
+        ) : (
+          <>Показано: <strong>{filteredCount}</strong> из <strong>{employeeCount}</strong></>
+        )}
       </div>
     </div>
   );

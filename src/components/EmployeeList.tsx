@@ -197,6 +197,7 @@ const EmployeeList: React.FC = () => {
         onExportExcel={() => EmployeeExport.exportToExcel(employees)}
         onExportCSV={() => EmployeeExport.exportToCSV(employees)}
         employeeCount={employees.length}
+        filteredCount={filteredEmployees.length}
         sortField={sortField}
         sortOrder={sortOrder}
         onSortChange={handleSortChange}
