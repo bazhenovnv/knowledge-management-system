@@ -208,7 +208,7 @@ def get_table_data(cursor, table: str) -> Dict[str, Any]:
         if table == 'employees':
             cursor.execute(f"""
                 SELECT id, full_name, email, department, position, role, phone, hire_date,
-                       is_active, created_at, updated_at
+                       zoom_link, is_active, created_at, updated_at
                 FROM {schema}.employees
                 ORDER BY is_active DESC, created_at DESC
             """)
@@ -257,7 +257,7 @@ def get_inactive_employees(cursor) -> Dict[str, Any]:
         schema = 't_p47619579_knowledge_management'
         cursor.execute(f"""
             SELECT id, full_name, email, department, position, role, phone, hire_date,
-                   is_active, created_at, updated_at
+                   zoom_link, is_active, created_at, updated_at
             FROM {schema}.employees
             WHERE is_active = false
             ORDER BY updated_at DESC
@@ -288,9 +288,9 @@ def create_item(cursor, conn, table: str, data: Dict[str, Any]) -> Dict[str, Any
         if table == 'employees':
             cursor.execute("""
                 INSERT INTO t_p47619579_knowledge_management.employees (email, password_hash, full_name, phone, 
-                                     department, position, role, hire_date, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING id, full_name, email, department, position, role, phone, hire_date, is_active, created_at
+                                     department, position, role, hire_date, zoom_link, is_active)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, full_name, email, department, position, role, phone, hire_date, zoom_link, is_active, created_at
             """, (
                 data.get('email'),
                 hash_password(data.get('password', 'temp123')),
@@ -300,6 +300,7 @@ def create_item(cursor, conn, table: str, data: Dict[str, Any]) -> Dict[str, Any
                 data.get('position'),
                 data.get('role', 'employee'),
                 data.get('hire_date'),
+                data.get('zoom_link'),
                 True
             ))
         elif table == 'courses':
@@ -428,6 +429,10 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
                 update_fields.append('hire_date = %s')
                 update_values.append(data.get('hire_date'))
             
+            if 'zoom_link' in data:
+                update_fields.append('zoom_link = %s')
+                update_values.append(data.get('zoom_link'))
+            
             if 'is_active' in data:
                 update_fields.append('is_active = %s')
                 update_values.append(data.get('is_active'))
@@ -445,7 +450,7 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
                 UPDATE t_p47619579_knowledge_management.employees 
                 SET {', '.join(update_fields)}
                 WHERE id = %s
-                RETURNING id, full_name, email, department, position, role, phone, hire_date, is_active, created_at, updated_at
+                RETURNING id, full_name, email, department, position, role, phone, hire_date, zoom_link, is_active, created_at, updated_at
             """
             
             cursor.execute(query, tuple(update_values))
