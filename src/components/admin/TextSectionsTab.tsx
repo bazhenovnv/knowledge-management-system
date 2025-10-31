@@ -28,7 +28,41 @@ export function TextSectionsTab({
 }: TextSectionsTabProps) {
   const { toast } = useToast();
 
+  const validateSection = (section: TextSection): string | null => {
+    if (!section.title.trim()) {
+      return "Название раздела не может быть пустым";
+    }
+    if (section.title.length < 3) {
+      return "Название должно содержать минимум 3 символа";
+    }
+    if (section.title.length > 100) {
+      return "Название не должно превышать 100 символов";
+    }
+    if (!section.description.trim()) {
+      return "Описание раздела не может быть пустым";
+    }
+    if (!section.content.trim()) {
+      return "Содержание раздела не может быть пустым";
+    }
+    if (section.content.length > 5000) {
+      return "Содержание не должно превышать 5000 символов";
+    }
+    return null;
+  };
+
   const saveTextSections = () => {
+    for (const section of textSections) {
+      const error = validateSection(section);
+      if (error) {
+        toast({
+          title: "Ошибка валидации",
+          description: `${section.title}: ${error}`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     localStorage.setItem("adminTextSections", JSON.stringify(textSections));
     toast({
       title: "Сохранено",
@@ -117,7 +151,12 @@ export function TextSectionsTab({
                     value={currentSection.title}
                     onChange={(e) => updateTextSection(currentSection.id, "title", e.target.value)}
                     placeholder="Название"
+                    maxLength={100}
+                    className={!currentSection.title.trim() || currentSection.title.length < 3 ? "border-red-300" : ""}
                   />
+                  <p className="text-xs text-gray-500">
+                    {currentSection.title.length}/100 символов (минимум 3)
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -127,6 +166,7 @@ export function TextSectionsTab({
                     value={currentSection.description}
                     onChange={(e) => updateTextSection(currentSection.id, "description", e.target.value)}
                     placeholder="Краткое описание"
+                    className={!currentSection.description.trim() ? "border-red-300" : ""}
                   />
                 </div>
 
@@ -138,8 +178,12 @@ export function TextSectionsTab({
                     onChange={(e) => updateTextSection(currentSection.id, "content", e.target.value)}
                     placeholder="Текст раздела"
                     rows={8}
-                    className="font-mono text-sm"
+                    maxLength={5000}
+                    className={`font-mono text-sm ${!currentSection.content.trim() ? "border-red-300" : ""}`}
                   />
+                  <p className="text-xs text-gray-500">
+                    {currentSection.content.length}/5000 символов
+                  </p>
                 </div>
 
                 <div className="flex gap-2">

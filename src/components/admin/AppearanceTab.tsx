@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +20,52 @@ interface AppearanceTabProps {
 
 export function AppearanceTab({ appearance, setAppearance }: AppearanceTabProps) {
   const { toast } = useToast();
+  const [imageError, setImageError] = useState(false);
+
+  const validateColor = (color: string): boolean => {
+    const hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    return hexRegex.test(color);
+  };
+
+  const validateUrl = (url: string): boolean => {
+    try {
+      const parsedUrl = new URL(url);
+      return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+  const validateAppearance = (): string | null => {
+    if (!appearance.useBackgroundImage) {
+      if (!validateColor(appearance.backgroundColor)) {
+        return "Некорректный формат цвета фона (используйте HEX, например #f3f4f6)";
+      }
+    } else {
+      if (!appearance.backgroundImage.trim()) {
+        return "URL изображения не может быть пустым";
+      }
+      if (!validateUrl(appearance.backgroundImage)) {
+        return "Некорректный URL изображения";
+      }
+    }
+    if (!validateColor(appearance.contentBackgroundColor)) {
+      return "Некорректный формат цвета контента (используйте HEX)";
+    }
+    return null;
+  };
 
   const saveAppearance = () => {
+    const error = validateAppearance();
+    if (error) {
+      toast({
+        title: "Ошибка валидации",
+        description: error,
+        variant: "destructive"
+      });
+      return;
+    }
+
     localStorage.setItem("appAppearanceSettings", JSON.stringify(appearance));
     window.dispatchEvent(new Event('appearanceChanged'));
     toast({
@@ -82,9 +127,14 @@ export function AppearanceTab({ appearance, setAppearance }: AppearanceTabProps)
                   value={appearance.backgroundColor}
                   onChange={(e) => updateAppearance("backgroundColor", e.target.value)}
                   placeholder="#f3f4f6"
-                  className="flex-1"
+                  pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                  className={`flex-1 ${!validateColor(appearance.backgroundColor) ? "border-red-300" : ""}`}
                 />
               </div>
+              {!validateColor(appearance.backgroundColor) && (
+                <p className="text-xs text-red-500">Используйте HEX формат (например, #f3f4f6)</p>
+              )}
+            </div>
             </div>
           ) : (
             <div className="space-y-2">
@@ -93,16 +143,27 @@ export function AppearanceTab({ appearance, setAppearance }: AppearanceTabProps)
                 id="bg-image"
                 type="url"
                 value={appearance.backgroundImage}
-                onChange={(e) => updateAppearance("backgroundImage", e.target.value)}
+                onChange={(e) => {
+                  updateAppearance("backgroundImage", e.target.value);
+                  setImageError(false);
+                }}
                 placeholder="https://example.com/background.jpg"
+                className={appearance.backgroundImage && !validateUrl(appearance.backgroundImage) ? "border-red-300" : ""}
               />
-              {appearance.backgroundImage && (
+              {appearance.backgroundImage && !validateUrl(appearance.backgroundImage) && (
+                <p className="text-xs text-red-500">Некорректный URL (должен начинаться с http:// или https://)</p>
+              )}
+              {appearance.backgroundImage && validateUrl(appearance.backgroundImage) && (
                 <div className="mt-2 border rounded-lg overflow-hidden">
                   <img 
                     src={appearance.backgroundImage} 
                     alt="Предпросмотр фона"
                     className="w-full h-48 object-cover"
+                    onError={() => setImageError(true)}
                   />
+                  {imageError && (
+                    <p className="text-xs text-red-500 p-2">Не удалось загрузить изображение</p>
+                  )}
                 </div>
               )}
             </div>
@@ -132,9 +193,13 @@ export function AppearanceTab({ appearance, setAppearance }: AppearanceTabProps)
               value={appearance.contentBackgroundColor}
               onChange={(e) => updateAppearance("contentBackgroundColor", e.target.value)}
               placeholder="#ffffff"
-              className="flex-1"
+              pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+              className={`flex-1 ${!validateColor(appearance.contentBackgroundColor) ? "border-red-300" : ""}`}
             />
           </div>
+          {!validateColor(appearance.contentBackgroundColor) && (
+            <p className="text-xs text-red-500">Используйте HEX формат (например, #ffffff)</p>
+          )}
         </CardContent>
       </Card>
 

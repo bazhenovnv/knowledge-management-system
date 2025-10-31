@@ -22,7 +22,47 @@ interface ProjectSettingsTabProps {
 export function ProjectSettingsTab({ settings, setSettings }: ProjectSettingsTabProps) {
   const { toast } = useToast();
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validateSettings = (): string | null => {
+    if (!settings.projectName.trim()) {
+      return "Название проекта не может быть пустым";
+    }
+    if (settings.projectName.length < 3 || settings.projectName.length > 100) {
+      return "Название проекта должно быть от 3 до 100 символов";
+    }
+    if (!settings.companyName.trim()) {
+      return "Название компании не может быть пустым";
+    }
+    if (!settings.supportEmail.trim()) {
+      return "Email поддержки не может быть пустым";
+    }
+    if (!validateEmail(settings.supportEmail)) {
+      return "Некорректный формат email";
+    }
+    if (settings.maxEmployees < 1) {
+      return "Максимум сотрудников должен быть минимум 1";
+    }
+    if (settings.maxEmployees > 100000) {
+      return "Максимум сотрудников не может превышать 100000";
+    }
+    return null;
+  };
+
   const saveSettings = () => {
+    const error = validateSettings();
+    if (error) {
+      toast({
+        title: "Ошибка валидации",
+        description: error,
+        variant: "destructive"
+      });
+      return;
+    }
+
     localStorage.setItem("adminProjectSettings", JSON.stringify(settings));
     toast({
       title: "Сохранено",
@@ -55,7 +95,12 @@ export function ProjectSettingsTab({ settings, setSettings }: ProjectSettingsTab
                 value={settings.projectName}
                 onChange={(e) => updateSetting("projectName", e.target.value)}
                 placeholder="Система обучения"
+                maxLength={100}
+                className={!settings.projectName.trim() || settings.projectName.length < 3 ? "border-red-300" : ""}
               />
+              <p className="text-xs text-gray-500">
+                {settings.projectName.length}/100 символов (минимум 3)
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -65,6 +110,7 @@ export function ProjectSettingsTab({ settings, setSettings }: ProjectSettingsTab
                 value={settings.companyName}
                 onChange={(e) => updateSetting("companyName", e.target.value)}
                 placeholder="Моя компания"
+                className={!settings.companyName.trim() ? "border-red-300" : ""}
               />
             </div>
 
@@ -76,7 +122,11 @@ export function ProjectSettingsTab({ settings, setSettings }: ProjectSettingsTab
                 value={settings.supportEmail}
                 onChange={(e) => updateSetting("supportEmail", e.target.value)}
                 placeholder="support@example.com"
+                className={!validateEmail(settings.supportEmail) ? "border-red-300" : ""}
               />
+              {settings.supportEmail && !validateEmail(settings.supportEmail) && (
+                <p className="text-xs text-red-500">Некорректный формат email</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -84,10 +134,14 @@ export function ProjectSettingsTab({ settings, setSettings }: ProjectSettingsTab
               <Input
                 id="max-employees"
                 type="number"
+                min="1"
+                max="100000"
                 value={settings.maxEmployees}
                 onChange={(e) => updateSetting("maxEmployees", parseInt(e.target.value) || 0)}
                 placeholder="100"
+                className={settings.maxEmployees < 1 || settings.maxEmployees > 100000 ? "border-red-300" : ""}
               />
+              <p className="text-xs text-gray-500">От 1 до 100 000 сотрудников</p>
             </div>
           </div>
         </CardContent>
