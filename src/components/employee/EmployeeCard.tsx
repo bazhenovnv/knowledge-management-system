@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { DatabaseEmployee } from '@/utils/databaseService';
+import { toast } from 'sonner';
 
 interface EmployeeCardProps {
   employee: DatabaseEmployee;
@@ -24,6 +25,18 @@ export function EmployeeCard({ employee, onEdit, onDelete }: EmployeeCardProps) 
       case 'admin': return 'Администратор';
       case 'teacher': return 'Преподаватель';
       default: return 'Сотрудник';
+    }
+  };
+
+  const handleCopyLink = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (employee.zoom_link) {
+      try {
+        await navigator.clipboard.writeText(employee.zoom_link);
+        toast.success('Ссылка на конференцию скопирована');
+      } catch {
+        toast.error('Не удалось скопировать ссылку');
+      }
     }
   };
 
@@ -71,15 +84,26 @@ export function EmployeeCard({ employee, onEdit, onDelete }: EmployeeCardProps) 
           )}
         </div>
         {employee.zoom_link && (
-          <a
-            href={employee.zoom_link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 mt-3 hover:underline"
-          >
-            <Icon name="Video" size={16} />
-            Конференция
-          </a>
+          <div className="flex items-center gap-2 mt-3">
+            <a
+              href={employee.zoom_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 hover:underline flex-1"
+            >
+              <Icon name="Video" size={16} />
+              Конференция
+            </a>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCopyLink}
+              className="h-7 px-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+              title="Скопировать ссылку"
+            >
+              <Icon name="Copy" size={14} />
+            </Button>
+          </div>
         )}
         <div className="flex gap-2 mt-4">
           <Button 
