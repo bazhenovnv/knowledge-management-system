@@ -49,6 +49,8 @@ export default function VideoCall() {
   const [callerPeerId, setCallerPeerId] = useState<string>('');
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [myName, setMyName] = useState<string>('');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState('');
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -614,6 +616,24 @@ export default function VideoCall() {
     }
   };
 
+  const startEditingName = () => {
+    setTempName(myName);
+    setIsEditingName(true);
+  };
+
+  const saveName = () => {
+    if (tempName.trim()) {
+      setMyName(tempName.trim());
+      localStorage.setItem('userName', tempName.trim());
+      setIsEditingName(false);
+    }
+  };
+
+  const cancelEditingName = () => {
+    setIsEditingName(false);
+    setTempName('');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto">
@@ -647,16 +667,51 @@ export default function VideoCall() {
                         {initials}
                       </div>
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{participant.name}</span>
-                          {participant.isSelf && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Вы</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-xs text-green-600">Онлайн</span>
-                        </div>
+                        {participant.isSelf && isEditingName ? (
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              value={tempName}
+                              onChange={(e) => setTempName(e.target.value)}
+                              className="h-8 text-sm flex-1"
+                              placeholder="Введите имя"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') saveName();
+                                if (e.key === 'Escape') cancelEditingName();
+                              }}
+                              autoFocus
+                            />
+                            <Button size="sm" onClick={saveName} variant="ghost" className="h-8 w-8 p-0">
+                              <Icon name="Check" size={14} />
+                            </Button>
+                            <Button size="sm" onClick={cancelEditingName} variant="ghost" className="h-8 w-8 p-0">
+                              <Icon name="X" size={14} />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium">{participant.name}</span>
+                              {participant.isSelf && (
+                                <>
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Вы</span>
+                                  <Button 
+                                    size="sm" 
+                                    onClick={startEditingName}
+                                    variant="ghost" 
+                                    className="h-6 w-6 p-0 hover:bg-gray-100"
+                                    title="Изменить имя"
+                                  >
+                                    <Icon name="Pencil" size={12} />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="text-xs text-green-600">Онлайн</span>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   );
