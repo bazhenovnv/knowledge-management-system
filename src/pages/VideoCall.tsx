@@ -194,6 +194,10 @@ export default function VideoCall() {
         }
       });
 
+      conn.on('open', () => {
+        conn.send(JSON.stringify({ type: 'name', name: myName }));
+      });
+
       conn.on('error', (error) => {
         console.error('Connection error:', error);
       });
@@ -230,7 +234,7 @@ export default function VideoCall() {
       }
       newPeer.destroy();
     };
-  }, [roomId]);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -314,7 +318,7 @@ export default function VideoCall() {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true
-        } 
+        }
       });
       
       setStream(mediaStream);
@@ -322,85 +326,56 @@ export default function VideoCall() {
         localVideoRef.current.srcObject = mediaStream;
       }
 
-      const mediaConnection = peer.call(remotePeerId, mediaStream);
-      setCall(mediaConnection);
+      const outgoingCall = peer.call(remotePeerId, mediaStream);
+      setCall(outgoingCall);
       setIsCalling(true);
-      
+
       setCallDuration(0);
       callTimerRef.current = window.setInterval(() => {
         setCallDuration(prev => prev + 1);
       }, 1000);
 
-      mediaConnection.on('stream', (remoteStream) => {
-        console.log('Получен поток от собеседника');
+      outgoingCall.on('stream', (remoteStream) => {
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
         }
       });
 
-      mediaConnection.on('error', (error) => {
-        console.error('Ошибка медиа-соединения:', error);
-        alert('Ошибка во время звонка');
-        endCall();
-      });
-
-      mediaConnection.on('close', () => {
-        console.log('Звонок завершен');
+      outgoingCall.on('close', () => {
         endCall();
       });
     } catch (error) {
-      console.error('Ошибка доступа к медиа-устройствам:', error);
-      if (error instanceof Error) {
-        if (error.name === 'NotAllowedError') {
-          alert('Доступ к камере/микрофону запрещен. Разрешите доступ в настройках браузера.');
-        } else if (error.name === 'NotFoundError') {
-          alert('Камера или микрофон не найдены. Подключите устройства.');
-        } else {
-          alert('Не удалось начать звонок: ' + error.message);
-        }
-      }
+      console.error('Error accessing media devices:', error);
+      alert('Не удалось получить доступ к камере и микрофону');
     }
   };
 
   const endCall = () => {
     if (call) {
       call.close();
-      setCall(null);
     }
-    
     if (stream) {
       stream.getTracks().forEach(track => track.stop());
       setStream(null);
     }
-
     if (screenStream) {
       screenStream.getTracks().forEach(track => track.stop());
       setScreenStream(null);
     }
-    
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = null;
-    }
-    
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
-    }
-    
-    setIsCalling(false);
-    setIsVideoEnabled(true);
-    setIsAudioEnabled(true);
-    setIsScreenSharing(false);
-
-    if (isRecording) {
-      stopRecording();
-    }
-
-    // Stop call timer
     if (callTimerRef.current) {
       clearInterval(callTimerRef.current);
       callTimerRef.current = null;
     }
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    setCall(null);
+    setIsCalling(false);
     setCallDuration(0);
+    setIsScreenSharing(false);
+    setIsRecording(false);
+    setMediaRecorder(null);
+    setRecordedChunks([]);
   };
 
   const toggleVideo = () => {
@@ -500,13 +475,11 @@ export default function VideoCall() {
       setIsCalling(true);
       setIncomingCall(null);
 
-      // Stop ringtone
       if (ringtoneRef.current) {
         ringtoneRef.current.pause();
         ringtoneRef.current.currentTime = 0;
       }
 
-      // Start call timer
       setCallDuration(0);
       callTimerRef.current = window.setInterval(() => {
         setCallDuration(prev => prev + 1);
@@ -548,10 +521,7 @@ export default function VideoCall() {
     if (incomingCall) {
       incomingCall.close();
       setIncomingCall(null);
-      setCallerPeerId('');
     }
-    
-    // Stop ringtone
     if (ringtoneRef.current) {
       ringtoneRef.current.pause();
       ringtoneRef.current.currentTime = 0;
@@ -662,8 +632,8 @@ export default function VideoCall() {
         fileInputRef.current.value = '';
       }
     } catch (error) {
-      console.error('\u041e\u0448\u0438\u0431\u043a\u0430 \u043f\u0440\u0438 \u043e\u0442\u043f\u0440\u0430\u0432\u043a\u0435 \u0444\u0430\u0439\u043b\u0430:', error);
-      alert('\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u0444\u0430\u0439\u043b');
+      console.error('Ошибка при отправке файла:', error);
+      alert('Не удалось отправить файл');
     }
   };
 
@@ -672,9 +642,9 @@ export default function VideoCall() {
   };
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 \u0411';
+    if (bytes === 0) return '0 Б';
     const k = 1024;
-    const sizes = ['\u0411', '\u041a\u0411', '\u041c\u0411', '\u0413\u0411'];
+    const sizes = ['Б', 'КБ', 'МБ', 'ГБ'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
@@ -944,7 +914,6 @@ export default function VideoCall() {
               </div>
             </div>
 
-            {/* Incoming call notification */}
             {incomingCall && (
               <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-500 rounded-lg">
                 <div className="flex items-center justify-between">
@@ -953,21 +922,21 @@ export default function VideoCall() {
                       <Icon name="Phone" size={24} className="text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-lg">Входящий звонок</p>
-                      <p className="text-sm text-gray-600">От: {callerPeerId.slice(0, 8)}...</p>
+                      <h3 className="font-semibold text-gray-800">Входящий звонок</h3>
+                      <p className="text-sm text-gray-600">От: {callerPeerId.substring(0, 8)}...</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
                     <Button 
                       onClick={acceptCall}
-                      className="bg-green-600 hover:bg-green-700 border-[0.25px] border-black"
+                      className="bg-green-600 hover:bg-green-700"
                     >
                       <Icon name="Phone" size={16} className="mr-2" />
                       Принять
                     </Button>
                     <Button 
                       onClick={rejectCall}
-                      className="bg-red-600 hover:bg-red-700 border-[0.25px] border-black"
+                      variant="destructive"
                     >
                       <Icon name="PhoneOff" size={16} className="mr-2" />
                       Отклонить
@@ -978,7 +947,7 @@ export default function VideoCall() {
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+              <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
                 <video 
                   ref={remoteVideoRef}
                   autoPlay 
@@ -989,8 +958,7 @@ export default function VideoCall() {
                   Собеседник
                 </div>
               </div>
-
-              <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+              <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
                 <video 
                   ref={localVideoRef}
                   autoPlay 
@@ -1030,26 +998,61 @@ export default function VideoCall() {
                       }`}
                     >
                       {msg.file ? (
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded flex items-center justify-center ${
-                            msg.sender === 'me' ? 'bg-blue-500' : 'bg-gray-200'
-                          }`}>
-                            <Icon name="File" size={20} className={msg.sender === 'me' ? 'text-white' : 'text-gray-600'} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{msg.file.name}</p>
-                            <p className="text-xs opacity-70">{formatFileSize(msg.file.size)}</p>
-                          </div>
-                          <a 
-                            href={msg.file.url}
-                            download={msg.file.name}
-                            className={`p-2 rounded hover:bg-opacity-80 ${
-                              msg.sender === 'me' ? 'hover:bg-blue-500' : 'hover:bg-gray-100'
-                            }`}
-                            title="\u0421\u043a\u0430\u0447\u0430\u0442\u044c"
-                          >
-                            <Icon name="Download" size={16} />
-                          </a>
+                        <div>
+                          {msg.file.type.startsWith('image/') ? (
+                            <div className="space-y-2">
+                              <a 
+                                href={msg.file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block"
+                              >
+                                <img 
+                                  src={msg.file.url}
+                                  alt={msg.file.name}
+                                  className="max-w-full max-h-64 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                />
+                              </a>
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{msg.file.name}</p>
+                                  <p className="text-xs opacity-70">{formatFileSize(msg.file.size)}</p>
+                                </div>
+                                <a 
+                                  href={msg.file.url}
+                                  download={msg.file.name}
+                                  className={`p-2 rounded hover:bg-opacity-80 ${
+                                    msg.sender === 'me' ? 'hover:bg-blue-500' : 'hover:bg-gray-100'
+                                  }`}
+                                  title="Скачать"
+                                >
+                                  <Icon name="Download" size={16} />
+                                </a>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-3">
+                              <div className={`w-10 h-10 rounded flex items-center justify-center ${
+                                msg.sender === 'me' ? 'bg-blue-500' : 'bg-gray-200'
+                              }`}>
+                                <Icon name="File" size={20} className={msg.sender === 'me' ? 'text-white' : 'text-gray-600'} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{msg.file.name}</p>
+                                <p className="text-xs opacity-70">{formatFileSize(msg.file.size)}</p>
+                              </div>
+                              <a 
+                                href={msg.file.url}
+                                download={msg.file.name}
+                                className={`p-2 rounded hover:bg-opacity-80 ${
+                                  msg.sender === 'me' ? 'hover:bg-blue-500' : 'hover:bg-gray-100'
+                                }`}
+                                title="Скачать"
+                              >
+                                <Icon name="Download" size={16} />
+                              </a>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <p className="text-sm">{msg.text}</p>
@@ -1080,7 +1083,7 @@ export default function VideoCall() {
                 variant="outline"
                 size="icon"
                 className="border-[0.25px] border-black"
-                title="\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u0444\u0430\u0439\u043b"
+                title="Отправить файл"
               >
                 <Icon name="Paperclip" size={16} />
               </Button>
@@ -1088,7 +1091,7 @@ export default function VideoCall() {
                 value={messageInput}
                 onChange={(e) => setMessageInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435..."
+                placeholder="Введите сообщение..."
                 disabled={!isConnected}
               />
               <Button 
