@@ -8,6 +8,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+export type SortField = 'name' | 'department' | 'position' | 'hire_date' | 'created_at';
+export type SortOrder = 'asc' | 'desc';
+
 interface EmployeeToolbarProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
@@ -16,6 +19,9 @@ interface EmployeeToolbarProps {
   onExportExcel: () => void;
   onExportCSV: () => void;
   employeeCount: number;
+  sortField: SortField;
+  sortOrder: SortOrder;
+  onSortChange: (field: SortField) => void;
 }
 
 export function EmployeeToolbar({
@@ -25,8 +31,21 @@ export function EmployeeToolbar({
   onImport,
   onExportExcel,
   onExportCSV,
-  employeeCount
+  employeeCount,
+  sortField,
+  sortOrder,
+  onSortChange
 }: EmployeeToolbarProps) {
+  const getSortLabel = (field: SortField): string => {
+    const labels = {
+      name: 'ФИО',
+      department: 'Отдел',
+      position: 'Должность',
+      hire_date: 'Дата найма',
+      created_at: 'Дата создания'
+    };
+    return labels[field];
+  };
   return (
     <div className="mb-6 space-y-4">
       <div className="flex flex-col sm:flex-row gap-3">
@@ -46,6 +65,38 @@ export function EmployeeToolbar({
         </div>
         
         <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <Icon name="ArrowUpDown" size={18} className="mr-2" />
+                Сортировка: {getSortLabel(sortField)}
+                <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size={14} className="ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onSortChange('name')}>
+                <Icon name="User" size={16} className="mr-2" />
+                По ФИО {sortField === 'name' && <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size={12} className="ml-auto" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onSortChange('department')}>
+                <Icon name="Building" size={16} className="mr-2" />
+                По отделу {sortField === 'department' && <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size={12} className="ml-auto" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onSortChange('position')}>
+                <Icon name="Briefcase" size={16} className="mr-2" />
+                По должности {sortField === 'position' && <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size={12} className="ml-auto" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onSortChange('hire_date')}>
+                <Icon name="Calendar" size={16} className="mr-2" />
+                По дате найма {sortField === 'hire_date' && <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size={12} className="ml-auto" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onSortChange('created_at')}>
+                <Icon name="Clock" size={16} className="mr-2" />
+                По дате создания {sortField === 'created_at' && <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size={12} className="ml-auto" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">

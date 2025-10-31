@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { EmployeeCard } from './employee/EmployeeCard';
-import { EmployeeToolbar } from './employee/EmployeeToolbar';
+import { EmployeeToolbar, SortField, SortOrder } from './employee/EmployeeToolbar';
 import { EmployeeImport } from './employee/EmployeeImport';
 import { EmployeeExport } from './employee/EmployeeExport';
 import Icon from '@/components/ui/icon';
@@ -27,6 +27,8 @@ const EmployeeList: React.FC = () => {
   const [isAddingEmployee, setIsAddingEmployee] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [employeeToDelete, setEmployeeToDelete] = useState<DatabaseEmployee | null>(null);
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const importRef = React.useRef<{ handleImportClick: () => void }>(null);
 
   useEffect(() => {
@@ -34,8 +36,8 @@ const EmployeeList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    filterEmployees();
-  }, [employees, searchTerm]);
+    filterAndSortEmployees();
+  }, [employees, searchTerm, sortField, sortOrder]);
 
   const loadEmployees = async () => {
     console.log('🔄 Loading employees from database...');
@@ -53,22 +55,65 @@ const EmployeeList: React.FC = () => {
     }
   };
 
-  const filterEmployees = () => {
-    if (!searchTerm.trim()) {
-      setFilteredEmployees(employees);
-      return;
+  const filterAndSortEmployees = () => {
+    let result = [...employees];
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(emp => 
+        emp.full_name.toLowerCase().includes(term) ||
+        emp.email.toLowerCase().includes(term) ||
+        emp.department.toLowerCase().includes(term) ||
+        emp.position.toLowerCase().includes(term) ||
+        (emp.phone && emp.phone.includes(term))
+      );
     }
 
-    const term = searchTerm.toLowerCase();
-    const filtered = employees.filter(emp => 
-      emp.full_name.toLowerCase().includes(term) ||
-      emp.email.toLowerCase().includes(term) ||
-      emp.department.toLowerCase().includes(term) ||
-      emp.position.toLowerCase().includes(term) ||
-      (emp.phone && emp.phone.includes(term))
-    );
+    result.sort((a, b) => {
+      let aValue: string | number | Date;
+      let bValue: string | number | Date;
+
+      switch (sortField) {
+        case 'name':
+          aValue = a.full_name.toLowerCase();
+          bValue = b.full_name.toLowerCase();
+          break;
+        case 'department':
+          aValue = a.department.toLowerCase();
+          bValue = b.department.toLowerCase();
+          break;
+        case 'position':
+          aValue = a.position.toLowerCase();
+          bValue = b.position.toLowerCase();
+          break;
+        case 'hire_date':
+          aValue = a.hire_date ? new Date(a.hire_date).getTime() : 0;
+          bValue = b.hire_date ? new Date(b.hire_date).getTime() : 0;
+          break;
+        case 'created_at':
+          aValue = new Date(a.created_at).getTime();
+          bValue = new Date(b.created_at).getTime();
+          break;
+        default:
+          aValue = a.full_name.toLowerCase();
+          bValue = b.full_name.toLowerCase();
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
     
-    setFilteredEmployees(filtered);
+    setFilteredEmployees(result);
+  };
+
+  const handleSortChange = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
   };
 
   const handleDeleteEmployee = async () => {
@@ -140,6 +185,9 @@ const EmployeeList: React.FC = () => {
         onExportExcel={() => EmployeeExport.exportToExcel(employees)}
         onExportCSV={() => EmployeeExport.exportToCSV(employees)}
         employeeCount={employees.length}
+        sortField={sortField}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
       />
 
       {filteredEmployees.length === 0 ? (

@@ -169,5 +169,3 @@ export function EmployeeImport({ onImportComplete }: EmployeeImportProps) {
     </>
   );
 }
-
-export { handleImportClick as triggerImport };
