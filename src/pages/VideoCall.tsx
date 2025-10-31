@@ -22,6 +22,8 @@ interface Message {
     sender: 'me' | 'peer';
   }[];
   id: string;
+  isEdited?: boolean;
+  isDeleted?: boolean;
 }
 
 interface Participant {
@@ -64,6 +66,8 @@ export default function VideoCall() {
   const [tempName, setTempName] = useState('');
   const [remoteName, setRemoteName] = useState<string>('Собеседник');
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -191,6 +195,18 @@ export default function VideoCall() {
               ? { ...msg, reactions: parsedData.reactions }
               : msg
           ));
+        } else if (parsedData.type === 'edit') {
+          setMessages(prev => prev.map(msg => 
+            msg.id === parsedData.messageId
+              ? { ...msg, text: parsedData.text, isEdited: true }
+              : msg
+          ));
+        } else if (parsedData.type === 'delete') {
+          setMessages(prev => prev.map(msg => 
+            msg.id === parsedData.messageId
+              ? { ...msg, isDeleted: true, text: undefined, file: undefined }
+              : msg
+          ));
         } else if (parsedData.type === 'file') {
           const blob = new Blob([parsedData.data], { type: parsedData.fileType });
           const url = URL.createObjectURL(blob);
@@ -290,6 +306,18 @@ export default function VideoCall() {
           setMessages(prev => prev.map(msg => 
             msg.id === parsedData.messageId
               ? { ...msg, reactions: parsedData.reactions }
+              : msg
+          ));
+        } else if (parsedData.type === 'edit') {
+          setMessages(prev => prev.map(msg => 
+            msg.id === parsedData.messageId
+              ? { ...msg, text: parsedData.text, isEdited: true }
+              : msg
+          ));
+        } else if (parsedData.type === 'delete') {
+          setMessages(prev => prev.map(msg => 
+            msg.id === parsedData.messageId
+              ? { ...msg, isDeleted: true, text: undefined, file: undefined }
               : msg
           ));
         } else if (parsedData.type === 'file') {
@@ -661,6 +689,51 @@ export default function VideoCall() {
     }));
 
     setShowEmojiPicker(null);
+  };
+
+  const startEditMessage = (messageId: string, text: string) => {
+    setEditingMessageId(messageId);
+    setEditingText(text);
+    setShowEmojiPicker(null);
+  };
+
+  const saveEditMessage = () => {
+    if (!connection || !editingMessageId || !editingText.trim()) return;
+
+    connection.send(JSON.stringify({
+      type: 'edit',
+      messageId: editingMessageId,
+      text: editingText
+    }));
+
+    setMessages(prev => prev.map(msg => 
+      msg.id === editingMessageId
+        ? { ...msg, text: editingText, isEdited: true }
+        : msg
+    ));
+
+    setEditingMessageId(null);
+    setEditingText('');
+  };
+
+  const cancelEditMessage = () => {
+    setEditingMessageId(null);
+    setEditingText('');
+  };
+
+  const deleteMessage = (messageId: string) => {
+    if (!connection) return;
+
+    connection.send(JSON.stringify({
+      type: 'delete',
+      messageId
+    }));
+
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId
+        ? { ...msg, isDeleted: true, text: undefined, file: undefined }
+        : msg
+    ));
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1064,7 +1137,9 @@ export default function VideoCall() {
                           : 'bg-white text-gray-800 border'
                       }`}
                     >
-                      {msg.file ? (
+                      {msg.isDeleted ? (
+                        <p className="text-sm italic opacity-60">Сообщение удалено</p>
+                      ) : msg.file ? (
                         <div>
                           {msg.file.type.startsWith('image/') ? (
                             <div className="space-y-2">
@@ -1121,8 +1196,30 @@ export default function VideoCall() {
                             </div>
                           )}
                         </div>
+                      ) : editingMessageId === msg.id ? (
+                        <div className="flex gap-2 items-center w-full">
+                          <Input
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveEditMessage();
+                              if (e.key === 'Escape') cancelEditMessage();
+                            }}
+                            className="flex-1 h-8 text-sm"
+                            autoFocus
+                          />
+                          <Button size="sm" onClick={saveEditMessage} variant="ghost" className="h-8 w-8 p-0">
+                            <Icon name="Check" size={14} />
+                          </Button>
+                          <Button size="sm" onClick={cancelEditMessage} variant="ghost" className="h-8 w-8 p-0">
+                            <Icon name="X" size={14} />
+                          </Button>
+                        </div>
                       ) : (
-                        <p className="text-sm">{msg.text}</p>
+                        <div>
+                          <p className="text-sm">{msg.text}</p>
+                          {msg.isEdited && <span className="text-xs opacity-50 ml-1">(изменено)</span>}
+                        </div>
                       )}
                       <p className="text-xs opacity-70 mt-1">
                         {msg.timestamp.toLocaleTimeString('ru-RU', { 
@@ -1132,40 +1229,64 @@ export default function VideoCall() {
                       </p>
                     </div>
                     
-                    <div className={`flex items-center gap-2 mt-2 ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                      {msg.reactions && msg.reactions.length > 0 && (
-                        <div className="flex gap-1 bg-white border rounded-full px-2 py-1 shadow-sm">
-                          {msg.reactions.map((reaction, idx) => (
-                            <span key={idx} className="text-sm" title={reaction.sender === 'me' ? 'Вы' : remoteName}>
-                              {reaction.emoji}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <div className="relative">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 w-7 p-0 rounded-full hover:bg-gray-200"
-                          onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)}
-                        >
-                          <Icon name="Smile" size={14} />
-                        </Button>
-                        {showEmojiPicker === msg.id && (
-                          <div className="absolute bottom-full mb-2 bg-white border rounded-lg shadow-lg p-2 flex gap-1 z-10">
-                            {['👍', '❤️', '😂', '😮', '😢', '🎉'].map(emoji => (
-                              <button
-                                key={emoji}
-                                onClick={() => addReaction(msg.id, emoji)}
-                                className="text-xl hover:scale-125 transition-transform p-1"
-                              >
-                                {emoji}
-                              </button>
+                    {!msg.isDeleted && (
+                      <div className={`flex items-center gap-2 mt-2 ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                        {msg.reactions && msg.reactions.length > 0 && (
+                          <div className="flex gap-1 bg-white border rounded-full px-2 py-1 shadow-sm">
+                            {msg.reactions.map((reaction, idx) => (
+                              <span key={idx} className="text-sm" title={reaction.sender === 'me' ? 'Вы' : remoteName}>
+                                {reaction.emoji}
+                              </span>
                             ))}
                           </div>
                         )}
+                        <div className="relative">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 w-7 p-0 rounded-full hover:bg-gray-200"
+                            onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)}
+                          >
+                            <Icon name="Smile" size={14} />
+                          </Button>
+                          {showEmojiPicker === msg.id && (
+                            <div className="absolute bottom-full mb-2 bg-white border rounded-lg shadow-lg p-2 flex gap-1 z-10">
+                              {['👍', '❤️', '😂', '😮', '😢', '🎉'].map(emoji => (
+                                <button
+                                  key={emoji}
+                                  onClick={() => addReaction(msg.id, emoji)}
+                                  className="text-xl hover:scale-125 transition-transform p-1"
+                                >
+                                  {emoji}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        {msg.sender === 'me' && !msg.file && (
+                          <div className="flex gap-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 rounded-full hover:bg-gray-200"
+                              onClick={() => startEditMessage(msg.id, msg.text || '')}
+                              title="Редактировать"
+                            >
+                              <Icon name="Pencil" size={12} />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 rounded-full hover:bg-red-100 hover:text-red-600"
+                              onClick={() => deleteMessage(msg.id)}
+                              title="Удалить"
+                            >
+                              <Icon name="Trash2" size={12} />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))
               )}
