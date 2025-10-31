@@ -520,8 +520,30 @@ export default function VideoCall() {
   };
 
   const createNewRoom = () => {
-    navigate('/video-call');
+    const roomId = Math.random().toString(36).substring(2, 15);
+    navigate(`/video-call?room=${roomId}`);
     window.location.reload();
+  };
+
+  const shareRoom = async () => {
+    const url = roomUrl || `${window.location.origin}/video-call?room=${myPeerId}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Присоединяйтесь к видеозвонку',
+          text: 'Нажмите на ссылку, чтобы присоединиться к видеоконференции',
+          url: url
+        });
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Ошибка при попытке поделиться:', error);
+          copyRoomLink();
+        }
+      }
+    } else {
+      copyRoomLink();
+    }
   };
 
   return (
@@ -569,13 +591,15 @@ export default function VideoCall() {
                 readOnly 
                 className="flex-1 text-sm"
               />
-              <Button onClick={copyRoomLink} variant="outline" className="border-[0.25px] border-black">
-                <Icon name="Copy" size={16} className="mr-2" />
-                Копировать
+              <Button onClick={copyRoomLink} variant="outline" className="border-[0.25px] border-black" title="Копировать ссылку">
+                <Icon name="Copy" size={16} />
+              </Button>
+              <Button onClick={shareRoom} variant="default" className="border-[0.25px] border-black" title="Поделиться ссылкой">
+                <Icon name="Share2" size={16} />
               </Button>
             </div>
             <p className="text-sm text-gray-600">
-              Отправьте эту ссылку собеседнику для автоматического подключения
+              Скопируйте или поделитесь ссылкой для автоматического подключения собеседника
             </p>
           </Card>
 
