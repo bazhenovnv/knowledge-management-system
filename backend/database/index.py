@@ -4,9 +4,24 @@ import psycopg2
 import hashlib
 import secrets
 import requests
+import urllib.request
+import ssl
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+
+def setup_ssl_cert():
+    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
+    import os
+    cert_dir = '/tmp/.postgresql'
+    cert_path = f'{cert_dir}/root.crt'
+    
+    if not os.path.exists(cert_path):
+        os.makedirs(cert_dir, exist_ok=True)
+        cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
+        urllib.request.urlretrieve(cert_url, cert_path)
+    
+    os.environ['PGSSLROOTCERT'] = cert_path
 
 def hash_password(password: str) -> str:
     """Hash password using PBKDF2 with salt"""
@@ -20,6 +35,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Args: event с httpMethod, body, queryStringParameters; context с request_id
     Returns: JSON ответ с данными из БД
     """
+    setup_ssl_cert()
     method = event.get('httpMethod', 'GET')
     
     # Обработка CORS

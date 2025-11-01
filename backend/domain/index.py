@@ -10,8 +10,24 @@ from typing import Dict, Any
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
+import urllib.request
+import ssl
+
+def setup_ssl_cert():
+    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
+    import os
+    cert_dir = '/tmp/.postgresql'
+    cert_path = f'{cert_dir}/root.crt'
+    
+    if not os.path.exists(cert_path):
+        os.makedirs(cert_dir, exist_ok=True)
+        cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
+        urllib.request.urlretrieve(cert_url, cert_path)
+    
+    os.environ['PGSSLROOTCERT'] = cert_path
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')
     
     # Handle CORS OPTIONS

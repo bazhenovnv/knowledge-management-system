@@ -6,6 +6,21 @@ import secrets
 import string
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
+import urllib.request
+import ssl
+
+def setup_ssl_cert():
+    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
+    import os
+    cert_dir = '/tmp/.postgresql'
+    cert_path = f'{cert_dir}/root.crt'
+    
+    if not os.path.exists(cert_path):
+        os.makedirs(cert_dir, exist_ok=True)
+        cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
+        urllib.request.urlretrieve(cert_url, cert_path)
+    
+    os.environ['PGSSLROOTCERT'] = cert_path
 
 def get_db_connection():
     """Получает подключение к базе данных"""
@@ -178,6 +193,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     API для восстановления пароля с базой данных
     Действия: send_code, verify_code, reset_password
     """
+    setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')
     
     # Handle CORS OPTIONS request
