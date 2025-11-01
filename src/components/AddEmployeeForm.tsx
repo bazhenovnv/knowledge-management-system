@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import { DatabaseEmployee } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import { useDepartments } from '@/hooks/useDepartments';
 
 interface AddEmployeeFormProps {
@@ -72,7 +73,7 @@ const AddEmployeeForm: React.FC<AddEmployeeFormProps> = ({ onEmployeeAdded, onCa
         }
       }
 
-      const newEmployee = await databaseService.createEmployee(formData);
+      const newEmployee = await externalDb.createEmployee(formData);
       
       if (newEmployee) {
         toast.success(`Сотрудник ${formData.full_name} успешно добавлен!`);

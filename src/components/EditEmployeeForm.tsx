@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import { DatabaseEmployee } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import { useDepartments, usePositions } from '@/hooks/useDepartments';
 
 interface EditEmployeeFormProps {
@@ -86,7 +87,7 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
         }
       }
 
-      const updatedEmployee = await databaseService.updateEmployee(employee.id, formData);
+      const updatedEmployee = await externalDb.updateEmployee(employee.id, formData);
       
       if (updatedEmployee) {
         toast.success(`Данные сотрудника ${formData.full_name} успешно обновлены!`);

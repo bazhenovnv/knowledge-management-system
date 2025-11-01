@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { VideoConference } from '@/components/VideoConference';
-import { databaseService } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import { toast } from 'sonner';
 import { Footer } from '@/components/layout/Footer';
 
@@ -53,7 +53,7 @@ export default function VideoConferencesPage() {
 
   const loadConferences = async () => {
     try {
-      const data = await databaseService.getConferences();
+      const data = await externalDb.getConferences();
       if (data && data.length > 0) {
         setConferences(data);
       } else {
@@ -86,7 +86,7 @@ export default function VideoConferencesPage() {
       const roomId = `conf-${Date.now()}-${Math.random().toString(36).substring(7)}`;
       
       // Пытаемся создать через API
-      const result = await databaseService.createConference({
+      const result = await externalDb.createConference({
         ...formData,
         created_by: currentUser.id,
         status: 'scheduled',
@@ -142,10 +142,10 @@ export default function VideoConferencesPage() {
     try {
       // Пытаемся обновить через API
       try {
-        await databaseService.joinConference(conference.id, currentUser.id);
+        await externalDb.joinConference(conference.id, currentUser.id);
         
         if (conference.status === 'scheduled') {
-          await databaseService.updateConference(conference.id, { status: 'active' });
+          await externalDb.updateConference(conference.id, { status: 'active' });
         }
       } catch (apiError) {
         // Игнорируем ошибки API, всё равно открываем конференцию
@@ -172,7 +172,7 @@ export default function VideoConferencesPage() {
       const conference = conferences.find(c => c.room_id === activeConference.roomId);
       if (conference) {
         try {
-          await databaseService.leaveConference(conference.id, currentUser.id);
+          await externalDb.leaveConference(conference.id, currentUser.id);
         } catch (apiError) {
           // Игнорируем ошибки API
         }

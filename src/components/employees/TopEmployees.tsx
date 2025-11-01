@@ -26,18 +26,14 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
       try {
         setLoading(true);
         
-        // Загружаем всех активных сотрудников
-        const employees = await databaseService.getEmployees();
+        // Загружаем всех активных сотрудников из TimeWeb Cloud
+        const employees = await externalDb.getEmployees();
         const activeEmployees = employees.filter(emp => 
           emp.is_active && emp.role === 'employee'
         );
         
-        // Загружаем результаты тестов из PostgreSQL
-        const testResultsResponse = await fetch(
-          `${BACKEND_URL}?action=list&table=test_results`
-        );
-        const testResultsData = await testResultsResponse.json();
-        const allTestResults = testResultsData.data || [];
+        // Загружаем результаты тестов из TimeWeb Cloud
+        const allTestResults = await externalDb.getTestResults();
         
         // Рассчитываем статистику для каждого сотрудника
         const employeesWithStats: EmployeeWithStats[] = activeEmployees.map(emp => {
@@ -82,10 +78,7 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
       }
     };
 
-    // Отключена автозагрузка - загрузка только по требованию
-    if (funcUrls['database']) {
-      loadEmployeesData();
-    }
+    loadEmployeesData();
   }, []);
 
   const getAttentionReason = (employee: EmployeeWithStats) => {

@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import { DatabaseEmployee } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import NotificationForm from '@/components/notifications/NotificationForm';
 
 // Импорты новых компонентов
@@ -63,7 +64,7 @@ const DatabaseEmployeeManagement: React.FC = () => {
   const loadEmployees = async () => {
     setIsLoading(true);
     try {
-      const employeeData = await databaseService.getEmployees();
+      const employeeData = await externalDb.getEmployees();
       setEmployees(employeeData);
     } catch (error) {
       toast.error('Ошибка загрузки сотрудников');
@@ -87,7 +88,7 @@ const DatabaseEmployeeManagement: React.FC = () => {
         created_at: new Date().toISOString()
       };
 
-      const result = await databaseService.addEmployee(newEmployee);
+      const result = await externalDb.addEmployee(newEmployee);
       if (result) {
         await loadEmployees();
         setIsAddDialogOpen(false);
@@ -132,7 +133,7 @@ const DatabaseEmployeeManagement: React.FC = () => {
         updated_at: new Date().toISOString()
       };
 
-      const result = await databaseService.updateEmployee(editingEmployee.id, updatedEmployee);
+      const result = await externalDb.updateEmployee(editingEmployee.id, updatedEmployee);
       if (result) {
         await loadEmployees();
         setIsEditDialogOpen(false);
@@ -162,7 +163,7 @@ const DatabaseEmployeeManagement: React.FC = () => {
     }
 
     try {
-      const result = await databaseService.updateEmployeePassword(selectedEmployee.id, passwordForm.newPassword);
+      const result = await externalDb.updateEmployeePassword(selectedEmployee.id, passwordForm.newPassword);
       if (result) {
         setIsPasswordDialogOpen(false);
         setSelectedEmployee(null);
@@ -186,7 +187,7 @@ const DatabaseEmployeeManagement: React.FC = () => {
     if (!selectedEmployee) return;
     
     try {
-      await databaseService.deleteEmployee(selectedEmployee.id);
+      await externalDb.deleteEmployee(selectedEmployee.id);
       toast.success(`Сотрудник ${selectedEmployee.full_name} удален`);
       await loadEmployees();
       setIsDeleteDialogOpen(false);

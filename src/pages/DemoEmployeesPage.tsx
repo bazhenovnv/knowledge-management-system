@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import { databaseService } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import { Footer } from '@/components/layout/Footer';
 
 export default function DemoEmployeesPage() {
@@ -69,7 +69,7 @@ export default function DemoEmployeesPage() {
     try {
       for (const employee of demoEmployees) {
         try {
-          const result = await databaseService.createEmployee(employee);
+          const result = await externalDb.createEmployee(employee);
           if (result) {
             successCount++;
           }

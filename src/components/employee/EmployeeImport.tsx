@@ -1,7 +1,7 @@
 import React from 'react';
 import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
-import { databaseService } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
@@ -86,7 +86,7 @@ export function EmployeeImport({ onImportComplete }: EmployeeImportProps) {
             continue;
           }
 
-          const newEmployee = await databaseService.addEmployee({
+          const newEmployee = await externalDb.addEmployee({
             full_name: fullName,
             email,
             phone,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { databaseService } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 
 interface DbRequestCounterProps {
   isAdmin: boolean;
@@ -28,7 +28,7 @@ export const DbRequestCounter = ({ isAdmin, refreshTrigger }: DbRequestCounterPr
   const fetchStats = async () => {
     try {
       console.log('[DbRequestCounter] Fetching DB stats...');
-      const stats = await databaseService.getDbRequestStats();
+      const stats = await externalDb.getDbRequestStats();
       console.log('[DbRequestCounter] Stats received:', stats);
       
       if (stats && !stats.error) {

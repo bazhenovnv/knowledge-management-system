@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import { DatabaseEmployee } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import AddEmployeeForm from './AddEmployeeForm';
 
 const DatabaseTest: React.FC = () => {
@@ -20,11 +21,11 @@ const DatabaseTest: React.FC = () => {
     
     try {
       // Тест получения сотрудников
-      const employeeData = await databaseService.getEmployees();
+      const employeeData = await externalDb.getEmployees();
       setEmployees(employeeData);
       
       // Тест получения статистики
-      const statsData = await databaseService.getDatabaseStats();
+      const statsData = await externalDb.getDatabaseStats();
       setStats(statsData);
       
       if (employeeData.length > 0 || statsData) {

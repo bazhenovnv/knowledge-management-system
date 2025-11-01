@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import { DatabaseEmployee } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import EditEmployeeForm from './EditEmployeeForm';
 import AddEmployeeForm from './AddEmployeeForm';
 import {
@@ -45,7 +46,7 @@ const EmployeeList: React.FC = () => {
     console.log('🔄 Loading employees from database...');
     setIsLoading(true);
     try {
-      const data = await databaseService.getEmployees();
+      const data = await externalDb.getEmployees();
       console.log('✅ Employees loaded:', data.length, 'records');
       console.log('📋 First employee:', data[0]);
       setEmployees(data);
@@ -133,8 +134,8 @@ const EmployeeList: React.FC = () => {
 
     try {
       const success = employeeToDelete.is_active 
-        ? await databaseService.deleteEmployee(employeeToDelete.id)
-        : await databaseService.permanentDeleteEmployee(employeeToDelete.id);
+        ? await externalDb.deleteEmployee(employeeToDelete.id)
+        : await externalDb.permanentDeleteEmployee(employeeToDelete.id);
       
       if (success) {
         await loadEmployees();

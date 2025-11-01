@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { testsService, DatabaseTest, TestResult } from '@/utils/testsService';
-import { databaseService, DatabaseEmployee } from '@/utils/databaseService';
+import { DatabaseEmployee } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 
 interface TestResultsViewProps {
   userId: number;
@@ -39,7 +40,7 @@ const TestResultsView: React.FC<TestResultsViewProps> = ({ userId, userRole }) =
     try {
       const [testsData, employeesData] = await Promise.all([
         testsService.getTests(),
-        databaseService.getEmployees()
+        externalDb.getEmployees()
       ]);
       
       setTests(testsData);

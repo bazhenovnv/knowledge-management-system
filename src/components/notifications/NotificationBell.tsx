@@ -10,7 +10,7 @@ import Icon from '@/components/ui/icon';
 import { cn } from '@/lib/utils';
 import NotificationList from './NotificationList';
 import { database } from '@/utils/database';
-import { databaseService } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 
 interface NotificationBellProps {
   employeeId: number;
@@ -66,7 +66,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ employeeId, classNa
 
   const loadSupportCount = async () => {
     try {
-      const result = await databaseService.getUnreadSupportCount();
+      const result = await externalDb.getUnreadSupportCount();
       const newCount = result?.count || 0;
       
       if (newCount > prevSupportCount && prevSupportCount !== 0) {

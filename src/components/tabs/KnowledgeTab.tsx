@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { databaseService, DatabaseKnowledgeMaterial, Instruction } from "@/utils/databaseService";
+import { DatabaseKnowledgeMaterial, Instruction } from "@/utils/databaseService";
+import { externalDb } from "@/services/externalDbService";
 import { toast } from "sonner";
 import { useDepartments } from "@/hooks/useDepartments";
 import { KnowledgeTabProps, FormData } from "@/components/knowledge/types";
@@ -181,7 +182,7 @@ export const KnowledgeTab = ({
 
   const loadSubsectionContent = async () => {
     try {
-      const content = await databaseService.getSubsectionContent();
+      const content = await externalDb.getSubsectionContent();
       setSubsectionContent(content || {});
     } catch (error) {
       console.error('Error loading subsection content:', error);
@@ -190,7 +191,7 @@ export const KnowledgeTab = ({
 
   const saveSubsectionContent = async (subsection: string, content: string) => {
     try {
-      await databaseService.saveSubsectionContent(subsection, content);
+      await externalDb.saveSubsectionContent(subsection, content);
       setSubsectionContent(prev => ({ ...prev, [subsection]: content }));
       toast.success('Раздел сохранен');
       setIsEditingSubsection(false);
@@ -220,7 +221,7 @@ export const KnowledgeTab = ({
   const loadMaterials = async () => {
     try {
       setLoading(true);
-      const data = await databaseService.getKnowledgeMaterials();
+      const data = await externalDb.getKnowledgeMaterials();
       setMaterials(data);
     } catch (error) {
       toast.error('Ошибка загрузки материалов');
@@ -232,7 +233,7 @@ export const KnowledgeTab = ({
 
   const loadInstructions = async () => {
     try {
-      const data = await databaseService.getInstructions();
+      const data = await externalDb.getInstructions();
       setInstructions(data);
     } catch (error) {
       console.error('Error loading instructions:', error);
@@ -241,7 +242,7 @@ export const KnowledgeTab = ({
 
   const loadInstructionCategories = async () => {
     try {
-      const categories = await databaseService.getInstructionCategories();
+      const categories = await externalDb.getInstructionCategories();
       setInstructionCategories(categories);
     } catch (error) {
       console.error('Error loading instruction categories:', error);
@@ -298,10 +299,10 @@ export const KnowledgeTab = ({
       };
 
       if (editingMaterial) {
-        await databaseService.updateKnowledgeMaterial(editingMaterial.id, materialData);
+        await externalDb.updateKnowledgeMaterial(editingMaterial.id, materialData);
         toast.success('Материал обновлен');
       } else {
-        await databaseService.createKnowledgeMaterial(materialData);
+        await externalDb.createKnowledgeMaterial(materialData);
         toast.success('Материал создан');
       }
 
@@ -318,7 +319,7 @@ export const KnowledgeTab = ({
     if (!confirm('Удалить материал?')) return;
 
     try {
-      await databaseService.deleteKnowledgeMaterial(id);
+      await externalDb.deleteKnowledgeMaterial(id);
       toast.success('Материал удален');
       loadMaterials();
     } catch (error) {
@@ -330,7 +331,7 @@ export const KnowledgeTab = ({
   const handleUploadCoverImage = async (file: File) => {
     try {
       setUploadingCount(prev => prev + 1);
-      const url = await databaseService.uploadFile(file);
+      const url = await externalDb.uploadFile(file);
       setCoverImagePreview(url);
       setFormData(prev => ({ ...prev, cover_image: url }));
       toast.success('Обложка загружена');
@@ -346,7 +347,7 @@ export const KnowledgeTab = ({
     try {
       setUploadingCount(prev => prev + files.length);
       const urls = await Promise.all(
-        Array.from(files).map(file => databaseService.uploadFile(file))
+        Array.from(files).map(file => externalDb.uploadFile(file))
       );
       const newAttachments = urls.map((url, index) => ({
         filename: files[index].name,
@@ -414,10 +415,10 @@ export const KnowledgeTab = ({
 
     try {
       if (editingInstruction) {
-        await databaseService.updateInstruction(editingInstruction.id, instructionForm);
+        await externalDb.updateInstruction(editingInstruction.id, instructionForm);
         toast.success('Инструкция обновлена');
       } else {
-        await databaseService.createInstruction(instructionForm);
+        await externalDb.createInstruction(instructionForm);
         toast.success('Инструкция создана');
       }
 
@@ -434,7 +435,7 @@ export const KnowledgeTab = ({
     if (!confirm('Удалить инструкцию?')) return;
 
     try {
-      await databaseService.deleteInstruction(id);
+      await externalDb.deleteInstruction(id);
       toast.success('Инструкция удалена');
       loadInstructions();
     } catch (error) {
@@ -446,7 +447,7 @@ export const KnowledgeTab = ({
   const handleUploadInstructionImage = async (files: FileList, type: 'step' | 'form') => {
     try {
       const urls = await Promise.all(
-        Array.from(files).map(file => databaseService.uploadFile(file))
+        Array.from(files).map(file => externalDb.uploadFile(file))
       );
       setInstructionForm(prev => ({
         ...prev,
@@ -469,7 +470,7 @@ export const KnowledgeTab = ({
     }
 
     try {
-      await databaseService.createInstructionCategory(categoryForm);
+      await externalDb.createInstructionCategory(categoryForm);
       toast.success('Категория создана');
       setCategoryForm({ name: '', icon_name: 'Folder' });
       loadInstructionCategories();
@@ -488,7 +489,7 @@ export const KnowledgeTab = ({
     if (!editingCategory) return;
 
     try {
-      await databaseService.updateInstructionCategory(editingCategory.id, categoryForm);
+      await externalDb.updateInstructionCategory(editingCategory.id, categoryForm);
       toast.success('Категория обновлена');
       setEditingCategory(null);
       setCategoryForm({ name: '', icon_name: 'Folder' });
@@ -513,7 +514,7 @@ export const KnowledgeTab = ({
     if (!deletingCategory || !transferTargetCategory) return;
 
     try {
-      await databaseService.deleteInstructionCategory(deletingCategory.id, parseInt(transferTargetCategory));
+      await externalDb.deleteInstructionCategory(deletingCategory.id, parseInt(transferTargetCategory));
       toast.success('Категория удалена');
       setDeletingCategory(null);
       setTransferTargetCategory('');

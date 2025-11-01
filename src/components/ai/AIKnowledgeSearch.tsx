@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
-import { databaseService } from '@/utils/databaseService';
+import { externalDb } from '@/services/externalDbService';
 import funcUrls from '../../../backend/func2url.json';
 
 interface Material {
@@ -77,7 +77,7 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
 
   const addToKnowledge = async (material: Material) => {
     try {
-      await databaseService.createKnowledgeItem({
+      await externalDb.createKnowledgeItem({
         title: material.title,
         content: material.content,
         category: material.tags[0] || 'Общее',
