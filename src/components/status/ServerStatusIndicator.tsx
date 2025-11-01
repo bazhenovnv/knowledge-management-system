@@ -20,7 +20,7 @@ interface ServerStatusIndicatorProps {
 }
 
 export default function ServerStatusIndicator({ 
-  apiUrl = funcUrls['local-db-proxy'] || funcUrls['database'],
+  apiUrl = funcUrls['po-min-2'],
   compact = false,
   autoCheckOnMount = false
 }: ServerStatusIndicatorProps) {
