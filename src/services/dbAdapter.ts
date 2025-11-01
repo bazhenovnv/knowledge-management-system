@@ -13,15 +13,27 @@ export const legacyDbApi = {
   // Базовый URL для совместимости
   baseUrl: 'internal',
 
-  // Обработка старых GET запросов вида ?action=list&table=employees
+  // Обработка старых GET/POST запросов
   async fetch(url: string, options?: RequestInit): Promise<Response> {
     try {
       // Парсим query параметры из URL
       const urlObj = new URL(url, 'http://localhost');
       const params = new URLSearchParams(urlObj.search);
-      const action = params.get('action');
+      let action = params.get('action');
       const table = params.get('table');
       const id = params.get('id');
+
+      // Если POST запрос, парсим body
+      if (options?.method === 'POST' && options.body) {
+        try {
+          const bodyData = JSON.parse(options.body as string);
+          if (bodyData.action) {
+            action = bodyData.action;
+          }
+        } catch (e) {
+          // Если не JSON, игнорируем
+        }
+      }
 
       let result: any;
 

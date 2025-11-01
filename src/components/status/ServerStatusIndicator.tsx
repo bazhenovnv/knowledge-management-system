@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { playSound, SoundType } from '@/utils/soundEffects';
+import funcUrls from '../../backend/func2url.json';
 
 interface ServerStatusIndicatorProps {
   apiUrl?: string;
@@ -19,7 +20,7 @@ interface ServerStatusIndicatorProps {
 }
 
 export default function ServerStatusIndicator({ 
-  apiUrl = 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
+  apiUrl = funcUrls['local-db-proxy'] || funcUrls['database'],
   compact = false,
   autoCheckOnMount = false
 }: ServerStatusIndicatorProps) {
@@ -56,13 +57,16 @@ export default function ServerStatusIndicator({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`${apiUrl}?action=stats`, {
-        method: 'GET',
+      const response = await fetch(apiUrl, {
+        method: 'POST',
         signal: controller.signal,
         mode: 'cors',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          action: 'stats'
+        })
       });
 
       clearTimeout(timeoutId);

@@ -63,7 +63,7 @@ export const AdminDashboard = ({
   // Экспорт результатов тестов
   const handleExportTestResults = async () => {
     try {
-      const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+      const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
       const response = await fetch(
         `${BACKEND_URL}?action=list&table=test_results`
       );
@@ -119,7 +119,7 @@ export const AdminDashboard = ({
   // Экспорт сотрудников
   const handleExportEmployees = async () => {
     try {
-      const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+      const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
       const response = await fetch(
         `${BACKEND_URL}?action=list&table=employees`
       );
@@ -169,7 +169,7 @@ export const AdminDashboard = ({
         for (const emp of importedEmployees) {
           try {
             // Проверяем, есть ли уже такой email
-            const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+            const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
             const checkResponse = await fetch(
               `${BACKEND_URL}?action=list&table=employees`
             );

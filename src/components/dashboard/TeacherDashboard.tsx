@@ -127,7 +127,7 @@ export const TeacherDashboard = ({
   // Экспорт результатов тестов
   const handleExportTestResults = async () => {
     try {
-      const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+      const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
       const response = await fetch(
         `${BACKEND_URL}?action=list&table=test_results`
       );
@@ -183,7 +183,7 @@ export const TeacherDashboard = ({
   // Экспорт студентов
   const handleExportStudents = async () => {
     try {
-      const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+      const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
       const response = await fetch(
         `${BACKEND_URL}?action=list&table=employees`
       );
@@ -236,7 +236,7 @@ export const TeacherDashboard = ({
         for (const student of importedStudents) {
           try {
             // Проверяем, есть ли уже такой email
-            const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+            const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
             const checkResponse = await fetch(
               `${BACKEND_URL}?action=list&table=employees`
             );

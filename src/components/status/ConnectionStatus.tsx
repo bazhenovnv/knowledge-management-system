@@ -12,7 +12,7 @@ interface ConnectionStatusProps {
 }
 
 export default function ConnectionStatus({ 
-  apiUrl = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
+  apiUrl = funcUrls['local-db-proxy'] || funcUrls['database'],
   reconnectAttempts = 5,
   reconnectDelay = 3000
 }: ConnectionStatusProps) {
@@ -41,9 +41,13 @@ export default function ConnectionStatus({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`${apiUrl}?action=stats`, {
-        method: 'GET',
-        signal: controller.signal
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'stats' })
       });
 
       clearTimeout(timeoutId);
@@ -75,9 +79,13 @@ export default function ConnectionStatus({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`${apiUrl}?action=stats`, {
-        method: 'GET',
-        signal: controller.signal
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'stats' })
       });
 
       clearTimeout(timeoutId);

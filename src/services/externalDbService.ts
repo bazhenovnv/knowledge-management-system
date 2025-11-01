@@ -146,5 +146,57 @@ export const externalDb = {
       );
     }
     return await this.list('notifications', { limit: 100 });
+  },
+
+  /**
+   * Get knowledge materials (alias for getMaterials)
+   */
+  async getKnowledgeMaterials(): Promise<any[]> {
+    return await this.getMaterials();
+  },
+
+  /**
+   * Get subsection content
+   */
+  async getSubsectionContent(): Promise<Record<string, string>> {
+    try {
+      const rows = await this.query(
+        'SELECT subsection_key, content FROM t_p47619579_knowledge_management.subsection_content'
+      );
+      const result: Record<string, string> = {};
+      rows.forEach((row: any) => {
+        result[row.subsection_key] = row.content;
+      });
+      return result;
+    } catch (error) {
+      console.error('Error loading subsection content:', error);
+      return {};
+    }
+  },
+
+  /**
+   * Save subsection content
+   */
+  async saveSubsectionContent(subsection: string, content: string): Promise<void> {
+    await this.query(
+      `INSERT INTO t_p47619579_knowledge_management.subsection_content (subsection_key, content) 
+       VALUES ('${subsection}', '${content}')
+       ON CONFLICT (subsection_key) 
+       DO UPDATE SET content = '${content}', updated_at = NOW()`
+    );
+  },
+
+  /**
+   * Get instructions
+   */
+  async getInstructions(): Promise<any[]> {
+    return await this.list('instructions', { limit: 1000 });
+  },
+
+  /**
+   * Get instruction categories
+   */
+  async getInstructionCategories(): Promise<any[]> {
+    return await this.list('instruction_categories', { limit: 100 });
   }
 };
