@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { playSound, SoundType } from '@/utils/soundEffects';
-import funcUrls from '../../backend/func2url.json';
+import funcUrls from '../../../backend/func2url.json';
 
 interface ServerStatusIndicatorProps {
   apiUrl?: string;
