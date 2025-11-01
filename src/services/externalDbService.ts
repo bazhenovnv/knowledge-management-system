@@ -1,7 +1,7 @@
 import funcUrls from '../../backend/func2url.json';
 
 // Используем local-db-proxy для работы со встроенной БД проекта (без лимитов)
-const EXTERNAL_DB_URL = funcUrls['local-db-proxy'];
+const EXTERNAL_DB_URL = funcUrls['po-min-2'];
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
