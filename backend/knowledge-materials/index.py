@@ -12,7 +12,7 @@ from psycopg2.extras import RealDictCursor
 
 def get_db_connection():
     '''Создает подключение к базе данных'''
-    dsn = os.environ.get('DATABASE_URL')
+    dsn = os.environ.get('EXTERNAL_DATABASE_URL')
     return psycopg2.connect(dsn)
 
 def escape_sql_string(value: str) -> str:

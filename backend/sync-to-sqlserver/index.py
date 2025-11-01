@@ -36,7 +36,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     sql_conn = None
     
     try:
-        postgres_dsn = os.environ.get('DATABASE_URL')
+        postgres_dsn = os.environ.get('EXTERNAL_DATABASE_URL')
         sqlserver_conn_str = os.environ.get('SQL_SERVER_CONNECTION_STRING')
         
         if not postgres_dsn or not sqlserver_conn_str:

@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 
 
 def get_db_connection():
-    dsn = os.environ.get('DATABASE_URL')
+    dsn = os.environ.get('EXTERNAL_DATABASE_URL')
     if not dsn:
-        raise ValueError('DATABASE_URL not configured')
+        raise ValueError('EXTERNAL_DATABASE_URL not configured')
     return psycopg2.connect(dsn, cursor_factory=RealDictCursor)
 
 

@@ -38,9 +38,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     
     try:
         # Подключение к базе данных
-        database_url = os.environ.get('DATABASE_URL')
+        database_url = os.environ.get('EXTERNAL_DATABASE_URL')
         if not database_url:
-            raise ValueError("DATABASE_URL не найден в переменных окружения")
+            raise ValueError("EXTERNAL_DATABASE_URL не найден в переменных окружения")
         
         conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
         cursor = conn.cursor()

@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 def get_db_connection():
     """Получает подключение к базе данных"""
     try:
-        database_url = os.environ.get('DATABASE_URL')
+        database_url = os.environ.get('EXTERNAL_DATABASE_URL')
         if not database_url:
-            raise Exception("DATABASE_URL не настроен")
+            raise Exception("EXTERNAL_DATABASE_URL не настроен")
         
         conn = psycopg2.connect(database_url)
         conn.autocommit = True

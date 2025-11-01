@@ -33,9 +33,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     try:
-        dsn = os.environ.get('DATABASE_URL')
+        dsn = os.environ.get('EXTERNAL_DATABASE_URL')
         if not dsn:
-            raise Exception('DATABASE_URL not configured')
+            raise Exception('EXTERNAL_DATABASE_URL not configured')
         
         body_str = event.get('body')
         if body_str and body_str.strip():

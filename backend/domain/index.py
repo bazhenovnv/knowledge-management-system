@@ -28,7 +28,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     # Database connection
-    dsn = os.environ.get('DATABASE_URL')
+    dsn = os.environ.get('EXTERNAL_DATABASE_URL')
     if not dsn:
         return {
             'statusCode': 500,
