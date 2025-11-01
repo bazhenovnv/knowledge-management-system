@@ -192,6 +192,92 @@ export default function DatabaseSettings() {
 
   return (
     <div className="space-y-6">
+      {/* Информация о подключении к TimeWeb Cloud DB */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="flex items-center text-blue-900">
+            <Icon name="Cloud" size={20} className="mr-2 text-blue-600" />
+            Подключение к базе данных TimeWeb Cloud
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Icon name="CheckCircle2" size={20} className="text-green-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-900 mb-1">Статус подключения</h4>
+              <p className="text-sm text-gray-700">
+                Приложение подключено к внешней базе данных TimeWeb Cloud через функцию <code className="px-1.5 py-0.5 bg-white rounded text-xs">timeweb-db</code>
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+              <Icon name="Database" size={18} className="mr-2 text-blue-600" />
+              Используемые таблицы
+            </h4>
+            <div className="grid gap-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Table" size={14} className="text-gray-500" />
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded">employees</span>
+                <span className="text-gray-600">— данные сотрудников</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Table" size={14} className="text-gray-500" />
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded">tests</span>
+                <span className="text-gray-600">— тесты и задания</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Table" size={14} className="text-gray-500" />
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded">test_results</span>
+                <span className="text-gray-600">— результаты тестирования</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Table" size={14} className="text-gray-500" />
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded">materials</span>
+                <span className="text-gray-600">— обучающие материалы</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Table" size={14} className="text-gray-500" />
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded">notifications</span>
+                <span className="text-gray-600">— уведомления системы</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Table" size={14} className="text-gray-500" />
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded">assignments</span>
+                <span className="text-gray-600">— назначенные задачи</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Icon name="Table" size={14} className="text-gray-500" />
+                <span className="font-mono text-xs bg-white px-2 py-1 rounded">subsection_content</span>
+                <span className="text-gray-600">— контент разделов</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Icon name="Zap" size={20} className="text-purple-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-gray-900 mb-1">Преимущества</h4>
+              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+                <li>Данные хранятся надёжно в облаке TimeWeb</li>
+                <li>Нет ограничений локального хранилища браузера</li>
+                <li>Доступ к данным из любого устройства</li>
+                <li>Автоматическое резервное копирование</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
