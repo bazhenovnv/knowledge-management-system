@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
-import funcUrls from '../../backend/func2url.json';
+import { externalDb } from '@/services/externalDbService';
 
 interface DataContextType {
   isLoading: boolean;
@@ -17,63 +17,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<any>(null);
 
   const refreshData = useCallback(async () => {
-    if (!funcUrls['database']) {
-      setStats({
-        totalEmployees: 0,
-        activeEmployees: 0,
-        inactiveEmployees: 0,
-        totalTests: 0,
-        totalTestResults: 0,
-        averageScore: 0,
-        activeCourses: 0,
-        newRegistrations: 0,
-        employees: [],
-        testResults: []
-      });
-      return;
-    }
-
     try {
       setIsLoading(true);
-      const BACKEND_URL = funcUrls['database'];
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      
-      const testResultsResponse = await fetch(
-        `${BACKEND_URL}?action=list&table=test_results`,
-        { 
-          signal: controller.signal,
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      clearTimeout(timeoutId);
-      
-      if (!testResultsResponse.ok) {
-        throw new Error('Backend unavailable');
-      }
-      
-      const testResultsData = await testResultsResponse.json();
-      const testResults = testResultsData.data || [];
+      // Получаем данные из внешней БД TimeWeb Cloud
+      const testResults = await externalDb.getTestResults();
+      const allEmployees = await externalDb.getEmployees();
       
       const averageScore = testResults.length > 0
         ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)
         : 0;
-      
-      const employeesResponse = await fetch(
-        `${BACKEND_URL}?action=list&table=employees`,
-        {
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      const employeesData = await employeesResponse.json();
-      const allEmployees = employeesData.data || [];
       
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -84,29 +37,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const activeEmployees = allEmployees.filter((emp: any) => emp.is_active).length;
       const inactiveEmployees = allEmployees.length - activeEmployees;
       
-      const testsResponse = await fetch(
-        `${BACKEND_URL}?action=list&table=tests`,
-        {
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      const testsData = await testsResponse.json();
-      const totalTests = testsData.data?.length || 0;
+      const tests = await externalDb.list('tests');
+      const totalTests = tests.length;
       
-      const coursesResponse = await fetch(
-        `${BACKEND_URL}?action=list&table=courses`,
-        {
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      const coursesData = await coursesResponse.json();
-      const activeCourses = coursesData.data?.filter((c: any) => c.status === 'active').length || 0;
+      const courses = await externalDb.list('courses');
+      const activeCourses = courses.filter((c: any) => c.status === 'active').length;
 
       setStats({
         totalEmployees: allEmployees.length,
