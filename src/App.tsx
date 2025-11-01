@@ -25,6 +25,7 @@ import SecretsManager from "./pages/SecretsManager";
 import TestSqlConnection from "./pages/TestSqlConnection";
 import VideoConferencesPage from "./pages/VideoConferencesPage";
 import VideoCall from "./pages/VideoCall";
+import ExternalDatabaseTest from "./pages/ExternalDatabaseTest";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 import { DataProvider } from "./contexts/DataContext";
 
@@ -67,6 +68,7 @@ const App = () => (
             <Route path="/test-sql" element={<TestSqlConnection />} />
             <Route path="/video-conferences" element={<VideoConferencesPage />} />
             <Route path="/video-call" element={<VideoCall />} />
+            <Route path="/external-db" element={<ExternalDatabaseTest />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
