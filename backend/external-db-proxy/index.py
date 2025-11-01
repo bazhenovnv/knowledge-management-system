@@ -1,9 +1,3 @@
-'''
-Business: Универсальный прокси для работы с внешней БД TimeWeb Cloud без лимитов
-Args: event - dict с httpMethod, body с SQL запросом
-      context - объект с атрибутами request_id, function_name
-Returns: HTTP response с результатами запроса
-'''
 import json
 import os
 from typing import Dict, Any, List, Optional
@@ -24,6 +18,12 @@ def setup_ssl_cert():
     os.environ['PGSSLROOTCERT'] = cert_path
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
+    '''
+    Business: Универсальный прокси для работы с внешней БД TimeWeb Cloud без лимитов
+    Args: event - dict с httpMethod, body с SQL запросом
+          context - объект с атрибутами request_id, function_name
+    Returns: HTTP response с результатами запроса
+    '''
     setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')
     
@@ -93,7 +93,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         elif action == 'list':
             # List data from table
             table = body_data.get('table', 'employees')
-            schema = body_data.get('schema', 't_p47619579_knowledge_management')
+            schema = body_data.get('schema', 'public')
             limit = body_data.get('limit', 100)
             offset = body_data.get('offset', 0)
             
@@ -105,17 +105,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         elif action == 'stats':
             # Get database statistics
-            schema = body_data.get('schema', 't_p47619579_knowledge_management')
+            schema = body_data.get('schema', 'public')
             
             # Get table counts
-            cur.execute(f"""
+            cur.execute("""
                 SELECT 
                     schemaname,
-                    tablename,
+                    relname as tablename,
                     n_live_tup as row_count
                 FROM pg_stat_user_tables
                 WHERE schemaname = %s
-                ORDER BY tablename
+                ORDER BY relname
             """, (schema,))
             
             tables = cur.fetchall()

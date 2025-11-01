@@ -55,7 +55,7 @@ export const externalDb = {
       body: JSON.stringify({
         action: 'list',
         table,
-        schema: options.schema || 't_p47619579_knowledge_management',
+        schema: options.schema || 'public',
         limit: options.limit || 100,
         offset: options.offset || 0
       })
@@ -73,7 +73,7 @@ export const externalDb = {
   /**
    * Get database statistics
    */
-  async stats(schema = 't_p47619579_knowledge_management'): Promise<{
+  async stats(schema = 'public'): Promise<{
     tables: any[];
     totalTables: number;
     totalRecords: number;
@@ -107,7 +107,7 @@ export const externalDb = {
    */
   async getEmployee(id: number): Promise<any> {
     const rows = await this.query(
-      'SELECT * FROM t_p47619579_knowledge_management.employees WHERE id = $1',
+      'SELECT * FROM public.employees WHERE id = $1',
       [id]
     );
     return rows[0] || null;
@@ -133,7 +133,7 @@ export const externalDb = {
   async getNotifications(employeeId?: number): Promise<any[]> {
     if (employeeId) {
       return await this.query(
-        'SELECT * FROM t_p47619579_knowledge_management.notifications WHERE employee_id = $1 ORDER BY created_at DESC',
+        'SELECT * FROM public.notifications WHERE employee_id = $1 ORDER BY created_at DESC',
         [employeeId]
       );
     }

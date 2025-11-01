@@ -1,4 +1,3 @@
 {
-  "migrate-to-external": "https://functions.poehali.dev/6434e087-c0f3-43eb-aacf-c0dfdab737b2",
-  "test-db-connection": "https://functions.poehali.dev/43244b10-bfcf-4a4e-b556-8fdbdb2c6ece"
+  "external-db-proxy": "https://functions.poehali.dev/d42c6a30-7114-4f9f-8c8b-f103b0b36503"
 }
