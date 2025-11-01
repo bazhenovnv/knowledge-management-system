@@ -337,6 +337,32 @@ export const AdminDashboard = ({
               </div>
             </div>
           </Card>
+
+          <Card className="p-3 bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate('/db-stats')}>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 rounded-lg">
+                <Icon name="Database" size={18} className="text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">База данных</p>
+                <p className="text-sm font-semibold text-emerald-900 mt-0.5">Статистика БД</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-3 bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate('/migrate-db')}>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-cyan-100 rounded-lg">
+                <Icon name="RefreshCcw" size={18} className="text-cyan-600" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Миграция</p>
+                <p className="text-sm font-semibold text-cyan-900 mt-0.5">Перенос данных</p>
+              </div>
+            </div>
+          </Card>
         </div>
         
         <TopFunctionsWidget refreshTrigger={analyticsRefresh} />
