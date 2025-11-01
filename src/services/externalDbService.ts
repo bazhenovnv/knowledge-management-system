@@ -1,7 +1,7 @@
 import funcUrls from '../../backend/func2url.json';
 
-// Используем project-db для работы со встроенной БД проекта
-const EXTERNAL_DB_URL = funcUrls['project-db'];
+// Используем timeweb-db для работы с вашей БД TimeWeb Cloud (без оплаты функций)
+const EXTERNAL_DB_URL = funcUrls['timeweb-db'];
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
@@ -83,7 +83,7 @@ export const externalDb = {
         body: JSON.stringify({
           action: 'list',
           table,
-          schema: options.schema || 't_p47619579_knowledge_management',
+          schema: options.schema || 'public',
           limit: options.limit || 100,
           offset: options.offset || 0
         }),
@@ -113,7 +113,7 @@ export const externalDb = {
   /**
    * Get database statistics
    */
-  async stats(schema = 't_p47619579_knowledge_management'): Promise<{
+  async stats(schema = 'public'): Promise<{
     tables: any[];
     totalTables: number;
     totalRecords: number;
@@ -163,7 +163,7 @@ export const externalDb = {
    */
   async getEmployee(id: number): Promise<any> {
     const rows = await this.query(
-      'SELECT * FROM t_p47619579_knowledge_management.employees WHERE id = $1',
+      'SELECT * FROM public.employees WHERE id = $1',
       [id]
     );
     return rows[0] || null;
@@ -189,7 +189,7 @@ export const externalDb = {
   async getNotifications(employeeId?: number): Promise<any[]> {
     if (employeeId) {
       return await this.query(
-        'SELECT * FROM t_p47619579_knowledge_management.notifications WHERE employee_id = $1 ORDER BY created_at DESC',
+        'SELECT * FROM public.notifications WHERE employee_id = $1 ORDER BY created_at DESC',
         [employeeId]
       );
     }
@@ -209,7 +209,7 @@ export const externalDb = {
   async getSubsectionContent(): Promise<Record<string, string>> {
     try {
       const rows = await this.query(
-        'SELECT subsection_key, content FROM t_p47619579_knowledge_management.subsection_content'
+        'SELECT subsection_key, content FROM public.subsection_content'
       );
       const result: Record<string, string> = {};
       rows.forEach((row: any) => {
@@ -227,7 +227,7 @@ export const externalDb = {
    */
   async saveSubsectionContent(subsection: string, content: string): Promise<void> {
     await this.query(
-      `INSERT INTO t_p47619579_knowledge_management.subsection_content (subsection_key, content) 
+      `INSERT INTO public.subsection_content (subsection_key, content) 
        VALUES ('${subsection}', '${content}')
        ON CONFLICT (subsection_key) 
        DO UPDATE SET content = '${content}', updated_at = NOW()`
