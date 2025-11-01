@@ -1,7 +1,5 @@
-import funcUrls from '../../backend/func2url.json';
-
-// Используем external-db для работы с вашей БД TimeWeb Cloud (без оплаты функций)
-const EXTERNAL_DB_URL = funcUrls['external-db'];
+// API URL - используем переменную окружения или относительный путь
+const EXTERNAL_DB_URL = import.meta.env.VITE_API_URL || '/api';
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
@@ -51,14 +49,13 @@ export const externalDb = {
   async query(sql: string, params: any[] = []): Promise<any[]> {
     try {
       console.log('Calling external DB:', EXTERNAL_DB_URL);
-      const response = await fetchWithRetry(EXTERNAL_DB_URL, {
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}/query`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          action: 'query',
           query: sql,
           params
         }),
@@ -96,14 +93,13 @@ export const externalDb = {
    */
   async list(table: string, options: { limit?: number; offset?: number; schema?: string } = {}): Promise<any[]> {
     try {
-      const response = await fetchWithRetry(EXTERNAL_DB_URL, {
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}/list`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          action: 'list',
           table,
           schema: options.schema || 'public',
           limit: options.limit || 100,
@@ -141,14 +137,13 @@ export const externalDb = {
     totalRecords: number;
   }> {
     try {
-      const response = await fetchWithRetry(EXTERNAL_DB_URL, {
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}/stats`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          action: 'stats',
           schema
         }),
         mode: 'cors',
