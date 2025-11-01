@@ -1,6 +1,20 @@
 import json
+import os
 import psycopg2
+import urllib.request
 from typing import Dict, Any
+
+def setup_ssl_cert():
+    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
+    cert_dir = '/tmp/.postgresql'
+    cert_path = f'{cert_dir}/root.crt'
+    
+    if not os.path.exists(cert_path):
+        os.makedirs(cert_dir, exist_ok=True)
+        cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
+        urllib.request.urlretrieve(cert_url, cert_path)
+    
+    os.environ['PGSSLROOTCERT'] = cert_path
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     '''
@@ -9,6 +23,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
           context - object with request_id attribute
     Returns: HTTP response with connection test results
     '''
+    setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')
     
     if method == 'OPTIONS':
