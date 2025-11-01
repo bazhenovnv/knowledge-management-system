@@ -1,7 +1,7 @@
 import funcUrls from '../../backend/func2url.json';
 
-// Используем timeweb-db для работы с вашей БД TimeWeb Cloud (без оплаты функций)
-const EXTERNAL_DB_URL = funcUrls['timeweb-db'];
+// Используем external-db для работы с вашей БД TimeWeb Cloud (без оплаты функций)
+const EXTERNAL_DB_URL = funcUrls['external-db'];
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';

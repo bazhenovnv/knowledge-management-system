@@ -1,5 +1,5 @@
 '''
-Business: TimeWeb Cloud PostgreSQL database proxy - handles queries without payment tracking
+Business: TimeWeb Cloud PostgreSQL database connection for knowledge management system
 Args: event with httpMethod, body containing action, query, params, table, schema
 Returns: HTTP response with query results or database statistics
 '''
@@ -104,6 +104,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             limit = body_data.get('limit', 100)
             offset = body_data.get('offset', 0)
             
+            if not table:
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'isBase64Encoded': False,
+                    'body': json.dumps({'error': 'Table name required'})
+                }
+            
             query = f'SELECT * FROM {schema}.{table} LIMIT {limit} OFFSET {offset}'
             
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -111,16 +122,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 rows = cursor.fetchall()
                 result = [dict(row) for row in rows]
                 
-            conn.close()
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'isBase64Encoded': False,
-                'body': json.dumps({'rows': result}, default=str)
-            }
+                cursor.execute(f'SELECT COUNT(*) as count FROM {schema}.{table}')
+                count_row = cursor.fetchone()
+                total_count = count_row['count'] if count_row else 0
+                
+                conn.close()
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'isBase64Encoded': False,
+                    'body': json.dumps({
+                        'rows': result,
+                        'count': total_count
+                    }, default=str)
+                }
         
         elif action == 'stats':
             schema = body_data.get('schema', 'public')
@@ -130,28 +148,35 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     SELECT 
                         table_name,
                         (SELECT COUNT(*) FROM information_schema.columns 
-                         WHERE table_schema = t.table_schema 
-                         AND table_name = t.table_name) as column_count
+                         WHERE table_schema = '{schema}' AND table_name = t.table_name) as column_count
                     FROM information_schema.tables t
                     WHERE table_schema = '{schema}'
                     ORDER BY table_name
                 """)
                 tables = cursor.fetchall()
+                table_list = [dict(row) for row in tables]
                 
-            conn.close()
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                },
-                'isBase64Encoded': False,
-                'body': json.dumps({
-                    'tables': [dict(t) for t in tables],
-                    'totalTables': len(tables),
-                    'totalRecords': 0
-                })
-            }
+                total_records = 0
+                for table in table_list:
+                    cursor.execute(f"SELECT COUNT(*) as count FROM {schema}.{table['table_name']}")
+                    count_row = cursor.fetchone()
+                    table['record_count'] = count_row['count'] if count_row else 0
+                    total_records += table['record_count']
+                
+                conn.close()
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'isBase64Encoded': False,
+                    'body': json.dumps({
+                        'tables': table_list,
+                        'totalTables': len(table_list),
+                        'totalRecords': total_records
+                    }, default=str)
+                }
         
         else:
             conn.close()
@@ -162,7 +187,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'Access-Control-Allow-Origin': '*'
                 },
                 'isBase64Encoded': False,
-                'body': json.dumps({'error': 'Invalid action'})
+                'body': json.dumps({'error': f'Unknown action: {action}'})
             }
     
     except Exception as e:
@@ -173,8 +198,5 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'Access-Control-Allow-Origin': '*'
             },
             'isBase64Encoded': False,
-            'body': json.dumps({
-                'error': 'Database error',
-                'message': str(e)
-            })
+            'body': json.dumps({'error': str(e)})
         }

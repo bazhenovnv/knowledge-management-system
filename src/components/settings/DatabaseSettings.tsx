@@ -208,7 +208,7 @@ export default function DatabaseSettings() {
             <div className="flex-1">
               <h4 className="font-semibold text-gray-900 mb-1">Статус подключения</h4>
               <p className="text-sm text-gray-700">
-                Приложение подключено к внешней базе данных TimeWeb Cloud через функцию <code className="px-1.5 py-0.5 bg-white rounded text-xs">timeweb-db</code>
+                Приложение подключено к внешней базе данных TimeWeb Cloud через функцию <code className="px-1.5 py-0.5 bg-white rounded text-xs">external-db</code>
               </p>
             </div>
           </div>
