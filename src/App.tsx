@@ -29,6 +29,7 @@ import ExternalDatabaseTest from "./pages/ExternalDatabaseTest";
 import DatabaseMigration from "./pages/DatabaseMigration";
 import ServiceHealthCheck from "./pages/ServiceHealthCheck";
 import ExternalDbStatus from "./pages/ExternalDbStatus";
+import LimitExceeded from "./pages/LimitExceeded";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 import { DataProvider } from "./contexts/DataContext";
 
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/migrate-db" element={<DatabaseMigration />} />
             <Route path="/health-check" element={<ServiceHealthCheck />} />
             <Route path="/db-status" element={<ExternalDbStatus />} />
+            <Route path="/limit-exceeded" element={<LimitExceeded />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
