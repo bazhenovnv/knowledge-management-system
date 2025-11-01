@@ -1,5 +1,5 @@
 // Сервис для работы с реальной базой данных через backend API
-import funcUrls from '../../backend/func2url.json';
+import { legacyDbApi } from '@/services/dbAdapter';
 
 export interface DatabaseEmployee {
   id: number;
@@ -94,24 +94,16 @@ class DatabaseService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+    this.baseUrl = legacyDbApi.baseUrl;
   }
 
   private async makeRequest<T>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {}
   ): Promise<DatabaseResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
-      
-      const response = await fetch(url, {
-        ...options,
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-      });
+      const response = await legacyDbApi.fetch(url, options);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -132,13 +124,12 @@ class DatabaseService {
 
   async getEmployees(): Promise<DatabaseEmployee[]> {
     const response = await this.makeRequest<DatabaseEmployee[]>('?action=list&table=employees');
-    
+
     if (response.error) {
       console.error('Error fetching employees:', response.error);
       return [];
     }
 
-    // Добавляем поле name для совместимости со старой системой
     const employees = (response.data || []).map(emp => ({
       ...emp,
       name: emp.full_name

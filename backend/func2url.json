@@ -1,3 +1,4 @@
 {
-  "local-db-proxy": "https://functions.poehali.dev/fcf1f05b-799c-46d4-975a-b43ce02ffed6"
+  "local-db-proxy": "https://functions.poehali.dev/fcf1f05b-799c-46d4-975a-b43ce02ffed6",
+  "database": "https://functions.poehali.dev/fcf1f05b-799c-46d4-975a-b43ce02ffed6"
 }

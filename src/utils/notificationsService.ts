@@ -1,6 +1,6 @@
-import funcUrls from '../../backend/func2url.json';
+import { legacyDbApi } from '@/services/dbAdapter';
 
-const API_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+const API_URL = legacyDbApi.baseUrl;
 
 export interface CreateNotificationData {
   employee_id: number;
@@ -14,7 +14,7 @@ export interface CreateNotificationData {
 
 export const notificationsService = {
   async createNotification(data: CreateNotificationData) {
-    const response = await fetch(`${API_URL}?action=create_notification`, {
+    const response = await legacyDbApi.fetch(`${API_URL}?action=create_notification`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -23,7 +23,7 @@ export const notificationsService = {
   },
 
   async getNotifications(employeeId: number) {
-    const response = await fetch(
+    const response = await legacyDbApi.fetch(
       `${API_URL}?action=get_notifications&employee_id=${employeeId}`,
       {
         method: 'GET',
@@ -34,7 +34,7 @@ export const notificationsService = {
   },
 
   async getUnreadCount(employeeId: number) {
-    const response = await fetch(
+    const response = await legacyDbApi.fetch(
       `${API_URL}?action=get_unread_count&employee_id=${employeeId}`,
       {
         method: 'GET',
@@ -45,7 +45,7 @@ export const notificationsService = {
   },
 
   async markAsRead(notificationId: number) {
-    const response = await fetch(`${API_URL}?action=mark_read`, {
+    const response = await legacyDbApi.fetch(`${API_URL}?action=mark_read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ notification_id: notificationId })
@@ -54,7 +54,7 @@ export const notificationsService = {
   },
 
   async markAllAsRead(employeeId: number) {
-    const response = await fetch(`${API_URL}?action=mark_all_read`, {
+    const response = await legacyDbApi.fetch(`${API_URL}?action=mark_all_read`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ employee_id: employeeId })

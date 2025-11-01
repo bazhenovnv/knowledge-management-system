@@ -1,5 +1,5 @@
 // Сервис для работы с курсами
-import funcUrls from '../../backend/func2url.json';
+import { legacyDbApi } from '@/services/dbAdapter';
 
 export interface Course {
   id: number;
@@ -27,7 +27,7 @@ class CoursesService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+    this.baseUrl = legacyDbApi.baseUrl;
   }
 
   private async makeRequest<T>(
@@ -36,7 +36,7 @@ class CoursesService {
   ): Promise<DatabaseResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
-      const response = await fetch(url, {
+      const response = await legacyDbApi.fetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',

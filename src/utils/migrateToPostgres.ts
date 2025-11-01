@@ -1,7 +1,7 @@
 // Утилита для миграции данных из localStorage в PostgreSQL
-import funcUrls from '../../backend/func2url.json';
+import { legacyDbApi } from '@/services/dbAdapter';
 
-const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+const BACKEND_URL = legacyDbApi.baseUrl;
 
 interface MigrationResult {
   success: boolean;
@@ -35,12 +35,12 @@ export async function migrateLocalStorageToPostgres(): Promise<MigrationResult> 
         for (const emp of employees) {
           try {
             // Проверяем, существует ли сотрудник
-            const checkResponse = await fetch(`${BACKEND_URL}?action=get&table=employees&id=${emp.id}`);
+            const checkResponse = await legacyDbApi.fetch(`${BACKEND_URL}?action=get&table=employees&id=${emp.id}`);
             const checkData = await checkResponse.json();
 
             if (!checkData.data) {
               // Создаём нового сотрудника
-              const response = await fetch(`${BACKEND_URL}?action=create&table=employees`, {
+              const response = await legacyDbApi.fetch(`${BACKEND_URL}?action=create&table=employees`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -82,7 +82,7 @@ export async function migrateLocalStorageToPostgres(): Promise<MigrationResult> 
 
         for (const test of tests) {
           try {
-            const response = await fetch(`${BACKEND_URL}?action=create_test_full`, {
+            const response = await legacyDbApi.fetch(`${BACKEND_URL}?action=create_test_full`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
