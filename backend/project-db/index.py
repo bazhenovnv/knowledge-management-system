@@ -59,8 +59,16 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             query = body_data.get('query', '')
             params = body_data.get('params', [])
             
+            if params:
+                for i, param in enumerate(params, 1):
+                    placeholder = f'${i}'
+                    if isinstance(param, str):
+                        query = query.replace(placeholder, f"'{param}'")
+                    else:
+                        query = query.replace(placeholder, str(param))
+            
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute(query, params)
+                cursor.execute(query)
                 
                 if query.strip().upper().startswith('SELECT'):
                     rows = cursor.fetchall()
