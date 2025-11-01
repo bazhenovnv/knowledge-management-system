@@ -26,6 +26,8 @@ import TestSqlConnection from "./pages/TestSqlConnection";
 import VideoConferencesPage from "./pages/VideoConferencesPage";
 import VideoCall from "./pages/VideoCall";
 import ExternalDatabaseTest from "./pages/ExternalDatabaseTest";
+import DatabaseMigration from "./pages/DatabaseMigration";
+import ServiceHealthCheck from "./pages/ServiceHealthCheck";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 import { DataProvider } from "./contexts/DataContext";
 
@@ -69,6 +71,8 @@ const App = () => (
             <Route path="/video-conferences" element={<VideoConferencesPage />} />
             <Route path="/video-call" element={<VideoCall />} />
             <Route path="/external-db" element={<ExternalDatabaseTest />} />
+            <Route path="/migrate-db" element={<DatabaseMigration />} />
+            <Route path="/health-check" element={<ServiceHealthCheck />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

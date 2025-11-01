@@ -45,10 +45,16 @@ export default function ExternalDatabaseTest() {
               Эта страница демонстрирует форму подключения внешней PostgreSQL базы данных TimeWeb Cloud
             </p>
 
-            <Button onClick={() => setIsModalOpen(true)} size="lg" className="w-full">
-              <Icon name="Plus" size={20} className="mr-2" />
-              Подключить внешнюю базу данных
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={() => setIsModalOpen(true)} size="lg" className="flex-1">
+                <Icon name="Plus" size={20} className="mr-2" />
+                Подключить внешнюю базу данных
+              </Button>
+              <Button onClick={() => navigate('/migrate-db')} size="lg" variant="outline" className="flex-1">
+                <Icon name="Database" size={20} className="mr-2" />
+                Перенести данные
+              </Button>
+            </div>
 
             {savedConnections.length > 0 && (
               <div className="space-y-2 mt-6">
