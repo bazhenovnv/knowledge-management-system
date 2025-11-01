@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "Test database stats",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "stats",
+        "schema": "t_p47619579_knowledge_management"
+      },
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Test OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": ""
+    }
+  ]
+}
