@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { externalDb } from '@/services/externalDbService';
 
@@ -12,7 +12,7 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [stats, setStats] = useState<any>(null);
 
@@ -76,6 +76,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    refreshData();
+  }, [refreshData]);
 
   return (
     <DataContext.Provider value={{ isLoading, lastUpdated, refreshData, stats }}>

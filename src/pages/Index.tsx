@@ -24,8 +24,11 @@ import { DatabaseSetup } from "@/components/setup/DatabaseSetup";
 import SupportChat from "@/components/support/SupportChat";
 import { ConferencesTab } from "@/components/conferences/ConferencesTab";
 import { Footer } from "@/components/layout/Footer";
+import { useData } from "@/contexts/DataContext";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
+  const { isLoading: dataLoading } = useData();
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem('lastActiveTab');
     return savedTab || "dashboard";
@@ -150,6 +153,14 @@ const Index = () => {
 
   return (
     <ContentWrapper>
+      {dataLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Загрузка данных...</p>
+          </div>
+        </div>
+      )}
       <div className="min-h-screen flex flex-col" style={getBackgroundStyle()}>
         <div className="sticky top-0 z-50" style={getBackgroundStyle()}>
           <div className="px-4 pt-4">
