@@ -31,24 +31,40 @@ export const externalDb = {
       console.log('Calling external DB:', EXTERNAL_DB_URL);
       const response = await fetch(EXTERNAL_DB_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         body: JSON.stringify({
           action: 'query',
           query: sql,
           params
-        })
+        }),
+        mode: 'cors',
+        credentials: 'omit'
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Query failed:', response.status, errorText);
-        throw new Error(`Query failed: ${response.status}`);
+        console.error('Query failed:', response.status, response.statusText, errorText);
+        
+        if (response.status === 402) {
+          throw new Error('Database function requires payment. Please contact support.');
+        }
+        
+        throw new Error(`Query failed: ${response.status} ${response.statusText}`);
       }
 
       const data: QueryResponse = await response.json();
       return data.rows || [];
     } catch (error) {
-      console.error('Fetch error:', error instanceof Error ? error.message : 'Unknown error', 'for', EXTERNAL_DB_URL);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Fetch error:', errorMessage, 'for', EXTERNAL_DB_URL);
+      
+      if (errorMessage.includes('Failed to fetch')) {
+        throw new Error('Cannot connect to database. Please check your internet connection or contact support.');
+      }
+      
       throw error;
     }
   },
@@ -57,25 +73,41 @@ export const externalDb = {
    * List data from table
    */
   async list(table: string, options: { limit?: number; offset?: number; schema?: string } = {}): Promise<any[]> {
-    const response = await fetch(EXTERNAL_DB_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'list',
-        table,
-        schema: options.schema || 't_p47619579_knowledge_management',
-        limit: options.limit || 100,
-        offset: options.offset || 0
-      })
-    });
+    try {
+      const response = await fetch(EXTERNAL_DB_URL, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'list',
+          table,
+          schema: options.schema || 't_p47619579_knowledge_management',
+          limit: options.limit || 100,
+          offset: options.offset || 0
+        }),
+        mode: 'cors',
+        credentials: 'omit'
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'List failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('List failed:', response.status, response.statusText, errorText);
+        
+        if (response.status === 402) {
+          throw new Error('Database function requires payment');
+        }
+        
+        throw new Error(`List failed: ${response.status}`);
+      }
+
+      const data: QueryResponse = await response.json();
+      return data.rows || [];
+    } catch (error) {
+      console.error('List error:', error instanceof Error ? error.message : 'Unknown error');
+      throw error;
     }
-
-    const data: QueryResponse = await response.json();
-    return data.rows || [];
   },
 
   /**
@@ -86,21 +118,37 @@ export const externalDb = {
     totalTables: number;
     totalRecords: number;
   }> {
-    const response = await fetch(EXTERNAL_DB_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'stats',
-        schema
-      })
-    });
+    try {
+      const response = await fetch(EXTERNAL_DB_URL, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'stats',
+          schema
+        }),
+        mode: 'cors',
+        credentials: 'omit'
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Stats failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Stats failed:', response.status, response.statusText, errorText);
+        
+        if (response.status === 402) {
+          throw new Error('Database function requires payment');
+        }
+        
+        throw new Error(`Stats failed: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Stats error:', error instanceof Error ? error.message : 'Unknown error');
+      throw error;
     }
-
-    return await response.json();
   },
 
   /**

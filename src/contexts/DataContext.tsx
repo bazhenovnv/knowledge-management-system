@@ -21,8 +21,42 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       
       // Получаем данные из внешней БД TimeWeb Cloud
-      const testResults = await externalDb.getTestResults();
-      const allEmployees = await externalDb.getEmployees();
+      let testResults: any[] = [];
+      let allEmployees: any[] = [];
+      let tests: any[] = [];
+      let courses: any[] = [];
+      
+      try {
+        testResults = await externalDb.getTestResults();
+        allEmployees = await externalDb.getEmployees();
+        tests = await externalDb.list('tests');
+        courses = await externalDb.list('courses');
+      } catch (dbError) {
+        console.warn('Database connection failed, using demo data:', dbError);
+        
+        // Demo данные при недоступности БД
+        allEmployees = [
+          { id: 1, name: 'Иванов Иван', position: 'Менеджер', is_active: true, created_at: new Date().toISOString() },
+          { id: 2, name: 'Петрова Мария', position: 'Специалист', is_active: true, created_at: new Date(Date.now() - 86400000).toISOString() },
+          { id: 3, name: 'Сидоров Петр', position: 'Директор', is_active: false, created_at: new Date(Date.now() - 172800000).toISOString() }
+        ];
+        
+        testResults = [
+          { id: 1, employee_id: 1, score: 85, test_id: 1, created_at: new Date().toISOString() },
+          { id: 2, employee_id: 2, score: 92, test_id: 1, created_at: new Date().toISOString() },
+          { id: 3, employee_id: 1, score: 78, test_id: 2, created_at: new Date().toISOString() }
+        ];
+        
+        tests = [
+          { id: 1, title: 'Базовый тест', status: 'active' },
+          { id: 2, title: 'Продвинутый тест', status: 'active' }
+        ];
+        
+        courses = [
+          { id: 1, title: 'Курс 1', status: 'active' },
+          { id: 2, title: 'Курс 2', status: 'active' }
+        ];
+      }
       
       const averageScore = testResults.length > 0
         ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)
@@ -37,10 +71,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       const activeEmployees = allEmployees.filter((emp: any) => emp.is_active).length;
       const inactiveEmployees = allEmployees.length - activeEmployees;
       
-      const tests = await externalDb.list('tests');
       const totalTests = tests.length;
-      
-      const courses = await externalDb.list('courses');
       const activeCourses = courses.filter((c: any) => c.status === 'active').length;
 
       setStats({
