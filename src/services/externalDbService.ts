@@ -22,6 +22,28 @@ interface QueryResponse {
   totalRecords?: number;
 }
 
+async function fetchWithRetry(url: string, options: RequestInit, retries = 2): Promise<Response> {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      if (i === retries) throw error;
+      console.log(`Retry ${i + 1}/${retries} after error:`, error);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+    }
+  }
+  throw new Error('All retries failed');
+}
+
 export const externalDb = {
   /**
    * Execute custom SQL query
@@ -29,7 +51,7 @@ export const externalDb = {
   async query(sql: string, params: any[] = []): Promise<any[]> {
     try {
       console.log('Calling external DB:', EXTERNAL_DB_URL);
-      const response = await fetch(EXTERNAL_DB_URL, {
+      const response = await fetchWithRetry(EXTERNAL_DB_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -74,7 +96,7 @@ export const externalDb = {
    */
   async list(table: string, options: { limit?: number; offset?: number; schema?: string } = {}): Promise<any[]> {
     try {
-      const response = await fetch(EXTERNAL_DB_URL, {
+      const response = await fetchWithRetry(EXTERNAL_DB_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -119,7 +141,7 @@ export const externalDb = {
     totalRecords: number;
   }> {
     try {
-      const response = await fetch(EXTERNAL_DB_URL, {
+      const response = await fetchWithRetry(EXTERNAL_DB_URL, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
