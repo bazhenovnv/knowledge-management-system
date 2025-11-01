@@ -1,33 +1,38 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Icon from "@/components/ui/icon";
 import { ExternalDatabaseModal } from "@/components/database/ExternalDatabaseModal";
-import { toast } from "sonner";
 
 export default function ExternalDatabaseTest() {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [savedConnections, setSavedConnections] = useState<string[]>([]);
 
   const handleSaveConnection = async (connectionString: string) => {
-    // Симуляция сохранения в секреты
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Маскируем строку подключения для отображения
     const masked = connectionString.replace(
       /(postgresql:\/\/[^:]+:)([^@]+)(@.+)/,
       '$1***$3'
     );
     
     setSavedConnections(prev => [...prev, masked]);
-    
-    // Здесь должен быть реальный вызов API для сохранения в секреты
     console.log("Saved connection string:", connectionString);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/')}
+          className="mb-4"
+        >
+          <Icon name="ArrowLeft" size={16} className="mr-2" />
+          Назад
+        </Button>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
