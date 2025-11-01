@@ -28,7 +28,7 @@ import { useData } from "@/contexts/DataContext";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
-  const { isLoading: dataLoading } = useData();
+  const { isLoading: dataLoading, lastUpdated, refreshData } = useData();
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem('lastActiveTab');
     return savedTab || "dashboard";
@@ -177,6 +177,9 @@ const Index = () => {
                 showBackButton={showBackButton}
                 onBackClick={onBackClick}
                 isAuthenticated={isLoggedIn}
+                isLoading={dataLoading}
+                lastUpdated={lastUpdated}
+                refreshData={refreshData}
               />
             </Tabs>
           </div>

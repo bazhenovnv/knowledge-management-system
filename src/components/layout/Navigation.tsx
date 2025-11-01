@@ -19,7 +19,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ServerStatusIndicator from "@/components/status/ServerStatusIndicator";
 import SupportChat from "@/components/support/SupportChat";
-import { useData } from "@/contexts/DataContext";
 
 interface NavigationProps {
   activeTab: string;
@@ -33,6 +32,9 @@ interface NavigationProps {
   showBackButton?: boolean;
   onBackClick?: () => void;
   isAuthenticated?: boolean;
+  isLoading?: boolean;
+  lastUpdated?: Date | null;
+  refreshData?: () => void;
 }
 
 export const Navigation = ({
@@ -47,6 +49,9 @@ export const Navigation = ({
   showBackButton = false,
   onBackClick,
   isAuthenticated = false,
+  isLoading = false,
+  lastUpdated = null,
+  refreshData = () => {},
 }: NavigationProps) => {
   const {
     notifications,
@@ -60,7 +65,6 @@ export const Navigation = ({
   } = useNotifications();
   
   const { getNewTestsCount } = useViewedTests();
-  const { isLoading, lastUpdated, refreshData } = useData();
   const navigate = useNavigate();
   
   // Мок данные тестов для подсчета новых
@@ -123,16 +127,18 @@ export const Navigation = ({
               <Icon name="ArrowLeft" size={16} />
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={refreshData}
-            disabled={isLoading}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
-            title={lastUpdated ? `Обновлено: ${lastUpdated.toLocaleTimeString()}` : "Обновить данные"}
-          >
-            <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
-          </Button>
+          {refreshData && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshData}
+              disabled={isLoading}
+              className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
+              title={lastUpdated ? `Обновлено: ${lastUpdated.toLocaleTimeString()}` : "Обновить данные"}
+            >
+              <Icon name={isLoading ? "Loader2" : "RefreshCw"} size={16} className={isLoading ? "animate-spin" : ""} />
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
