@@ -8,6 +8,7 @@ import { database } from "@/utils/database";
 import { toast } from "sonner";
 import { autoBackupService, AutoBackup } from "@/utils/autoBackup";
 import { Badge } from "@/components/ui/badge";
+import { externalDb } from "@/services/externalDbService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,10 +28,38 @@ export default function DatabaseSettings() {
   const [backupHistory, setBackupHistory] = useState<AutoBackup[]>([]);
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<AutoBackup | null>(null);
+  const [isCheckingConnection, setIsCheckingConnection] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'disconnected' | null>(null);
+  const [dbStats, setDbStats] = useState<{ totalTables: number; totalRecords: number } | null>(null);
 
   useEffect(() => {
     loadBackupHistory();
+    checkDatabaseConnection();
   }, []);
+
+  const checkDatabaseConnection = async () => {
+    setIsCheckingConnection(true);
+    setConnectionStatus('checking');
+    try {
+      const stats = await externalDb.stats('public');
+      setDbStats({
+        totalTables: stats.totalTables,
+        totalRecords: stats.totalRecords
+      });
+      setConnectionStatus('connected');
+      toast.success('Подключение к базе данных установлено!', {
+        description: `Найдено таблиц: ${stats.totalTables}, записей: ${stats.totalRecords}`
+      });
+    } catch (error) {
+      console.error('Connection check failed:', error);
+      setConnectionStatus('disconnected');
+      toast.error('Не удалось подключиться к базе данных', {
+        description: error instanceof Error ? error.message : 'Неизвестная ошибка'
+      });
+    } finally {
+      setIsCheckingConnection(false);
+    }
+  };
 
   const loadBackupHistory = () => {
     const history = autoBackupService.getBackupHistory();
@@ -202,14 +231,45 @@ export default function DatabaseSettings() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Icon name="CheckCircle2" size={20} className="text-green-600" />
+            <div className={`p-2 rounded-lg ${
+              connectionStatus === 'connected' ? 'bg-green-100' :
+              connectionStatus === 'checking' ? 'bg-yellow-100' :
+              connectionStatus === 'disconnected' ? 'bg-red-100' :
+              'bg-gray-100'
+            }`}>
+              {connectionStatus === 'connected' && <Icon name="CheckCircle2" size={20} className="text-green-600" />}
+              {connectionStatus === 'checking' && <Icon name="Loader2" size={20} className="text-yellow-600 animate-spin" />}
+              {connectionStatus === 'disconnected' && <Icon name="XCircle" size={20} className="text-red-600" />}
+              {!connectionStatus && <Icon name="Database" size={20} className="text-gray-600" />}
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-gray-900 mb-1">Статус подключения</h4>
-              <p className="text-sm text-gray-700">
-                Приложение подключено к внешней базе данных TimeWeb Cloud через функцию <code className="px-1.5 py-0.5 bg-white rounded text-xs">external-db</code>
+              <p className="text-sm text-gray-700 mb-2">
+                {connectionStatus === 'connected' && 'Приложение подключено к внешней базе данных TimeWeb Cloud через функцию '}
+                {connectionStatus === 'checking' && 'Проверяем подключение к базе данных TimeWeb Cloud...'}
+                {connectionStatus === 'disconnected' && 'Не удалось подключиться к базе данных TimeWeb Cloud'}
+                {!connectionStatus && 'Ожидание проверки подключения'}
+                {connectionStatus === 'connected' && <code className="px-1.5 py-0.5 bg-white rounded text-xs">external-db</code>}
               </p>
+              {dbStats && connectionStatus === 'connected' && (
+                <div className="flex gap-4 text-xs text-gray-600">
+                  <span>📊 Таблиц: <strong>{dbStats.totalTables}</strong></span>
+                  <span>📝 Записей: <strong>{dbStats.totalRecords}</strong></span>
+                </div>
+              )}
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-2"
+                onClick={checkDatabaseConnection}
+                disabled={isCheckingConnection}
+              >
+                {isCheckingConnection ? (
+                  <><Icon name="Loader2" size={14} className="mr-1 animate-spin" /> Проверка...</>
+                ) : (
+                  <><Icon name="RefreshCw" size={14} className="mr-1" /> Проверить соединение</>
+                )}
+              </Button>
             </div>
           </div>
 
