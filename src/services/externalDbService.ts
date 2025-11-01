@@ -1,6 +1,7 @@
 import funcUrls from '../../backend/func2url.json';
 
-const EXTERNAL_DB_URL = funcUrls['external-db-proxy'];
+// Используем local-db-proxy для работы со встроенной БД проекта (без лимитов)
+const EXTERNAL_DB_URL = funcUrls['local-db-proxy'];
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
@@ -26,23 +27,30 @@ export const externalDb = {
    * Execute custom SQL query
    */
   async query(sql: string, params: any[] = []): Promise<any[]> {
-    const response = await fetch(EXTERNAL_DB_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'query',
-        query: sql,
-        params
-      })
-    });
+    try {
+      console.log('Calling external DB:', EXTERNAL_DB_URL);
+      const response = await fetch(EXTERNAL_DB_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'query',
+          query: sql,
+          params
+        })
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Query failed');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Query failed:', response.status, errorText);
+        throw new Error(`Query failed: ${response.status}`);
+      }
+
+      const data: QueryResponse = await response.json();
+      return data.rows || [];
+    } catch (error) {
+      console.error('Fetch error:', error instanceof Error ? error.message : 'Unknown error', 'for', EXTERNAL_DB_URL);
+      throw error;
     }
-
-    const data: QueryResponse = await response.json();
-    return data.rows || [];
   },
 
   /**
@@ -55,7 +63,7 @@ export const externalDb = {
       body: JSON.stringify({
         action: 'list',
         table,
-        schema: options.schema || 'public',
+        schema: options.schema || 't_p47619579_knowledge_management',
         limit: options.limit || 100,
         offset: options.offset || 0
       })
@@ -73,7 +81,7 @@ export const externalDb = {
   /**
    * Get database statistics
    */
-  async stats(schema = 'public'): Promise<{
+  async stats(schema = 't_p47619579_knowledge_management'): Promise<{
     tables: any[];
     totalTables: number;
     totalRecords: number;
@@ -107,7 +115,7 @@ export const externalDb = {
    */
   async getEmployee(id: number): Promise<any> {
     const rows = await this.query(
-      'SELECT * FROM public.employees WHERE id = $1',
+      'SELECT * FROM t_p47619579_knowledge_management.employees WHERE id = $1',
       [id]
     );
     return rows[0] || null;
@@ -133,7 +141,7 @@ export const externalDb = {
   async getNotifications(employeeId?: number): Promise<any[]> {
     if (employeeId) {
       return await this.query(
-        'SELECT * FROM public.notifications WHERE employee_id = $1 ORDER BY created_at DESC',
+        'SELECT * FROM t_p47619579_knowledge_management.notifications WHERE employee_id = $1 ORDER BY created_at DESC',
         [employeeId]
       );
     }

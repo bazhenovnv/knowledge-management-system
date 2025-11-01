@@ -1,0 +1,41 @@
+{
+  "tests": [
+    {
+      "name": "Test OPTIONS request",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Get employees list",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "list",
+        "table": "employees",
+        "limit": 10
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "rows": "array",
+        "count": "number"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get database stats",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "stats"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "tables": "array",
+        "totalTables": "number",
+        "totalRecords": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
