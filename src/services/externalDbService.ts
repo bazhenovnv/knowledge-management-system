@@ -170,11 +170,8 @@ export const externalDb = {
    * Get employee by ID
    */
   async getEmployee(id: number): Promise<any> {
-    const rows = await this.query(
-      'SELECT * FROM public.employees WHERE id = $1',
-      [id]
-    );
-    return rows[0] || null;
+    const employees = await this.list('employees');
+    return employees.find((emp: any) => emp.id === id) || null;
   },
 
   /**
@@ -195,13 +192,12 @@ export const externalDb = {
    * Get notifications
    */
   async getNotifications(employeeId?: number): Promise<any[]> {
+    const notifications = await this.list('notifications', { limit: 100 });
     if (employeeId) {
-      return await this.query(
-        'SELECT * FROM public.notifications WHERE employee_id = $1 ORDER BY created_at DESC',
-        [employeeId]
-      );
+      return notifications.filter((n: any) => n.employee_id === employeeId)
+        .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
-    return await this.list('notifications', { limit: 100 });
+    return notifications;
   },
 
   /**
