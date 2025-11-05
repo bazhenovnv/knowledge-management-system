@@ -2,5 +2,13 @@
   "auth": "/api/auth",
   "database": "/api/database",
   "local-db-proxy": "/api/database",
+  "test-db-connection": "/api/database",
+  "migrate-to-external": "/api/database",
+  "knowledge-materials": "/api/database",
+  "domain": "/api/database",
+  "database-info": "/api/database",
+  "db-query": "/api/database",
+  "db-migrate": "/api/database",
+  "po-min-2": "/api/database",
   "external-db": "https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179"
 }
