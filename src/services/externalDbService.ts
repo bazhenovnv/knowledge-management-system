@@ -254,5 +254,34 @@ export const externalDb = {
    */
   async getInstructionCategories(): Promise<any[]> {
     return await this.list('instruction_categories', { limit: 100 });
+  },
+
+  /**
+   * Get database request statistics
+   */
+  async getDbRequestStats(): Promise<{
+    current_month: { month_year: string; request_count: number; updated_at?: string } | null;
+    previous_month: { month_year: string; request_count: number; updated_at?: string } | null;
+  }> {
+    try {
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=stats`, {
+        method: 'GET',
+        headers: { 
+          'Accept': 'application/json'
+        },
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Stats failed: ${response.status}`);
+      }
+
+      const data: any = await response.json();
+      return data || { current_month: null, previous_month: null };
+    } catch (error) {
+      console.error('DB Request Stats error:', error);
+      return { current_month: null, previous_month: null };
+    }
   }
 };
