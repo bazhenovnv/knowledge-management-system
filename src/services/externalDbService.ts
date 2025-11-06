@@ -1,5 +1,5 @@
-// API URL - используем переменную окружения или относительный путь
-const EXTERNAL_DB_URL = import.meta.env.VITE_API_URL || '/api';
+// API URL - используем облачную функцию poehali.dev
+const EXTERNAL_DB_URL = import.meta.env.VITE_API_URL || 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
