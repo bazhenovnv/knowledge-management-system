@@ -115,7 +115,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 
         elif method == 'POST':
             body_data = json.loads(event.get('body', '{}'))
-            if action == 'create':
+            if action == 'query':
+                query_sql = body_data.get('query', '')
+                if query_sql:
+                    cursor.execute(query_sql)
+                    rows = cursor.fetchall()
+                    result = {'data': [dict(row) for row in rows]}
+                else:
+                    result = {'error': 'Query parameter is required'}
+            elif action == 'create':
                 result = create_item(cursor, conn, table, body_data)
             elif action == 'create_test_full':
                 result = create_test_with_questions(cursor, conn, body_data)
