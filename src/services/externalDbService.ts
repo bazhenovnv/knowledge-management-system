@@ -48,14 +48,15 @@ export const externalDb = {
    */
   async query(sql: string, params: any[] = []): Promise<any[]> {
     try {
-      console.log('Calling external DB:', EXTERNAL_DB_URL);
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}/database?action=query`, {
+      console.log('Calling external DB query:', EXTERNAL_DB_URL);
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=query`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         body: JSON.stringify({
+          action: 'query',
           query: sql
         }),
         mode: 'cors',
@@ -74,7 +75,8 @@ export const externalDb = {
       }
 
       const data: any = await response.json();
-      return data.data || [];
+      console.log('Query response:', data);
+      return data.data || data.rows || data || [];
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Fetch error:', errorMessage, 'for', EXTERNAL_DB_URL);
@@ -92,10 +94,10 @@ export const externalDb = {
    */
   async list(table: string, options: { limit?: number; offset?: number; schema?: string } = {}): Promise<any[]> {
     try {
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}/database?action=list&table=${table}`, {
+      console.log('Calling external DB list:', EXTERNAL_DB_URL, 'table:', table);
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=list&table=${table}`, {
         method: 'GET',
         headers: { 
-          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         mode: 'cors',
@@ -114,7 +116,8 @@ export const externalDb = {
       }
 
       const data: any = await response.json();
-      return data.data || [];
+      console.log('List response for table', table, ':', data);
+      return data.data || data.rows || data || [];
     } catch (error) {
       console.error('List error:', error instanceof Error ? error.message : 'Unknown error');
       throw error;
@@ -130,10 +133,10 @@ export const externalDb = {
     totalRecords: number;
   }> {
     try {
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}/database?action=stats`, {
+      console.log('Calling external DB stats:', EXTERNAL_DB_URL);
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=stats`, {
         method: 'GET',
         headers: { 
-          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
         mode: 'cors',
@@ -152,7 +155,8 @@ export const externalDb = {
       }
 
       const data: any = await response.json();
-      return data.stats || { tables: [], totalTables: 0, totalRecords: 0 };
+      console.log('Stats response:', data);
+      return data.stats || data || { tables: [], totalTables: 0, totalRecords: 0 };
     } catch (error) {
       console.error('Stats error:', error instanceof Error ? error.message : 'Unknown error');
       throw error;
