@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import Icon from "@/components/ui/icon";
 import { database } from "@/utils/database";
 import { toast } from "sonner";
 import { autoBackupService, AutoBackup } from "@/utils/autoBackup";
-import { Badge } from "@/components/ui/badge";
 import { externalDb } from "@/services/externalDbService";
 import {
   AlertDialog,
@@ -19,6 +17,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import DatabaseConnectionCard from "./DatabaseConnectionCard";
+import DatabaseStatsSection from "./DatabaseStatsSection";
+import DatabaseActionsSection from "./DatabaseActionsSection";
+import DatabaseBackupSection from "./DatabaseBackupSection";
 
 export default function DatabaseSettings() {
   const [isExporting, setIsExporting] = useState(false);
@@ -155,7 +157,6 @@ export default function DatabaseSettings() {
           throw new Error('Неверный формат файла');
         }
 
-        // Сохраняем данные в localStorage
         const { data } = importedData;
         
         if (data.employees) localStorage.setItem('employees_db', JSON.stringify(data.employees));
@@ -219,124 +220,31 @@ export default function DatabaseSettings() {
     }
   };
 
+  const restoreBackup = () => {
+    if (!selectedBackup) return;
+    
+    try {
+      autoBackupService.restoreBackup(selectedBackup.id);
+      toast.success('Резервная копия восстановлена!');
+      setShowRestoreDialog(false);
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      console.error('Ошибка восстановления:', error);
+      toast.error('Ошибка при восстановлении резервной копии');
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Информация о подключении к TimeWeb Cloud DB */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardHeader>
-          <CardTitle className="flex items-center text-blue-900">
-            <Icon name="Cloud" size={20} className="mr-2 text-blue-600" />
-            Подключение к базе данных TimeWeb Cloud
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className={`p-2 rounded-lg ${
-              connectionStatus === 'connected' ? 'bg-green-100' :
-              connectionStatus === 'checking' ? 'bg-yellow-100' :
-              connectionStatus === 'disconnected' ? 'bg-red-100' :
-              'bg-gray-100'
-            }`}>
-              {connectionStatus === 'connected' && <Icon name="CheckCircle2" size={20} className="text-green-600" />}
-              {connectionStatus === 'checking' && <Icon name="Loader2" size={20} className="text-yellow-600 animate-spin" />}
-              {connectionStatus === 'disconnected' && <Icon name="XCircle" size={20} className="text-red-600" />}
-              {!connectionStatus && <Icon name="Database" size={20} className="text-gray-600" />}
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-900 mb-1">Статус подключения</h4>
-              <p className="text-sm text-gray-700 mb-2">
-                {connectionStatus === 'connected' && 'Приложение подключено к внешней базе данных TimeWeb Cloud через функцию '}
-                {connectionStatus === 'checking' && 'Проверяем подключение к базе данных TimeWeb Cloud...'}
-                {connectionStatus === 'disconnected' && 'Не удалось подключиться к базе данных TimeWeb Cloud'}
-                {!connectionStatus && 'Ожидание проверки подключения'}
-                {connectionStatus === 'connected' && <code className="px-1.5 py-0.5 bg-white rounded text-xs">external-db</code>}
-              </p>
-              {dbStats && connectionStatus === 'connected' && (
-                <div className="flex gap-4 text-xs text-gray-600">
-                  <span>📊 Таблиц: <strong>{dbStats.totalTables}</strong></span>
-                  <span>📝 Записей: <strong>{dbStats.totalRecords}</strong></span>
-                </div>
-              )}
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-2"
-                onClick={checkDatabaseConnection}
-                disabled={isCheckingConnection}
-              >
-                {isCheckingConnection ? (
-                  <><Icon name="Loader2" size={14} className="mr-1 animate-spin" /> Проверка...</>
-                ) : (
-                  <><Icon name="RefreshCw" size={14} className="mr-1" /> Проверить соединение</>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-              <Icon name="Database" size={18} className="mr-2 text-blue-600" />
-              Используемые таблицы
-            </h4>
-            <div className="grid gap-2">
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="Table" size={14} className="text-gray-500" />
-                <span className="font-mono text-xs bg-white px-2 py-1 rounded">employees</span>
-                <span className="text-gray-600">— данные сотрудников</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="Table" size={14} className="text-gray-500" />
-                <span className="font-mono text-xs bg-white px-2 py-1 rounded">tests</span>
-                <span className="text-gray-600">— тесты и задания</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="Table" size={14} className="text-gray-500" />
-                <span className="font-mono text-xs bg-white px-2 py-1 rounded">test_results</span>
-                <span className="text-gray-600">— результаты тестирования</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="Table" size={14} className="text-gray-500" />
-                <span className="font-mono text-xs bg-white px-2 py-1 rounded">materials</span>
-                <span className="text-gray-600">— обучающие материалы</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="Table" size={14} className="text-gray-500" />
-                <span className="font-mono text-xs bg-white px-2 py-1 rounded">notifications</span>
-                <span className="text-gray-600">— уведомления системы</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="Table" size={14} className="text-gray-500" />
-                <span className="font-mono text-xs bg-white px-2 py-1 rounded">assignments</span>
-                <span className="text-gray-600">— назначенные задачи</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Icon name="Table" size={14} className="text-gray-500" />
-                <span className="font-mono text-xs bg-white px-2 py-1 rounded">subsection_content</span>
-                <span className="text-gray-600">— контент разделов</span>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Icon name="Zap" size={20} className="text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-gray-900 mb-1">Преимущества</h4>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                <li>Данные хранятся надёжно в облаке TimeWeb</li>
-                <li>Нет ограничений локального хранилища браузера</li>
-                <li>Доступ к данным из любого устройства</li>
-                <li>Автоматическое резервное копирование</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <DatabaseConnectionCard
+        connectionStatus={connectionStatus}
+        isCheckingConnection={isCheckingConnection}
+        dbStats={dbStats}
+        onCheckConnection={checkDatabaseConnection}
+      />
 
       <Card>
         <CardHeader>
@@ -353,396 +261,76 @@ export default function DatabaseSettings() {
             </AlertDescription>
           </Alert>
 
-          {/* Статистика БД */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <Icon name="BarChart3" size={18} className="mr-2" />
-              Статистика базы данных
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg bg-blue-50">
-                <div className="flex items-center justify-between mb-2">
-                  <Icon name="Users" size={20} className="text-blue-600" />
-                  <span className="text-2xl font-bold text-blue-600">{stats.employees}</span>
-                </div>
-                <p className="text-sm text-gray-600">Сотрудников</p>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-green-50">
-                <div className="flex items-center justify-between mb-2">
-                  <Icon name="FileText" size={20} className="text-green-600" />
-                  <span className="text-2xl font-bold text-green-600">{stats.tests}</span>
-                </div>
-                <p className="text-sm text-gray-600">Тестов</p>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-purple-50">
-                <div className="flex items-center justify-between mb-2">
-                  <Icon name="CheckCircle" size={20} className="text-purple-600" />
-                  <span className="text-2xl font-bold text-purple-600">{stats.testResults}</span>
-                </div>
-                <p className="text-sm text-gray-600">Результатов</p>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-orange-50">
-                <div className="flex items-center justify-between mb-2">
-                  <Icon name="BookOpen" size={20} className="text-orange-600" />
-                  <span className="text-2xl font-bold text-orange-600">{stats.materials}</span>
-                </div>
-                <p className="text-sm text-gray-600">Материалов</p>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-yellow-50">
-                <div className="flex items-center justify-between mb-2">
-                  <Icon name="Bell" size={20} className="text-yellow-600" />
-                  <span className="text-2xl font-bold text-yellow-600">{stats.notifications}</span>
-                </div>
-                <p className="text-sm text-gray-600">Уведомлений</p>
-              </div>
-
-              <div className="p-4 border rounded-lg bg-pink-50">
-                <div className="flex items-center justify-between mb-2">
-                  <Icon name="ClipboardList" size={20} className="text-pink-600" />
-                  <span className="text-2xl font-bold text-pink-600">{stats.assignments}</span>
-                </div>
-                <p className="text-sm text-gray-600">Заданий</p>
-              </div>
-            </div>
-
-            <div className="mt-4 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-blue-900">Всего записей в БД</p>
-                  <p className="text-sm text-blue-700">Общее количество данных</p>
-                </div>
-                <span className="text-4xl font-bold text-blue-600">{stats.total}</span>
-              </div>
-            </div>
-          </div>
+          <DatabaseStatsSection stats={stats} />
 
           <Separator />
 
-          {/* Экспорт */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <Icon name="Download" size={18} className="mr-2" />
-              Экспорт базы данных
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Создайте резервную копию всех данных в формате JSON. Файл можно импортировать позже для восстановления.
-            </p>
-            <Button 
-              onClick={exportDatabase} 
-              disabled={isExporting}
-              className="w-full"
-            >
-              {isExporting ? (
-                <>
-                  <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                  Экспорт...
-                </>
-              ) : (
-                <>
-                  <Icon name="Download" size={16} className="mr-2" />
-                  Экспортировать базу данных
-                </>
-              )}
-            </Button>
-          </div>
+          <DatabaseActionsSection
+            isExporting={isExporting}
+            isImporting={isImporting}
+            onExport={exportDatabase}
+            onImport={importDatabase}
+            onShowClearDialog={() => setShowClearDialog(true)}
+            onShowResetDialog={() => setShowResetDialog(true)}
+          />
 
           <Separator />
 
-          {/* Импорт */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <Icon name="Upload" size={18} className="mr-2" />
-              Импорт базы данных
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Восстановите данные из ранее созданной резервной копии. <strong>Внимание:</strong> это заменит все текущие данные!
-            </p>
-            <Alert className="mb-3 border-orange-200 bg-orange-50">
-              <Icon name="AlertTriangle" size={16} className="text-orange-600" />
-              <AlertDescription className="text-orange-800">
-                Импорт заменит все текущие данные. Рекомендуется сначала создать экспорт.
-              </AlertDescription>
-            </Alert>
-            <Button 
-              onClick={importDatabase} 
-              disabled={isImporting}
-              className="w-full"
-            >
-              {isImporting ? (
-                <>
-                  <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                  Импорт...
-                </>
-              ) : (
-                <>
-                  <Icon name="Upload" size={16} className="mr-2" />
-                  Импортировать базу данных
-                </>
-              )}
-            </Button>
-          </div>
-
-          <Separator />
-
-          {/* Автоматические резервные копии */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <Icon name="History" size={18} className="mr-2" />
-              Автоматические резервные копии
-            </h3>
-            <Alert className="mb-3 border-blue-200 bg-blue-50">
-              <Icon name="Info" size={16} className="text-blue-600" />
-              <AlertDescription className="text-blue-800">
-                Система автоматически создаёт резервную копию при каждом входе администратора (не чаще 1 раза в 24 часа). Хранятся последние {backupHistory.length} из 10 копий. Размер: {autoBackupService.getBackupSize()}
-              </AlertDescription>
-            </Alert>
-
-            {backupHistory.length === 0 ? (
-              <div className="text-center p-8 border rounded-lg bg-gray-50">
-                <Icon name="Database" size={32} className="mx-auto mb-2 text-gray-400" />
-                <p className="text-gray-600">Автоматические резервные копии ещё не создавались</p>
-                <p className="text-sm text-gray-500 mt-1">Они будут созданы при следующем входе</p>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {backupHistory.map((backup, index) => (
-                  <div key={backup.id} className="p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Icon name="Database" size={16} className="text-blue-600" />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{backup.date} в {backup.time}</span>
-                            {index === 0 && (
-                              <Badge variant="secondary" className="text-xs">Последняя</Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {backup.stats.total} записей: {backup.stats.employees} сотр., {backup.stats.tests} тест., {backup.stats.testResults} рез.
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => autoBackupService.downloadBackup(backup.id)}
-                        >
-                          <Icon name="Download" size={14} className="mr-1" />
-                          Скачать
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedBackup(backup);
-                            setShowRestoreDialog(true);
-                          }}
-                        >
-                          <Icon name="RotateCcw" size={14} className="mr-1" />
-                          Восстановить
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            if (confirm('Удалить эту резервную копию?')) {
-                              autoBackupService.deleteBackup(backup.id);
-                              loadBackupHistory();
-                              toast.success('Резервная копия удалена');
-                            }
-                          }}
-                        >
-                          <Icon name="Trash2" size={14} />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {backupHistory.length > 0 && (
-              <div className="mt-3 flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const backup = autoBackupService.createAutoBackup();
-                    if (backup) {
-                      loadBackupHistory();
-                      toast.success('Резервная копия создана!');
-                    } else {
-                      toast.info('Резервная копия уже создавалась за последние 24 часа');
-                    }
-                  }}
-                  className="flex-1"
-                >
-                  <Icon name="Plus" size={14} className="mr-1" />
-                  Создать копию сейчас
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    if (confirm(`Удалить все ${backupHistory.length} автоматических резервных копий?`)) {
-                      autoBackupService.clearAllBackups();
-                      loadBackupHistory();
-                      toast.success('Все автоматические копии удалены');
-                    }
-                  }}
-                  className="flex-1"
-                >
-                  <Icon name="Trash2" size={14} className="mr-1" />
-                  Очистить историю
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <Separator />
-
-          {/* Опасная зона */}
-          <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
-            <h3 className="text-lg font-semibold mb-3 flex items-center text-red-700">
-              <Icon name="AlertTriangle" size={18} className="mr-2" />
-              Опасная зона
-            </h3>
-
-            <div className="space-y-3">
-              <div>
-                <p className="text-sm font-medium text-red-900 mb-2">Очистить базу данных</p>
-                <p className="text-sm text-red-700 mb-2">
-                  Удалить все данные без возможности восстановления. База данных станет пустой.
-                </p>
-                <Button 
-                  onClick={() => setShowClearDialog(true)}
-                  variant="destructive"
-                  className="w-full border-[0.25px] border-black"
-                >
-                  <Icon name="Trash2" size={16} className="mr-2" />
-                  Очистить базу данных
-                </Button>
-              </div>
-
-              <Separator />
-
-              <div>
-                <p className="text-sm font-medium text-red-900 mb-2">Сбросить к демо-данным</p>
-                <p className="text-sm text-red-700 mb-2">
-                  Удалить все данные и восстановить демо-данные по умолчанию при следующей загрузке.
-                </p>
-                <Button 
-                  onClick={() => setShowResetDialog(true)}
-                  variant="destructive"
-                  className="w-full border-[0.25px] border-black"
-                >
-                  <Icon name="RotateCcw" size={16} className="mr-2" />
-                  Сбросить к демо-данным
-                </Button>
-              </div>
-            </div>
-          </div>
+          <DatabaseBackupSection
+            backupHistory={backupHistory}
+            onLoadBackupHistory={loadBackupHistory}
+            onSelectBackup={setSelectedBackup}
+            onShowRestoreDialog={() => setShowRestoreDialog(true)}
+          />
         </CardContent>
       </Card>
 
-      {/* Диалог подтверждения очистки */}
       <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center text-red-600">
-              <Icon name="AlertTriangle" size={20} className="mr-2" />
-              Подтвердите очистку базы данных
-            </AlertDialogTitle>
+            <AlertDialogTitle>Подтвердите очистку базы данных</AlertDialogTitle>
             <AlertDialogDescription>
-              Это действие нельзя отменить. Все данные будут безвозвратно удалены:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>{stats.employees} сотрудников</li>
-                <li>{stats.tests} тестов</li>
-                <li>{stats.testResults} результатов</li>
-                <li>{stats.materials} материалов</li>
-                <li>{stats.notifications} уведомлений</li>
-                <li>{stats.assignments} заданий</li>
-              </ul>
-              <p className="mt-3 font-semibold">Вы уверены?</p>
+              Все данные будут удалены без возможности восстановления. Рекомендуется создать резервную копию перед очисткой.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction onClick={clearDatabase} className="bg-red-600 hover:bg-red-700">
-              Да, очистить
+              Очистить
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Диалог подтверждения сброса */}
       <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center text-red-600">
-              <Icon name="RotateCcw" size={20} className="mr-2" />
-              Подтвердите сброс к демо-данным
-            </AlertDialogTitle>
+            <AlertDialogTitle>Подтвердите сброс к демо-данным</AlertDialogTitle>
             <AlertDialogDescription>
-              Все текущие данные будут удалены, и при следующей загрузке система создаст новые демо-данные.
-              <p className="mt-3 font-semibold">Это удалит {stats.total} записей. Продолжить?</p>
+              Текущие данные будут удалены и заменены демонстрационными. Это действие нельзя отменить.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={resetToDemo} className="bg-red-600 hover:bg-red-700">
-              Да, сбросить
+            <AlertDialogAction onClick={resetToDemo} className="bg-orange-600 hover:bg-orange-700">
+              Сбросить
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Диалог подтверждения восстановления */}
       <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center text-blue-600">
-              <Icon name="RotateCcw" size={20} className="mr-2" />
-              Восстановить из резервной копии?
-            </AlertDialogTitle>
+            <AlertDialogTitle>Восстановить резервную копию?</AlertDialogTitle>
             <AlertDialogDescription>
-              {selectedBackup && (
-                <>
-                  <p>Вы собираетесь восстановить данные из резервной копии:</p>
-                  <div className="mt-2 p-3 bg-blue-50 rounded border border-blue-200">
-                    <p className="font-semibold">{selectedBackup.date} в {selectedBackup.time}</p>
-                    <p className="text-sm mt-1">
-                      {selectedBackup.stats.total} записей ({selectedBackup.stats.employees} сотр., {selectedBackup.stats.tests} тест., {selectedBackup.stats.testResults} рез.)
-                    </p>
-                  </div>
-                  <p className="mt-3 font-semibold text-orange-600">
-                    ⚠️ Все текущие данные будут заменены. Продолжить?
-                  </p>
-                </>
-              )}
+              Текущие данные будут заменены данными из резервной копии от {selectedBackup?.date} {selectedBackup?.time}. Это действие нельзя отменить.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => {
-                if (selectedBackup && autoBackupService.restoreBackup(selectedBackup.id)) {
-                  toast.success('Данные восстановлены! Страница будет перезагружена.');
-                  setTimeout(() => window.location.reload(), 1500);
-                } else {
-                  toast.error('Ошибка восстановления данных');
-                }
-                setShowRestoreDialog(false);
-              }}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Да, восстановить
+            <AlertDialogAction onClick={restoreBackup}>
+              Восстановить
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
