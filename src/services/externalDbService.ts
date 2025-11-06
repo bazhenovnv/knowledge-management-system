@@ -1,5 +1,5 @@
 // API URL - используем облачную функцию poehali.dev
-const EXTERNAL_DB_URL = import.meta.env.VITE_API_URL || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+const EXTERNAL_DB_URL = import.meta.env.VITE_API_URL || 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';

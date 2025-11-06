@@ -26,20 +26,25 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': ''
         }
     
-    if method != 'POST':
-        return {
-            'statusCode': 405,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'isBase64Encoded': False,
-            'body': json.dumps({'error': 'Method not allowed'})
-        }
-    
     try:
-        body_data = json.loads(event.get('body', '{}'))
-        action = body_data.get('action')
+        # Support both GET (with query params) and POST (with body)
+        if method == 'GET':
+            query_params = event.get('queryStringParameters', {})
+            action = query_params.get('action')
+            body_data = query_params
+        elif method == 'POST':
+            body_data = json.loads(event.get('body', '{}'))
+            action = body_data.get('action')
+        else:
+            return {
+                'statusCode': 405,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'isBase64Encoded': False,
+                'body': json.dumps({'error': 'Method not allowed'})
+            }
         
         database_url = os.environ.get('EXTERNAL_DATABASE_URL')
         if not database_url:
