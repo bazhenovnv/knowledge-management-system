@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const EXTERNAL_DB_URL = 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
 
 export default function PasswordResetPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -187,6 +189,16 @@ export default function PasswordResetPage() {
                 Установить новый пароль
               </>
             )}
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            disabled={isLoading}
+            className="w-full"
+          >
+            <Icon name="ArrowLeft" size={16} className="mr-2" />
+            Вернуться ко входу
           </Button>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">

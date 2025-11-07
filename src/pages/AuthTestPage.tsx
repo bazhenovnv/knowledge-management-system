@@ -6,8 +6,10 @@ import TestRegister from '@/components/TestRegister';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
 import { Footer } from '@/components/layout/Footer';
+import { useNavigate } from 'react-router-dom';
 
 export default function AuthTestPage() {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'main' | 'login' | 'register' | 'test-login' | 'test-register'>('main');
 
   const renderView = () => {
@@ -17,6 +19,7 @@ export default function AuthTestPage() {
           <LoginForm 
             onSuccess={() => alert('Успешный вход!')} 
             onRegisterClick={() => setCurrentView('register')}
+            onForgotPasswordClick={() => navigate('/reset-password')}
           />
         );
       case 'register':

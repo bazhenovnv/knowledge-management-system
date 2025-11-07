@@ -8,6 +8,7 @@ import { ContentWrapper } from "@/components/layout/ContentWrapper";
 import { EmployeeDashboard } from "@/components/dashboard/EmployeeDashboard";
 import { TeacherDashboard } from "@/components/dashboard/TeacherDashboard";
 import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
+import { useNavigate } from "react-router-dom";
 
 import { KnowledgeTab } from "@/components/tabs/KnowledgeTab";
 import { AnalyticsTab } from "@/components/tabs/AnalyticsTab";
@@ -28,6 +29,7 @@ import { useData } from "@/contexts/DataContext";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { isLoading: dataLoading, lastUpdated, refreshData } = useData();
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem('lastActiveTab');
@@ -146,7 +148,7 @@ const Index = () => {
         onLogin={handleLogin}
         onRegister={handleRegister}
         onToggleRegister={() => setShowRegister(!showRegister)}
-        onPasswordReset={handlePasswordReset}
+        onPasswordReset={() => navigate('/reset-password')}
       />
     );
   }
