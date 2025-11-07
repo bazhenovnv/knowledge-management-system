@@ -94,15 +94,21 @@ export const externalDb = {
    */
   async list(table: string, options: { limit?: number; offset?: number; schema?: string } = {}): Promise<any[]> {
     try {
-      console.log('Calling external DB list:', EXTERNAL_DB_URL, 'table:', table);
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=list&table=${table}`, {
-        method: 'GET',
-        headers: { 
-          'Accept': 'application/json'
-        },
-        mode: 'cors',
-        credentials: 'omit'
-      });
+      const schema = options.schema || 't_p47619579_knowledge_management';
+      const limit = options.limit || 100;
+      const offset = options.offset || 0;
+      console.log('Calling external DB list:', EXTERNAL_DB_URL, 'table:', table, 'schema:', schema);
+      const response = await fetchWithRetry(
+        `${EXTERNAL_DB_URL}?action=list&table=${table}&schema=${schema}&limit=${limit}&offset=${offset}`, 
+        {
+          method: 'GET',
+          headers: { 
+            'Accept': 'application/json'
+          },
+          mode: 'cors',
+          credentials: 'omit'
+        }
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -127,14 +133,14 @@ export const externalDb = {
   /**
    * Get database statistics
    */
-  async stats(schema = 'public'): Promise<{
+  async stats(schema = 't_p47619579_knowledge_management'): Promise<{
     tables: any[];
     totalTables: number;
     totalRecords: number;
   }> {
     try {
-      console.log('Calling external DB stats:', EXTERNAL_DB_URL);
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=stats`, {
+      console.log('Calling external DB stats:', EXTERNAL_DB_URL, 'schema:', schema);
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=stats&schema=${schema}`, {
         method: 'GET',
         headers: { 
           'Accept': 'application/json'
@@ -217,7 +223,7 @@ export const externalDb = {
   async getSubsectionContent(): Promise<Record<string, string>> {
     try {
       const rows = await this.query(
-        'SELECT subsection_key, content FROM public.subsection_content'
+        'SELECT subsection_key, content FROM t_p47619579_knowledge_management.subsection_content'
       );
       const result: Record<string, string> = {};
       rows.forEach((row: any) => {
@@ -235,7 +241,7 @@ export const externalDb = {
    */
   async saveSubsectionContent(subsection: string, content: string): Promise<void> {
     await this.query(
-      `INSERT INTO public.subsection_content (subsection_key, content) 
+      `INSERT INTO t_p47619579_knowledge_management.subsection_content (subsection_key, content) 
        VALUES ('${subsection}', '${content}')
        ON CONFLICT (subsection_key) 
        DO UPDATE SET content = '${content}', updated_at = NOW()`
