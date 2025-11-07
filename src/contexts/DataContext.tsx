@@ -21,10 +21,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       
       // Получаем данные из БД TimeWeb Cloud
-      const testResults = await externalDb.getTestResults();
       const allEmployees = await externalDb.getEmployees();
       const tests = await externalDb.list('tests');
       const courses = await externalDb.list('courses');
+      
+      let testResults = [];
+      try {
+        testResults = await externalDb.getTestResults();
+      } catch (err) {
+        console.log('Could not load test_results, using empty array');
+      }
       
       const averageScore = testResults.length > 0
         ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)

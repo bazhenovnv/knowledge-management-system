@@ -37,11 +37,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         else:
             return error_response(405, 'Method not allowed')
         
-        database_url = 'postgresql://gen_user:TC%3Eo0yl2J_PR(e@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=require'
+        database_url = os.environ.get('DATABASE_URL', 'postgresql://gen_user:TC%3Eo0yl2J_PR(e@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=require')
         
         database_url = database_url.replace('sslmode=verify-full', 'sslmode=require')
         
         conn = psycopg2.connect(database_url)
+        conn.autocommit = True
         
         if action == 'query':
             result = handle_query(conn, body_data)
@@ -96,14 +97,14 @@ def handle_list(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     if not table:
         return error_response(400, 'Table name required')
     
-    query = f'SELECT * FROM {schema}.{table} LIMIT {limit} OFFSET {offset}'
+    query = f'SELECT * FROM "{schema}"."{table}" LIMIT {limit} OFFSET {offset}'
     
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(query)
         rows = cursor.fetchall()
         result = [dict(row) for row in rows]
         
-        cursor.execute(f'SELECT COUNT(*) as count FROM {schema}.{table}')
+        cursor.execute(f'SELECT COUNT(*) as count FROM "{schema}"."{table}"')
         count_row = cursor.fetchone()
         total_count = count_row['count'] if count_row else 0
         
@@ -131,7 +132,7 @@ def handle_stats(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
         
         total_records = 0
         for table in table_list:
-            cursor.execute(f"SELECT COUNT(*) as count FROM {schema}.{table['table_name']}")
+            cursor.execute(f"SELECT COUNT(*) as count FROM \"{schema}\".\"{table['table_name']}\"")
             count_row = cursor.fetchone()
             table['record_count'] = count_row['count'] if count_row else 0
             total_records += table['record_count']
