@@ -5,14 +5,31 @@
 """
 
 import psycopg2
+import urllib.request
+import os
 
 # Connection string из секрета DATABASE_CONNECTION_TIMEWEB
 DATABASE_URL = "postgresql://gen_user:TC%3Eo0yl2J_PR%28e@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=verify-full"
+
+def setup_ssl_cert():
+    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
+    cert_dir = os.path.expanduser('~/.postgresql')
+    cert_path = os.path.join(cert_dir, 'root.crt')
+    
+    if not os.path.exists(cert_path):
+        os.makedirs(cert_dir, exist_ok=True)
+        cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
+        print(f"📥 Скачивание SSL сертификата...")
+        urllib.request.urlretrieve(cert_url, cert_path)
+        print(f"✅ Сертификат сохранён: {cert_path}")
+    
+    os.environ['PGSSLROOTCERT'] = cert_path
 
 def main():
     print("🚀 Подключение к TimeWeb Cloud PostgreSQL...")
     
     try:
+        setup_ssl_cert()
         conn = psycopg2.connect(DATABASE_URL)
         conn.autocommit = False
         cursor = conn.cursor()
