@@ -100,7 +100,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         headers = event.get('headers', {})
         auth_token = headers.get('X-Auth-Token')
         
-        database_url = os.environ.get('EXTERNAL_DATABASE_URL_NEW2') or os.environ.get('EXTERNAL_DATABASE_URL_NEW') or os.environ.get('EXTERNAL_DATABASE_URL')
+        database_url = os.environ.get('EXTERNAL_DATABASE_URL_NEW3') or os.environ.get('EXTERNAL_DATABASE_URL_NEW2') or os.environ.get('EXTERNAL_DATABASE_URL_NEW') or os.environ.get('EXTERNAL_DATABASE_URL')
         if not database_url:
             return {
                 'statusCode': 500,
