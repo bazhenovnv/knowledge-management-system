@@ -14,7 +14,7 @@ export default function ExternalDbStatus() {
   const [services, setServices] = useState<ServiceStatus[]>([
     { name: 'Авторизация сотрудников', status: 'checking' },
     { name: 'База знаний', status: 'checking' },
-    { name: 'Управление доменами', status: 'checking' },
+    { name: 'Тесты и задания', status: 'checking' },
     { name: 'Подключение к БД', status: 'checking' }
   ]);
   const [isChecking, setIsChecking] = useState(false);
@@ -22,19 +22,24 @@ export default function ExternalDbStatus() {
   const checkServices = async () => {
     setIsChecking(true);
     const newServices: ServiceStatus[] = [...services];
+    const DB_URL = 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
 
-    // Проверка авторизации
+    // Проверка авторизации сотрудников (через запрос к employees)
     try {
-      const authRes = await fetch('/api/auth?action=check', {
+      const authRes = await fetch(`${DB_URL}?action=list&table=employees&schema=t_p47619579_knowledge_management&limit=1`, {
         method: 'GET',
-        headers: { 'X-Auth-Token': 'test-token' }
+        headers: { 'Accept': 'application/json' }
       });
+      
+      if (!authRes.ok) throw new Error('Ошибка доступа');
+      
       const authData = await authRes.json();
+      const employeeCount = authData.rows?.length || 0;
       
       newServices[0] = {
         name: 'Авторизация сотрудников',
-        status: authRes.ok ? 'success' : 'error',
-        message: authRes.ok ? 'Работает на внешней БД' : authData.error,
+        status: 'success',
+        message: `Доступ к таблице employees — OK`,
         details: authData
       };
     } catch (err) {
@@ -48,15 +53,20 @@ export default function ExternalDbStatus() {
 
     // Проверка базы знаний
     try {
-      const materialsRes = await fetch('/api/knowledge-materials?action=list');
+      const materialsRes = await fetch(`${DB_URL}?action=list&table=knowledge_materials&schema=t_p47619579_knowledge_management&limit=10`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (!materialsRes.ok) throw new Error('Ошибка доступа');
+      
       const materialsData = await materialsRes.json();
+      const count = materialsData.count || materialsData.rows?.length || 0;
       
       newServices[1] = {
         name: 'База знаний',
-        status: materialsRes.ok ? 'success' : 'error',
-        message: materialsRes.ok 
-          ? `Найдено ${materialsData.materials?.length || 0} материалов` 
-          : materialsData.error,
+        status: 'success',
+        message: `Найдено ${count} материалов`,
         details: materialsData
       };
     } catch (err) {
@@ -68,39 +78,50 @@ export default function ExternalDbStatus() {
     }
     setServices([...newServices]);
 
-    // Проверка доменов
+    // Проверка тестов
     try {
-      const domainRes = await fetch('/api/domain');
-      const domainData = await domainRes.json();
+      const testsRes = await fetch(`${DB_URL}?action=list&table=tests&schema=t_p47619579_knowledge_management&limit=10`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (!testsRes.ok) throw new Error('Ошибка доступа');
+      
+      const testsData = await testsRes.json();
+      const count = testsData.count || testsData.rows?.length || 0;
       
       newServices[2] = {
-        name: 'Управление доменами',
-        status: domainRes.ok ? 'success' : 'error',
-        message: domainRes.ok 
-          ? domainData.domain ? `Домен: ${domainData.domain}` : 'Домен не подключен'
-          : domainData.error,
-        details: domainData
+        name: 'Тесты и задания',
+        status: 'success',
+        message: `Доступно ${count} тестов`,
+        details: testsData
       };
     } catch (err) {
       newServices[2] = {
-        name: 'Управление доменами',
+        name: 'Тесты и задания',
         status: 'error',
         message: err instanceof Error ? err.message : 'Ошибка подключения'
       };
     }
     setServices([...newServices]);
 
-    // Проверка прямого подключения к БД
+    // Проверка прямого подключения к БД через stats
     try {
-      const dbRes = await fetch('/api/database?action=stats');
+      const dbRes = await fetch(`${DB_URL}?action=stats&schema=t_p47619579_knowledge_management`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (!dbRes.ok) throw new Error('Ошибка подключения');
+      
       const dbData = await dbRes.json();
+      const totalTables = dbData.totalTables || dbData.tables?.length || 0;
+      const totalRecords = dbData.totalRecords || 0;
       
       newServices[3] = {
         name: 'Подключение к БД',
-        status: dbRes.ok ? 'success' : 'error',
-        message: dbRes.ok 
-          ? `Таблиц: ${dbData.stats?.totalTables || 0}, Записей: ${dbData.stats?.totalRecords || 0}`
-          : dbData.error,
+        status: 'success',
+        message: `Таблиц: ${totalTables}, Записей: ${totalRecords}`,
         details: dbData
       };
     } catch (err) {
@@ -129,7 +150,7 @@ export default function ExternalDbStatus() {
             Проверка подключения к вашей PostgreSQL базе данных
           </p>
           <p className="text-sm text-gray-500 mt-2 font-mono">
-            d83d798a97838911384dbba2.twc1.net:5432/default_db
+            c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db
           </p>
         </div>
 
@@ -202,7 +223,7 @@ export default function ExternalDbStatus() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between py-2 border-b">
                 <span className="text-gray-600">Хост:</span>
-                <span className="font-mono">d83d798a97838911384dbba2.twc1.net</span>
+                <span className="font-mono">c6b7ae5ab8e72b5408272e27.twc1.net</span>
               </div>
               <div className="flex justify-between py-2 border-b">
                 <span className="text-gray-600">Порт:</span>
