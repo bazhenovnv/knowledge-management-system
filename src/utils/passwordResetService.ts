@@ -247,16 +247,3 @@ class PasswordResetService {
 
 export const passwordResetService = new PasswordResetService();
 
-// Информация о валидных email для демонстрации
-export const DEMO_USERS = [
-  { email: 'admin@company.com', name: 'Администратор', department: 'IT' },
-  { email: 'manager@company.com', name: 'Руководитель', department: 'Управление' },
-  { email: 'employee@company.com', name: 'Сотрудник', department: 'Отдел продаж' },
-  { email: 'hr@company.com', name: 'HR-специалист', department: 'Кадры' },
-  { email: 'support@company.com', name: 'Техподдержка', department: 'IT' }
-];
-
-// Получение информации о демо-пользователе
-export const getDemoUserInfo = (email: string) => {
-  return DEMO_USERS.find(user => user.email.toLowerCase() === email.toLowerCase());
-};

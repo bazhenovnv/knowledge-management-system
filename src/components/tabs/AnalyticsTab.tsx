@@ -26,7 +26,7 @@ import {
   Line,
 } from "recharts";
 import Icon from "@/components/ui/icon";
-import { database } from '@/utils/database';
+import { externalDb } from '@/services/externalDbService';
 import { chartConfig } from "@/data/mockData";
 
 export const AnalyticsTab = () => {
@@ -43,11 +43,11 @@ export const AnalyticsTab = () => {
     loadAnalyticsData();
   }, []);
 
-  const loadAnalyticsData = () => {
+  const loadAnalyticsData = async () => {
     try {
-      const employees = database.getEmployees();
-      const tests = database.getTests();
-      const testResults = database.getTestResults();
+      const employees = await externalDb.getEmployees();
+      const tests = await externalDb.list('tests');
+      const testResults = await externalDb.getTestResults();
 
       // Основная статистика
       const totalTests = testResults.length;

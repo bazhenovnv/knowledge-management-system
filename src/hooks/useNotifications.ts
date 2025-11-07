@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { notificationsService } from "@/utils/notificationsService";
 
 export interface Notification {
   id: string;
@@ -15,99 +16,106 @@ export interface Notification {
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Инициализация с тестовыми уведомлениями
   useEffect(() => {
-    const mockNotifications: Notification[] = [
-      {
-        id: "1",
-        title: "Новый тест доступен",
-        message: "Тест по информационной безопасности готов к прохождению",
-        type: "info",
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 часа назад
-        isRead: false,
-        category: "test",
-        actionUrl: "/dashboard",
-        actionText: "Пройти тест",
-      },
-      {
-        id: "2",
-        title: "Курс завершен",
-        message: 'Поздравляем! Вы успешно завершили курс "Основы React"',
-        type: "success",
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 день назад
-        isRead: false,
-        category: "achievement",
-        actionUrl: "/analytics",
-        actionText: "Посмотреть результаты",
-      },
-      {
-        id: "3",
-        title: "Напоминание о дедлайне",
-        message:
-          'До окончания курса "TypeScript для разработчиков" остается 3 дня',
-        type: "warning",
-        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 часа назад
-        isRead: true,
-        category: "course",
-        actionUrl: "/knowledge",
-        actionText: "Продолжить изучение",
-      },
-      {
-        id: "4",
-        title: "Новый материал",
-        message: 'Добавлен новый курс "Дизайн интерфейсов"',
-        type: "info",
-        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 часов назад
-        isRead: false,
-        category: "course",
-        actionUrl: "/knowledge",
-        actionText: "Изучить",
-      },
-      {
-        id: "5",
-        title: "Обновление системы",
-        message:
-          "Система будет недоступна завтра с 02:00 до 04:00 для технического обслуживания",
-        type: "warning",
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 часов назад
-        isRead: true,
-        category: "system",
-      },
-    ];
-
-    setNotifications(mockNotifications);
+    loadNotifications();
   }, []);
+
+  const loadNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const data = await notificationsService.getNotifications();
+      setNotifications(data.map((n: any) => ({
+        id: n.id.toString(),
+        title: n.title,
+        message: n.message,
+        type: n.type || 'info',
+        timestamp: new Date(n.created_at),
+        isRead: n.is_read || false,
+        category: n.category || 'system',
+        actionUrl: n.action_url,
+        actionText: n.action_text,
+      })));
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
-    );
+  const markAsRead = async (id: string) => {
+    try {
+      await notificationsService.markAsRead(parseInt(id));
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const markAllAsRead = async () => {
+    try {
+      await Promise.all(
+        notifications
+          .filter(n => !n.isRead)
+          .map(n => notificationsService.markAsRead(parseInt(n.id)))
+      );
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
   };
 
-  const deleteNotification = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const deleteNotification = async (id: string) => {
+    try {
+      await notificationsService.deleteNotification(parseInt(id));
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
   };
 
-  const clearAll = () => {
-    setNotifications([]);
+  const clearAll = async () => {
+    try {
+      await Promise.all(
+        notifications.map(n => notificationsService.deleteNotification(parseInt(n.id)))
+      );
+      setNotifications([]);
+    } catch (error) {
+      console.error('Error clearing all notifications:', error);
+    }
   };
 
-  const addNotification = (
+  const addNotification = async (
     notification: Omit<Notification, "id" | "timestamp">,
   ) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-    };
-    setNotifications((prev) => [newNotification, ...prev]);
+    try {
+      const employeeData = localStorage.getItem('employee_data');
+      const employee = employeeData ? JSON.parse(employeeData) : null;
+      
+      if (!employee) {
+        console.error('No employee data found');
+        return;
+      }
+
+      const newNotification = await notificationsService.createNotification({
+        employee_id: employee.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        category: notification.category,
+        action_url: notification.actionUrl,
+        action_text: notification.actionText,
+      });
+
+      await loadNotifications();
+    } catch (error) {
+      console.error('Error adding notification:', error);
+    }
   };
 
   const getNotificationsByCategory = (category: string) => {
@@ -124,6 +132,7 @@ export const useNotifications = () => {
     notifications,
     unreadCount,
     isOpen,
+    isLoading,
     setIsOpen,
     markAsRead,
     markAllAsRead,
@@ -132,5 +141,6 @@ export const useNotifications = () => {
     addNotification,
     getNotificationsByCategory,
     getRecentNotifications,
+    loadNotifications,
   };
 };
