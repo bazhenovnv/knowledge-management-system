@@ -1,5 +1,5 @@
-// API URL - используем nginx прокси на сервере
-const EXTERNAL_DB_URL = import.meta.env.VITE_API_URL || 'https://ab-education.ru/api';
+// API URL - используем прямой URL облачной функции external-db
+const EXTERNAL_DB_URL = import.meta.env.VITE_API_URL || 'https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957';
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
