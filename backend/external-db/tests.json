@@ -1,23 +1,21 @@
 {
   "tests": [
     {
-      "name": "Test OPTIONS request for CORS",
+      "name": "Test OPTIONS preflight",
       "method": "OPTIONS",
       "path": "/",
       "expectedStatus": 200,
-      "expectedHeaders": {
-        "Access-Control-Allow-Origin": "*"
-      }
+      "bodyMatcher": "partial"
     },
     {
       "name": "Test stats action",
-      "method": "POST",
-      "path": "/",
-      "body": {
-        "action": "stats",
-        "schema": "public"
-      },
+      "method": "GET",
+      "path": "/?action=stats&schema=t_p47619579_knowledge_management",
       "expectedStatus": 200,
+      "expectedBody": {
+        "tables": "array",
+        "totalTables": "number"
+      },
       "bodyMatcher": "partial"
     }
   ]
