@@ -21,6 +21,7 @@ import DatabaseConnectionCard from "./DatabaseConnectionCard";
 import DatabaseStatsSection from "./DatabaseStatsSection";
 import DatabaseActionsSection from "./DatabaseActionsSection";
 import DatabaseBackupSection from "./DatabaseBackupSection";
+import SecretForm from "./SecretForm";
 
 export default function DatabaseSettings() {
   const [isExporting, setIsExporting] = useState(false);
@@ -239,6 +240,8 @@ export default function DatabaseSettings() {
 
   return (
     <div className="space-y-6">
+      <SecretForm />
+      
       <DatabaseConnectionCard
         connectionStatus={connectionStatus}
         isCheckingConnection={isCheckingConnection}
