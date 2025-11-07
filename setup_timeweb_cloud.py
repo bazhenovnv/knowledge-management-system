@@ -8,8 +8,8 @@ import psycopg2
 import urllib.request
 import os
 
-# Connection string из секрета DATABASE_CONNECTION_TIMEWEB
-DATABASE_URL = "postgresql://gen_user:TC%3Eo0yl2J_PR%28e@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=verify-full"
+# Connection string из секрета DATABASE_CONNECTION_TIMEWEB (с sslmode=require вместо verify-full)
+DATABASE_URL = "postgresql://gen_user:TC%3Eo0yl2J_PR%28e@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=require"
 
 def setup_ssl_cert():
     """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
