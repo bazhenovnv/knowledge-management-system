@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import Icon from '@/components/ui/icon';
 import { externalDb } from '@/services/externalDbService';
 import { toast } from 'sonner';
+import SecretForm from '@/components/settings/SecretForm';
 
 interface TableStats {
   schemaname: string;
@@ -69,6 +70,9 @@ export default function DatabaseStatsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Secret Form */}
+      <SecretForm />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
