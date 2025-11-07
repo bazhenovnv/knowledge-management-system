@@ -72,7 +72,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Business: Unified authentication API for login, registration, check, and logout
     Args: event with httpMethod, body, headers, queryStringParameters; context with request_id
     Returns: HTTP response based on action parameter
-    Updated: Using DATABASE_CONNECTION_TIMEWEB for TimeWeb Cloud default_db
+    Updated: Using DATABASE_CONNECTION_TIMEWEB for TimeWeb Cloud default_db with 27 tables
     '''
     setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')

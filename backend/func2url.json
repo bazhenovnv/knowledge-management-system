@@ -1,4 +1,5 @@
 {
+  "setup-db": "https://functions.poehali.dev/a3dcd52c-07f8-4b10-b3f5-f1540c822474",
   "external-db": "https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179",
   "project-db": "https://functions.poehali.dev/665b0dc9-5b2d-41e8-8df6-77aeefd8cf9d",
   "po-min-2": "https://functions.poehali.dev/fbab20f5-0896-41e7-9d3c-a9014257cbf0",

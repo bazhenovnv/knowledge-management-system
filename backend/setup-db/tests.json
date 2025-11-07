@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {
+      "name": "Setup database schema",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true,
+        "message": "string",
+        "table_count": "number"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
