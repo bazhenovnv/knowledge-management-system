@@ -72,6 +72,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     Business: Unified authentication API for login, registration, check, and logout
     Args: event with httpMethod, body, headers, queryStringParameters; context with request_id
     Returns: HTTP response based on action parameter
+    Updated: Using EXTERNAL_DATABASE_URL_FINAL for TimeWeb Cloud default_db
     '''
     setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')
@@ -100,7 +101,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         headers = event.get('headers', {})
         auth_token = headers.get('X-Auth-Token')
         
-        database_url = os.environ.get('EXTERNAL_DATABASE_URL_NEW3') or os.environ.get('EXTERNAL_DATABASE_URL_NEW2') or os.environ.get('EXTERNAL_DATABASE_URL_NEW') or os.environ.get('EXTERNAL_DATABASE_URL')
+        database_url = os.environ.get('EXTERNAL_DATABASE_URL_FINAL') or os.environ.get('EXTERNAL_DATABASE_URL_NEW3') or os.environ.get('EXTERNAL_DATABASE_URL_NEW2') or os.environ.get('EXTERNAL_DATABASE_URL_NEW') or os.environ.get('EXTERNAL_DATABASE_URL')
         if not database_url:
             return {
                 'statusCode': 500,
