@@ -25,12 +25,11 @@ def setup_ssl_cert():
 def get_db_connection():
     """Получает подключение к базе данных"""
     try:
-        database_url = os.environ.get('EXTERNAL_DATABASE_URL')
-        if not database_url:
-            raise Exception("EXTERNAL_DATABASE_URL не настроен")
+        database_url = 'postgresql://gen_user:TC%3Eo0yl2J_PR(e@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=require'
         
         conn = psycopg2.connect(database_url)
         conn.autocommit = True
+        
         return conn
     except Exception as e:
         print(f"Database connection error: {e}")
@@ -54,7 +53,7 @@ def cleanup_old_codes(conn, email: str) -> None:
     """Удаляет старые неиспользованные коды для email"""
     with conn.cursor() as cursor:
         cursor.execute(
-            "UPDATE password_reset_codes SET is_used = true WHERE email = %s AND is_used = false",
+            "UPDATE \"t_p47619579_knowledge_management\".\"password_reset_codes\" SET is_used = true WHERE email = %s AND is_used = false",
             (email,)
         )
 
@@ -62,7 +61,7 @@ def check_user_exists(conn, email: str) -> bool:
     """Проверяет, существует ли пользователь с данным email"""
     with conn.cursor() as cursor:
         cursor.execute(
-            "SELECT COUNT(*) FROM employees WHERE email = %s AND is_active = true",
+            "SELECT COUNT(*) FROM \"t_p47619579_knowledge_management\".\"employees\" WHERE email = %s AND is_active = true",
             (email,)
         )
         return cursor.fetchone()[0] > 0
@@ -78,7 +77,7 @@ def create_reset_code(conn, email: str) -> Tuple[str, datetime]:
     # Создаем новый код
     with conn.cursor() as cursor:
         cursor.execute("""
-            INSERT INTO password_reset_codes (email, code, expires_at)
+            INSERT INTO "t_p47619579_knowledge_management"."password_reset_codes" (email, code, expires_at)
             VALUES (%s, %s, %s)
             RETURNING id
         """, (email, code, expires_at))
@@ -94,7 +93,7 @@ def verify_reset_code(conn, email: str, code: str) -> Optional[str]:
         # Получаем активный код
         cursor.execute("""
             SELECT id, attempts, expires_at, is_verified, is_used
-            FROM password_reset_codes
+            FROM "t_p47619579_knowledge_management"."password_reset_codes"
             WHERE email = %s AND code = %s AND is_used = false
             ORDER BY created_at DESC
             LIMIT 1
@@ -109,7 +108,7 @@ def verify_reset_code(conn, email: str, code: str) -> Optional[str]:
         # Проверяем срок действия
         if datetime.now() > expires_at:
             cursor.execute(
-                "UPDATE password_reset_codes SET is_used = true WHERE id = %s",
+                "UPDATE \"t_p47619579_knowledge_management\".\"password_reset_codes\" SET is_used = true WHERE id = %s",
                 (reset_id,)
             )
             return None
@@ -117,7 +116,7 @@ def verify_reset_code(conn, email: str, code: str) -> Optional[str]:
         # Проверяем количество попыток
         if attempts >= 3:
             cursor.execute(
-                "UPDATE password_reset_codes SET is_used = true WHERE id = %s",
+                "UPDATE \"t_p47619579_knowledge_management\".\"password_reset_codes\" SET is_used = true WHERE id = %s",
                 (reset_id,)
             )
             return None
@@ -125,7 +124,7 @@ def verify_reset_code(conn, email: str, code: str) -> Optional[str]:
         # Если код уже проверен, возвращаем существующий токен
         if is_verified:
             cursor.execute(
-                "SELECT reset_token FROM password_reset_codes WHERE id = %s",
+                "SELECT reset_token FROM \"t_p47619579_knowledge_management\".\"password_reset_codes\" WHERE id = %s",
                 (reset_id,)
             )
             return cursor.fetchone()[0]
@@ -133,7 +132,7 @@ def verify_reset_code(conn, email: str, code: str) -> Optional[str]:
         # Генерируем токен и отмечаем как проверенный
         reset_token = generate_reset_token()
         cursor.execute("""
-            UPDATE password_reset_codes 
+            UPDATE "t_p47619579_knowledge_management"."password_reset_codes" 
             SET reset_token = %s, is_verified = true, attempts = attempts + 1, updated_at = CURRENT_TIMESTAMP
             WHERE id = %s
         """, (reset_token, reset_id))
@@ -144,7 +143,7 @@ def increment_attempts(conn, email: str, code: str) -> int:
     """Увеличивает счетчик попыток и возвращает текущее количество"""
     with conn.cursor() as cursor:
         cursor.execute("""
-            UPDATE password_reset_codes 
+            UPDATE "t_p47619579_knowledge_management"."password_reset_codes" 
             SET attempts = attempts + 1, updated_at = CURRENT_TIMESTAMP
             WHERE email = %s AND code = %s AND is_used = false
             RETURNING attempts
@@ -158,7 +157,7 @@ def reset_user_password(conn, email: str, reset_token: str, new_password: str) -
     with conn.cursor() as cursor:
         # Проверяем валидность токена
         cursor.execute("""
-            SELECT id FROM password_reset_codes
+            SELECT id FROM "t_p47619579_knowledge_management"."password_reset_codes"
             WHERE email = %s AND reset_token = %s AND is_verified = true AND is_used = false
             AND expires_at > CURRENT_TIMESTAMP
         """, (email, reset_token))
@@ -174,7 +173,7 @@ def reset_user_password(conn, email: str, reset_token: str, new_password: str) -
         
         # Обновляем пароль пользователя
         cursor.execute("""
-            UPDATE employees 
+            UPDATE "t_p47619579_knowledge_management"."employees" 
             SET password_hash = %s, last_password_reset = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
             WHERE email = %s
         """, (password_hash, email))
@@ -193,7 +192,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     API для восстановления пароля с базой данных
     Действия: send_code, verify_code, reset_password
     """
-    setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')
     
     # Handle CORS OPTIONS request
