@@ -81,13 +81,16 @@ export const useAuth = () => {
     }
 
     try {
+      console.log('Attempting login with:', { email });
       const response = await fetch('https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, remember_me: false })
       });
 
+      console.log('Login response status:', response.status);
       const data = await response.json();
+      console.log('Login response data:', data);
 
       if (data.error) {
         toast.error(data.error);
