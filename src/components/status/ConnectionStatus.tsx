@@ -12,7 +12,7 @@ interface ConnectionStatusProps {
 }
 
 export default function ConnectionStatus({ 
-  apiUrl = funcUrls['local-db-proxy'] || funcUrls['database'],
+  apiUrl = funcUrls['database'],
   reconnectAttempts = 5,
   reconnectDelay = 3000
 }: ConnectionStatusProps) {
