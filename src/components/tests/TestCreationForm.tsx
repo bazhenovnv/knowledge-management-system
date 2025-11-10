@@ -11,6 +11,7 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { testsService } from '@/utils/testsService';
 import funcUrls from '../../../backend/func2url.json';
+import { API_CONFIG } from '@/config/apiConfig';
 
 interface Question {
   id: string;
@@ -51,7 +52,7 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
 
   const loadCourses = async () => {
     try {
-      const response = await fetch(`${funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558'}?action=list&table=courses`, {
+      const response = await fetch(`${funcUrls['database'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=courses`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });

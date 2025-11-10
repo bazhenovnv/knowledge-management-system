@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { database } from "@/utils/database";
 import { initializeAutoBackup } from "@/utils/autoBackup";
+import { API_CONFIG } from '@/config/apiConfig';
 
 export interface LoginForm {
   email: string;
@@ -82,7 +83,7 @@ export const useAuth = () => {
 
     try {
       console.log('Attempting login with:', { email });
-      const response = await fetch('https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2?action=login', {
+      const response = await fetch(`${API_CONFIG.AUTH_API}?action=login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, remember_me: false })

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { API_CONFIG } from '@/config/apiConfig';
 
 interface ServiceStatus {
   name: string;
@@ -22,7 +23,7 @@ export default function ExternalDbStatus() {
   const checkServices = async () => {
     setIsChecking(true);
     const newServices: ServiceStatus[] = [...services];
-    const DB_URL = 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
+    const DB_URL = API_CONFIG.EXTERNAL_DB;
 
     // Проверка авторизации сотрудников (через запрос к employees)
     try {

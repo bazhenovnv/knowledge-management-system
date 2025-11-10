@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { API_CONFIG } from '@/config/apiConfig';
 
-const EXTERNAL_DB_URL = 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
+const EXTERNAL_DB_URL = API_CONFIG.EXTERNAL_DB;
 
 export default function PasswordResetPage() {
   const navigate = useNavigate();

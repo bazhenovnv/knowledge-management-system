@@ -7,6 +7,7 @@ import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { externalDb } from '@/services/externalDbService';
 import funcUrls from '../../../backend/func2url.json';
+import { API_CONFIG } from '@/config/apiConfig';
 
 interface Material {
   title: string;
@@ -25,7 +26,7 @@ const AIKnowledgeSearch = ({ onMaterialAdd }: AIKnowledgeSearchProps) => {
   const [loading, setLoading] = useState(false);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [expanded, setExpanded] = useState<number | null>(null);
-  const BACKEND_URL = funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558';
+  const BACKEND_URL = funcUrls['database'] || API_CONFIG.LEGACY_DATABASE;
 
   const searchMaterials = async () => {
     if (!query.trim()) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import funcUrls from '../../../backend/func2url.json';
+import { API_CONFIG } from '@/config/apiConfig';
 
 interface FunctionCallCounterProps {
   isAdmin: boolean;
@@ -30,7 +31,7 @@ export const FunctionCallCounter = ({ isAdmin, refreshTrigger }: FunctionCallCou
     try {
       console.log('[FunctionCallCounter] Fetching function call stats...');
       const response = await fetch(
-        `${funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558'}?action=list&table=function_call_stats`
+        `${funcUrls['database'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=function_call_stats`
       );
       const data = await response.json();
       

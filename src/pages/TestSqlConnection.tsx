@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
 import { Footer } from '@/components/layout/Footer';
+import { API_CONFIG } from '@/config/apiConfig';
 
 const TestSqlConnection = () => {
   const { toast } = useToast();
@@ -15,7 +16,7 @@ const TestSqlConnection = () => {
     setResult(null);
 
     try {
-      const response = await fetch('https://functions.poehali.dev/76973564-4ea6-4a98-9582-8f19bc9a6bb6', {
+      const response = await fetch(API_CONFIG.SQL_SERVER_TEST, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

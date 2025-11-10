@@ -14,6 +14,7 @@ import { useApiClient } from "@/utils/apiClient";
 import { useEnhancedToast } from "@/components/ui/enhanced-toast";
 import DatabaseTest from "@/components/DatabaseTest";
 import { API_URLS } from "@/utils/apiUrls";
+import { API_CONFIG } from '@/config/apiConfig';
 
 interface TableInfo {
   table_name: string;
@@ -43,7 +44,7 @@ export function DatabaseSetup() {
   const loadTables = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/459a10f2-9dff-481a-af79-dcf6ca5cb628', {
+      const response = await fetch(API_CONFIG.DATABASE_INFO, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ level: 'database' })
@@ -73,7 +74,7 @@ export function DatabaseSetup() {
   const loadTableInfo = async (tableName: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://functions.poehali.dev/459a10f2-9dff-481a-af79-dcf6ca5cb628', {
+      const response = await fetch(API_CONFIG.DATABASE_INFO, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

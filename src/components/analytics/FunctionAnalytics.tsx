@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import funcUrls from '../../../backend/func2url.json';
+import { API_CONFIG } from '@/config/apiConfig';
 
 interface FunctionStat {
   function_name: string;
@@ -38,7 +39,7 @@ export const FunctionAnalytics = ({ refreshTrigger }: FunctionAnalyticsProps) =>
     try {
       setLoading(true);
       const response = await fetch(
-        `${funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558'}?action=list&table=function_calls_detailed`
+        `${funcUrls['database'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=function_calls_detailed`
       );
       const data = await response.json();
       
