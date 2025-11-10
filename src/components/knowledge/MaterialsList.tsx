@@ -78,11 +78,14 @@ export const MaterialsList = ({
                 </Badge>
               )}
             </div>
-            {material.tags && (
+            {material.tags && material.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-4">
-                {material.tags.split(',').map((tag, index) => (
+                {(Array.isArray(material.tags) 
+                  ? material.tags 
+                  : material.tags.split(',')
+                ).map((tag, index) => (
                   <Badge key={index} variant="outline" className="text-xs">
-                    {tag.trim()}
+                    {typeof tag === 'string' ? tag.trim() : tag}
                   </Badge>
                 ))}
               </div>
