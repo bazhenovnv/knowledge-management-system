@@ -1,4 +1,6 @@
-const EXTERNAL_DB_URL = import.meta.env.VITE_EXTERNAL_DB_URL || 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
+import { API_CONFIG } from '@/config/apiConfig';
+
+const EXTERNAL_DB_URL = API_CONFIG.EXTERNAL_DB;
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';

@@ -1,9 +1,8 @@
-// Интегрированная система уведомлений (БД + Push + Email)
-
 import { notificationsService, CreateNotificationData } from './notificationsService';
 import { pushNotificationService, pushNotificationHelpers } from './pushNotifications';
+import { API_CONFIG } from '@/config/apiConfig';
 
-const EMAIL_API_URL = 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17';
+const EMAIL_API_URL = API_CONFIG.EMAIL_API;
 
 interface Employee {
   id: number;

@@ -1,4 +1,6 @@
-const EMAIL_API_URL = 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17';
+import { API_CONFIG } from '@/config/apiConfig';
+
+const EMAIL_API_URL = API_CONFIG.EMAIL_API;
 
 export interface ScheduledNotification {
   employeeId: number;

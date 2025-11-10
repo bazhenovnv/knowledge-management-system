@@ -1,4 +1,6 @@
-const TRACK_FUNCTION_URL = 'https://functions.poehali.dev/9af65be8-de12-472e-910f-fd63b3516ed9';
+import { API_CONFIG } from '@/config/apiConfig';
+
+const TRACK_FUNCTION_URL = API_CONFIG.FUNCTION_TRACKER;
 
 const extractFunctionName = (url: string): string => {
   const match = url.match(/functions\.poehali\.dev\/([a-f0-9-]+)/);

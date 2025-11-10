@@ -1,5 +1,6 @@
-// Authentication service for employee management system
-const API_BASE_URL = 'https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2';
+import { API_CONFIG } from '@/config/apiConfig';
+
+const API_BASE_URL = API_CONFIG.AUTH_API;
 
 export interface Employee {
   id: number;
