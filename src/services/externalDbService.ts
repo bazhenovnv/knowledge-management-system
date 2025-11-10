@@ -1,5 +1,4 @@
-// API URL - облачная функция external-db (обновлено 07.11.2025)
-const EXTERNAL_DB_URL = 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
+const EXTERNAL_DB_URL = import.meta.env.VITE_EXTERNAL_DB_URL || 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
