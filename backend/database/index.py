@@ -53,10 +53,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     try:
-        # Подключение к базе данных
-        database_url = os.environ.get('EXTERNAL_DATABASE_URL')
-        if not database_url:
-            raise ValueError("EXTERNAL_DATABASE_URL не найден в переменных окружения")
+        # Подключение к базе данных (используем тот же DSN что и external-db)
+        database_url = os.environ.get('DATABASE_URL', 'postgresql://gen_user:TC%3Eo0yl2J_PR(e@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=require')
+        database_url = database_url.replace('sslmode=verify-full', 'sslmode=require')
         
         conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
         cursor = conn.cursor()
