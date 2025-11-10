@@ -44,10 +44,14 @@ const NotificationList: React.FC<NotificationListProps> = ({
   const loadNotifications = () => {
     setIsLoading(true);
     try {
-      // Получаем уведомления из локальной БД
       const dbNotifications = database.getNotificationsForUser(employeeId);
       
-      // Преобразуем формат уведомлений для совместимости с компонентом
+      if (!dbNotifications || dbNotifications.length === 0) {
+        setNotifications([]);
+        setIsLoading(false);
+        return;
+      }
+      
       const formattedNotifications: Notification[] = dbNotifications.map(n => ({
         id: n.id,
         employee_id: employeeId,
@@ -59,7 +63,6 @@ const NotificationList: React.FC<NotificationListProps> = ({
         created_at: n.createdAt.toISOString(),
       }));
       
-      // Сортируем по дате (новые сначала)
       formattedNotifications.sort((a, b) => 
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
@@ -67,7 +70,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
       setNotifications(formattedNotifications);
     } catch (error) {
       console.error('Error loading notifications:', error);
-      toast.error('Ошибка загрузки уведомлений');
+      setNotifications([]);
     } finally {
       setIsLoading(false);
     }
