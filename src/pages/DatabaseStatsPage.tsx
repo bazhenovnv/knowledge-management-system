@@ -45,7 +45,8 @@ export default function DatabaseStatsPage() {
     return new Intl.NumberFormat('ru-RU').format(num);
   };
 
-  const getTableIcon = (tableName: string) => {
+  const getTableIcon = (tableName: string | undefined) => {
+    if (!tableName) return 'Table';
     if (tableName.includes('employee')) return 'Users';
     if (tableName.includes('test')) return 'FileCheck';
     if (tableName.includes('knowledge') || tableName.includes('material')) return 'BookOpen';
