@@ -158,15 +158,7 @@ export const Navigation = ({
             isAdmin={userRole === 'admin'}
             compact={true}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/external-db')}
-            className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
-            title="Внешняя БД"
-          >
-            <Icon name="Database" size={16} />
-          </Button>
+
           <Button
             variant="outline"
             size="sm"

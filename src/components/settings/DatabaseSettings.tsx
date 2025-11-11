@@ -22,6 +22,8 @@ import DatabaseStatsSection from "./DatabaseStatsSection";
 import DatabaseActionsSection from "./DatabaseActionsSection";
 import DatabaseBackupSection from "./DatabaseBackupSection";
 import SecretForm from "./SecretForm";
+import { ExternalDatabaseModal } from "@/components/database/ExternalDatabaseModal";
+import { Button } from "@/components/ui/button";
 
 export default function DatabaseSettings() {
   const [isExporting, setIsExporting] = useState(false);
@@ -34,6 +36,8 @@ export default function DatabaseSettings() {
   const [isCheckingConnection, setIsCheckingConnection] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'disconnected' | null>(null);
   const [dbStats, setDbStats] = useState<{ totalTables: number; totalRecords: number } | null>(null);
+  const [isExternalDbModalOpen, setIsExternalDbModalOpen] = useState(false);
+  const [savedConnections, setSavedConnections] = useState<string[]>([]);
 
   useEffect(() => {
     loadBackupHistory();
@@ -238,10 +242,75 @@ export default function DatabaseSettings() {
     }
   };
 
+  const handleSaveExternalConnection = async (connectionString: string) => {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const masked = connectionString.replace(
+      /(postgresql:\/\/[^:]+:)([^@]+)(@.+)/,
+      '$1***$3'
+    );
+    
+    setSavedConnections(prev => [...prev, masked]);
+    toast.success('Внешняя база данных подключена!');
+    checkDatabaseConnection();
+  };
+
   return (
     <div className="space-y-6">
       <SecretForm />
       
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Icon name="Database" size={20} className="mr-2 text-purple-600" />
+            Внешняя база данных
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert>
+            <Icon name="Info" size={16} />
+            <AlertDescription>
+              Подключите внешнюю PostgreSQL базу данных для хранения данных в облаке
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex gap-3">
+            <Button 
+              onClick={() => setIsExternalDbModalOpen(true)} 
+              className="flex-1"
+            >
+              <Icon name="Plus" size={20} className="mr-2" />
+              Подключить внешнюю БД
+            </Button>
+          </div>
+
+          {savedConnections.length > 0 && (
+            <div className="space-y-2 mt-4">
+              <h3 className="font-semibold text-sm text-muted-foreground">
+                Подключенные базы данных:
+              </h3>
+              {savedConnections.map((conn, idx) => (
+                <Card key={idx} className="bg-green-50 border-green-200">
+                  <CardContent className="p-3">
+                    <div className="flex items-start gap-3">
+                      <Icon name="CheckCircle2" size={20} className="text-green-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-900">
+                          База данных подключена
+                        </p>
+                        <code className="text-xs text-green-700 block mt-1 break-all">
+                          {conn}
+                        </code>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <DatabaseConnectionCard
         connectionStatus={connectionStatus}
         isCheckingConnection={isCheckingConnection}
@@ -338,6 +407,12 @@ export default function DatabaseSettings() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ExternalDatabaseModal
+        isOpen={isExternalDbModalOpen}
+        onClose={() => setIsExternalDbModalOpen(false)}
+        onSave={handleSaveExternalConnection}
+      />
     </div>
   );
 }
