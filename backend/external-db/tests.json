@@ -10,11 +10,12 @@
     {
       "name": "Test stats action",
       "method": "GET",
-      "path": "/?action=stats&schema=t_p47619579_knowledge_management",
+      "path": "/?action=stats&schema=public",
       "expectedStatus": 200,
       "expectedBody": {
         "tables": "array",
-        "totalTables": "number"
+        "totalTables": "number",
+        "totalRecords": "number"
       },
       "bodyMatcher": "partial"
     }
