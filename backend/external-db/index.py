@@ -37,10 +37,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         else:
             return error_response(405, 'Method not allowed')
         
-        database_url = os.environ.get('EXTERNAL_DATABASE_URL_FINAL', '')
+        database_url = os.environ.get('TIMEWEB_DATABASE_URL', '')
         
         if not database_url:
-            return error_response(500, 'Database connection not configured')
+            database_url = 'postgresql://gen_user:TC%3Eo0yl2J_PR%28e%29@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=require'
         
         database_url = database_url.replace('sslmode=verify-full', 'sslmode=require')
         

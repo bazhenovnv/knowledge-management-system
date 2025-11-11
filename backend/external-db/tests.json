@@ -8,14 +8,16 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Test stats action",
-      "method": "GET",
-      "path": "/?action=stats&schema=public",
+      "name": "Test query action",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "query",
+        "query": "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast') LIMIT 5"
+      },
       "expectedStatus": 200,
       "expectedBody": {
-        "tables": "array",
-        "totalTables": "number",
-        "totalRecords": "number"
+        "rows": "array"
       },
       "bodyMatcher": "partial"
     }
