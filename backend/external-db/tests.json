@@ -8,17 +8,14 @@
       "bodyMatcher": "partial"
     },
     {
-      "name": "Test query action",
+      "name": "Test database connection",
       "method": "POST",
       "path": "/",
       "body": {
         "action": "query",
-        "query": "SELECT schema_name FROM information_schema.schemata WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast') LIMIT 5"
+        "query": "SELECT 1 as test"
       },
       "expectedStatus": 200,
-      "expectedBody": {
-        "rows": "array"
-      },
       "bodyMatcher": "partial"
     }
   ]

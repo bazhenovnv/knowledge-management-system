@@ -6,6 +6,9 @@ Returns: HTTP response with database results in JSON format
 
 import json
 import os
+import ssl
+import tempfile
+import urllib.request
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from typing import Dict, Any
@@ -37,14 +40,26 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         else:
             return error_response(405, 'Method not allowed')
         
-        database_url = os.environ.get('TIMEWEB_DATABASE_URL', '')
+        db_host = 'c6b7ae5ab8e72b5408272e27.twc1.net'
+        db_port = '5432'
+        db_name = 'default_db'
+        db_user = 'gen_user'
+        db_password = 'TC>o0yl2J_PR(e'
         
-        if not database_url:
-            database_url = 'postgresql://gen_user:TC%3Eo0yl2J_PR%28e%29@c6b7ae5ab8e72b5408272e27.twc1.net:5432/default_db?sslmode=require'
+        cert_file = tempfile.NamedTemporaryFile(mode='w', suffix='.crt', delete=False)
+        cert_content = urllib.request.urlopen('https://st.timeweb.com/cloud-static/ca.crt').read().decode('utf-8')
+        cert_file.write(cert_content)
+        cert_file.close()
         
-        database_url = database_url.replace('sslmode=verify-full', 'sslmode=require')
-        
-        conn = psycopg2.connect(database_url)
+        conn = psycopg2.connect(
+            host=db_host,
+            port=db_port,
+            dbname=db_name,
+            user=db_user,
+            password=db_password,
+            sslmode='verify-full',
+            sslrootcert=cert_file.name
+        )
         conn.autocommit = True
         
         if action == 'query':
