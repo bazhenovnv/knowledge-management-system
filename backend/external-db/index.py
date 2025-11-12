@@ -62,8 +62,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             user=db_user,
             password=db_password,
             sslmode='verify-full',
-            sslrootcert=cert_file.name,
-            options='-c search_path=t_p47619579_knowledge_management,public'
+            sslrootcert=cert_file.name
         )
         conn.autocommit = True
         
