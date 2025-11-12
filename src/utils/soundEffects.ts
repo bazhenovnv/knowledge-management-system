@@ -1,21 +1,39 @@
 export type SoundType = 'notification' | 'success' | 'alert' | 'chime';
 
-export const playSound = (type: SoundType = 'notification') => {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+let audioContext: AudioContext | null = null;
+
+const getAudioContext = () => {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  }
   
-  switch (type) {
-    case 'notification':
-      playNotificationSound(audioContext);
-      break;
-    case 'success':
-      playSuccessSound(audioContext);
-      break;
-    case 'alert':
-      playAlertSound(audioContext);
-      break;
-    case 'chime':
-      playChimeSound(audioContext);
-      break;
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
+  }
+  
+  return audioContext;
+};
+
+export const playSound = (type: SoundType = 'notification') => {
+  try {
+    const ctx = getAudioContext();
+    
+    switch (type) {
+      case 'notification':
+        playNotificationSound(ctx);
+        break;
+      case 'success':
+        playSuccessSound(ctx);
+        break;
+      case 'alert':
+        playAlertSound(ctx);
+        break;
+      case 'chime':
+        playChimeSound(ctx);
+        break;
+    }
+  } catch (error) {
+    console.error('Error playing sound:', error);
   }
 };
 
