@@ -473,13 +473,13 @@ export const externalDb = {
               'answers', (
                 SELECT json_agg(
                   json_build_object(
-                    'id', ta.id,
-                    'text', ta.answer_text,
-                    'is_correct', ta.is_correct
-                  ) ORDER BY ta.order_num
+                    'id', test_answers.id,
+                    'text', test_answers.answer_text,
+                    'is_correct', test_answers.is_correct
+                  ) ORDER BY test_answers.order_num
                 )
-                FROM t_p47619579_knowledge_management.test_answers ta
-                WHERE ta.question_id = tq.id
+                FROM t_p47619579_knowledge_management.test_answers
+                WHERE test_answers.question_id = tq.id
               )
             ) ORDER BY tq.order_num
           ) FILTER (WHERE tq.id IS NOT NULL) as questions
