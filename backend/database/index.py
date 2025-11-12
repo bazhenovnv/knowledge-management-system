@@ -157,13 +157,6 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 result = leave_conference(cursor, conn, body_data)
             elif action == 'seed':
                 result = seed_database(cursor, conn)
-            elif action == 'delete':
-                item_id = params.get('id')
-                permanent = params.get('permanent', 'false').lower() == 'true'
-                if permanent:
-                    result = permanent_delete_item(cursor, conn, table, item_id)
-                else:
-                    result = delete_item(cursor, conn, table, item_id)
             else:
                 result = {'error': 'Неизвестное действие для POST'}
                 
