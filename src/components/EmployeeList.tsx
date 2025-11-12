@@ -133,9 +133,7 @@ const EmployeeList: React.FC = () => {
     if (!employeeToDelete) return;
 
     try {
-      const success = employeeToDelete.is_active 
-        ? await externalDb.deleteEmployee(employeeToDelete.id)
-        : await externalDb.permanentDeleteEmployee(employeeToDelete.id);
+      const success = await externalDb.deleteEmployee(employeeToDelete.id);
       
       if (success) {
         await loadEmployees();
