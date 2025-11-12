@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { database } from "@/utils/database";
+import { externalDb } from "@/services/externalDbService";
 import TestTaking from "./TestTaking";
 import { TestFilters } from "./TestFilters";
 import { TestGrid } from "./TestGrid";
@@ -116,15 +117,20 @@ const TestManagement: React.FC<TestManagementProps> = ({
   };
 
   // Функция удаления теста
-  const handleDeleteTest = (testId: string) => {
-    const testToDelete = tests.find(t => t.id === testId);
+  const handleDeleteTest = async (testId: string) => {
+    const testToDelete = tests.find(t => t.id.toString() === testId);
     if (testToDelete) {
-      const success = database.deleteTest(testId);
-      if (success) {
-        setTests(tests.filter(t => t.id !== testId));
-        setDeletingTestId(null);
-        toast.success(`Тест "${testToDelete.title}" удален из базы данных`);
-      } else {
+      try {
+        const success = await externalDb.deleteTest(Number(testId));
+        if (success) {
+          setTests(tests.filter(t => t.id.toString() !== testId));
+          setDeletingTestId(null);
+          toast.success(`Тест "${testToDelete.title}" удален из базы данных`);
+        } else {
+          toast.error("Ошибка при удалении теста из базы данных");
+        }
+      } catch (error) {
+        console.error('Delete test error:', error);
         toast.error("Ошибка при удалении теста из базы данных");
       }
     }
