@@ -455,5 +455,213 @@ export const externalDb = {
       console.error('Update password error:', error);
       return false;
     }
+  },
+
+  /**
+   * Get tests with questions and answers
+   */
+  async getTests(): Promise<any[]> {
+    try {
+      const rows = await this.query(`
+        SELECT 
+          t.id, t.title, t.description, t.time_limit, 
+          t.passing_score, t.is_active, t.created_at,
+          json_agg(
+            json_build_object(
+              'id', tq.id,
+              'question', tq.question_text,
+              'answers', (
+                SELECT json_agg(
+                  json_build_object(
+                    'id', ta.id,
+                    'text', ta.answer_text,
+                    'is_correct', ta.is_correct
+                  ) ORDER BY ta.order_num
+                )
+                FROM test_answers ta
+                WHERE ta.question_id = tq.id
+              )
+            ) ORDER BY tq.order_num
+          ) FILTER (WHERE tq.id IS NOT NULL) as questions
+        FROM tests t
+        LEFT JOIN test_questions tq ON t.id = tq.test_id
+        GROUP BY t.id
+        ORDER BY t.created_at DESC
+      `);
+      return rows || [];
+    } catch (error) {
+      console.error('Error loading tests:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Create new test with questions
+   */
+  async createTest(testData: any): Promise<any> {
+    try {
+      const testResponse = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'create',
+          table: 'tests',
+          schema: 't_p47619579_knowledge_management',
+          data: {
+            title: testData.title,
+            description: testData.description,
+            time_limit: testData.timeLimit,
+            passing_score: testData.passing_score || 70,
+            is_active: true
+          }
+        }),
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      if (!testResponse.ok) {
+        throw new Error(`Create test failed: ${testResponse.status}`);
+      }
+
+      const testResult = await testResponse.json();
+      const testId = testResult.id;
+
+      if (testData.questions && testData.questions.length > 0) {
+        for (let i = 0; i < testData.questions.length; i++) {
+          const question = testData.questions[i];
+          
+          const questionResponse = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              action: 'create',
+              table: 'test_questions',
+              schema: 't_p47619579_knowledge_management',
+              data: {
+                test_id: testId,
+                question_text: question.question,
+                question_type: 'single_choice',
+                points: 1,
+                order_num: i + 1
+              }
+            }),
+            mode: 'cors',
+            credentials: 'omit'
+          });
+
+          if (questionResponse.ok) {
+            const questionResult = await questionResponse.json();
+            const questionId = questionResult.id;
+
+            if (question.options && Array.isArray(question.options)) {
+              for (let j = 0; j < question.options.length; j++) {
+                await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+                  method: 'POST',
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    action: 'create',
+                    table: 'test_answers',
+                    schema: 't_p47619579_knowledge_management',
+                    data: {
+                      question_id: questionId,
+                      answer_text: question.options[j],
+                      is_correct: j === question.correctAnswer,
+                      order_num: j + 1
+                    }
+                  }),
+                  mode: 'cors',
+                  credentials: 'omit'
+                });
+              }
+            }
+          }
+        }
+      }
+
+      return await this.getTests();
+    } catch (error) {
+      console.error('Create test error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update test
+   */
+  async updateTest(testId: number, testData: any): Promise<boolean> {
+    try {
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'update',
+          table: 'tests',
+          schema: 't_p47619579_knowledge_management',
+          id: testId,
+          data: {
+            title: testData.title,
+            description: testData.description,
+            time_limit: testData.timeLimit,
+            passing_score: testData.passing_score || 70,
+            is_active: testData.is_active
+          }
+        }),
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Update test failed: ${response.status}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Update test error:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Delete test (cascades to questions and answers)
+   */
+  async deleteTest(testId: number): Promise<boolean> {
+    try {
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'delete',
+          table: 'tests',
+          schema: 't_p47619579_knowledge_management',
+          id: testId
+        }),
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Delete test failed: ${response.status}`);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Delete test error:', error);
+      return false;
+    }
   }
 };
