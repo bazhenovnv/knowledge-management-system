@@ -13,7 +13,7 @@ interface NotificationSettingsProps {
   employeeId: number;
 }
 
-type SoundType = 'notification' | 'bell' | 'chime';
+type SoundType = 'notification' | 'alert' | 'chime';
 
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId }) => {
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -252,8 +252,8 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId 
                 </Button>
                 <Button
                   type="button"
-                  variant={soundType === 'bell' ? 'default' : 'outline'}
-                  onClick={() => handleSoundTypeChange('bell')}
+                  variant={soundType === 'alert' ? 'default' : 'outline'}
+                  onClick={() => handleSoundTypeChange('alert')}
                   className="w-full"
                 >
                   Звонок
