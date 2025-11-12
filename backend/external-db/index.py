@@ -238,10 +238,17 @@ def handle_delete(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         if table == 'employees' and permanent and cascade:
-            cursor.execute(f'DELETE FROM "{schema}"."course_enrollments" WHERE employee_id = {record_id}')
+            cursor.execute(f'''
+                DELETE FROM "{schema}"."test_user_answers" 
+                WHERE result_id IN (
+                    SELECT id FROM "{schema}"."test_results" WHERE employee_id = {record_id}
+                )
+            ''')
             cursor.execute(f'DELETE FROM "{schema}"."test_results" WHERE employee_id = {record_id}')
-            cursor.execute(f'DELETE FROM "{schema}"."test_answers" WHERE employee_id = {record_id}')
+            cursor.execute(f'DELETE FROM "{schema}"."course_enrollments" WHERE employee_id = {record_id}')
             cursor.execute(f'DELETE FROM "{schema}"."notifications" WHERE employee_id = {record_id}')
+            cursor.execute(f'DELETE FROM "{schema}"."attendance" WHERE employee_id = {record_id}')
+            cursor.execute(f'DELETE FROM "{schema}"."user_sessions" WHERE employee_id = {record_id}')
             cursor.execute(f'UPDATE "{schema}"."courses" SET instructor_id = NULL WHERE instructor_id = {record_id}')
             cursor.execute(f'UPDATE "{schema}"."tests" SET creator_id = NULL WHERE creator_id = {record_id}')
             
