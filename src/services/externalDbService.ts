@@ -224,7 +224,7 @@ export const externalDb = {
   async getSubsectionContent(): Promise<Record<string, string>> {
     try {
       const rows = await this.query(
-        'SELECT subsection_key, content FROM "t_p47619579_knowledge_management"."subsection_content"'
+        'SELECT subsection_key, content FROM subsection_content'
       );
       const result: Record<string, string> = {};
       rows.forEach((row: any) => {
