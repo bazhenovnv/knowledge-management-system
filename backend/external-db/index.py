@@ -231,12 +231,25 @@ def handle_delete(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     schema = body_data.get('schema', 't_p47619579_knowledge_management')
     record_id = body_data.get('id')
     permanent = body_data.get('permanent', False)
+    cascade = body_data.get('cascade', False)
     
     if not table or record_id is None:
         return error_response(400, 'Table name and id required')
     
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-        if permanent or table not in ['employees']:
+        if table == 'employees' and permanent and cascade:
+            cursor.execute(f'DELETE FROM "{schema}"."course_enrollments" WHERE employee_id = {record_id}')
+            cursor.execute(f'DELETE FROM "{schema}"."test_results" WHERE employee_id = {record_id}')
+            cursor.execute(f'DELETE FROM "{schema}"."test_answers" WHERE employee_id = {record_id}')
+            cursor.execute(f'DELETE FROM "{schema}"."notifications" WHERE employee_id = {record_id}')
+            cursor.execute(f'UPDATE "{schema}"."courses" SET instructor_id = NULL WHERE instructor_id = {record_id}')
+            cursor.execute(f'UPDATE "{schema}"."tests" SET creator_id = NULL WHERE creator_id = {record_id}')
+            
+            query = f'DELETE FROM "{schema}"."{table}" WHERE id = {record_id}'
+            cursor.execute(query)
+            return success_response({'deleted': cursor.rowcount > 0, 'permanent': True, 'cascade': True})
+        
+        elif permanent or table not in ['employees']:
             query = f'DELETE FROM "{schema}"."{table}" WHERE id = {record_id}'
             cursor.execute(query)
             return success_response({'deleted': cursor.rowcount > 0, 'permanent': True})

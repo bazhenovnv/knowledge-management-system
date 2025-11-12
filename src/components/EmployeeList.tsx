@@ -129,17 +129,19 @@ const EmployeeList: React.FC = () => {
     }
   };
 
-  const handleDeleteEmployee = async () => {
+  const handleDeleteEmployee = async (permanent: boolean = false) => {
     if (!employeeToDelete) return;
 
     try {
-      const success = await externalDb.deleteEmployee(employeeToDelete.id);
+      const success = permanent 
+        ? await externalDb.permanentDeleteEmployee(employeeToDelete.id, true)
+        : await externalDb.deleteEmployee(employeeToDelete.id);
       
       if (success) {
         await loadEmployees();
-        const message = employeeToDelete.is_active
-          ? `Сотрудник ${employeeToDelete.full_name} деактивирован`
-          : `Сотрудник ${employeeToDelete.full_name} полностью удалён из базы данных`;
+        const message = permanent
+          ? `Сотрудник ${employeeToDelete.full_name} полностью удалён из базы данных`
+          : `Сотрудник ${employeeToDelete.full_name} деактивирован`;
         toast.success(message);
       } else {
         toast.error('Не удалось удалить сотрудника');
@@ -250,27 +252,36 @@ const EmployeeList: React.FC = () => {
       <AlertDialog open={!!employeeToDelete} onOpenChange={(open) => !open && setEmployeeToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {employeeToDelete?.is_active ? 'Деактивировать сотрудника?' : 'Удалить сотрудника?'}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {employeeToDelete?.is_active ? (
-                <>
-                  Сотрудник <strong>{employeeToDelete?.full_name}</strong> будет деактивирован, но останется в базе данных.
-                  Вы сможете восстановить его позже.
-                </>
-              ) : (
-                <>
-                  Сотрудник <strong>{employeeToDelete?.full_name}</strong> будет полностью удалён из базы данных.
-                  Это действие нельзя отменить.
-                </>
-              )}
+            <AlertDialogTitle>Удалить сотрудника?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Выберите способ удаления сотрудника <strong>{employeeToDelete?.full_name}</strong>:
+              </p>
+              <div className="space-y-2 text-sm">
+                <p>
+                  <strong>Деактивация:</strong> Сотрудник останется в базе данных, но будет помечен как неактивный.
+                  Его можно будет восстановить.
+                </p>
+                <p>
+                  <strong>Полное удаление:</strong> Сотрудник и все его данные (курсы, тесты, результаты) будут удалены из базы.
+                  Это действие необратимо.
+                </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteEmployee} className="bg-red-600 hover:bg-red-700">
-              {employeeToDelete?.is_active ? 'Деактивировать' : 'Удалить'}
+            <AlertDialogAction 
+              onClick={() => handleDeleteEmployee(false)} 
+              className="bg-yellow-600 hover:bg-yellow-700"
+            >
+              Деактивировать
+            </AlertDialogAction>
+            <AlertDialogAction 
+              onClick={() => handleDeleteEmployee(true)} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Удалить полностью
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

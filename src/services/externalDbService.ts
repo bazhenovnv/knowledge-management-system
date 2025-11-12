@@ -385,9 +385,9 @@ export const externalDb = {
   },
 
   /**
-   * Permanently delete employee (hard delete)
+   * Permanently delete employee (hard delete with cascade)
    */
-  async permanentDeleteEmployee(id: number): Promise<boolean> {
+  async permanentDeleteEmployee(id: number, cascade: boolean = true): Promise<boolean> {
     try {
       const response = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
         method: 'POST',
@@ -400,7 +400,8 @@ export const externalDb = {
           table: 'employees',
           schema: 't_p47619579_knowledge_management',
           id: id,
-          permanent: true
+          permanent: true,
+          cascade: cascade
         }),
         mode: 'cors',
         credentials: 'omit'
