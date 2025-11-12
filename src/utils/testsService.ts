@@ -121,14 +121,21 @@ class TestsService {
 
   // Получить тест по ID с вопросами
   async getTestWithQuestions(testId: number): Promise<TestWithQuestions | null> {
-    const response = await this.makeRequest<TestWithQuestions>(`?action=get_test_full&id=${testId}`);
-    
-    if (response.error || !response.data) {
-      console.error('Error fetching test:', response.error);
+    try {
+      const { externalDb } = await import('@/services/externalDbService');
+      const tests = await externalDb.getTests();
+      const test = tests.find((t: any) => t.id === testId);
+      
+      if (!test) {
+        console.error('Test not found:', testId);
+        return null;
+      }
+
+      return test as TestWithQuestions;
+    } catch (error) {
+      console.error('Error fetching test:', error);
       return null;
     }
-
-    return response.data;
   }
 
   // Создать тест с вопросами
