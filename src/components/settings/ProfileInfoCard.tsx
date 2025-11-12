@@ -49,7 +49,9 @@ export default function ProfileInfoCard({
               />
             ) : (
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                {employee.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                {(employee.full_name || employee.name || profileForm.name) ? 
+                  (employee.full_name || employee.name || profileForm.name).split(' ').map((n: string) => n[0]).join('').slice(0, 2) 
+                  : '??'}
               </div>
             )}
             <div>
@@ -145,7 +147,7 @@ export default function ProfileInfoCard({
 
             <div>
               <Label>Роль</Label>
-              <Input value={employee.role} disabled />
+              <Input value={employee.role || 'employee'} disabled />
             </div>
           </div>
 
@@ -163,17 +165,17 @@ export default function ProfileInfoCard({
               </div>
               <div>
                 <span className="text-gray-600">Статус:</span>
-                <p className="font-medium">{employee.isActive ? '🟢 Активен' : '🔴 Неактивен'}</p>
+                <p className="font-medium">{employee.is_active !== false ? '🟢 Активен' : '🔴 Неактивен'}</p>
               </div>
               <div>
                 <span className="text-gray-600">Дата регистрации:</span>
-                <p className="font-medium">{new Date(employee.createdAt).toLocaleDateString('ru-RU')}</p>
+                <p className="font-medium">{employee.created_at ? new Date(employee.created_at).toLocaleDateString('ru-RU') : 'Н/Д'}</p>
               </div>
               <div>
                 <span className="text-gray-600">Последний вход:</span>
                 <p className="font-medium">
-                  {employee.lastLoginAt 
-                    ? new Date(employee.lastLoginAt).toLocaleDateString('ru-RU')
+                  {employee.last_login_at 
+                    ? new Date(employee.last_login_at).toLocaleDateString('ru-RU')
                     : 'Не входил'
                   }
                 </p>
