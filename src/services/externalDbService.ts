@@ -478,13 +478,13 @@ export const externalDb = {
                     'is_correct', ta.is_correct
                   ) ORDER BY ta.order_num
                 )
-                FROM test_answers ta
+                FROM t_p47619579_knowledge_management.test_answers ta
                 WHERE ta.question_id = tq.id
               )
             ) ORDER BY tq.order_num
           ) FILTER (WHERE tq.id IS NOT NULL) as questions
-        FROM tests t
-        LEFT JOIN test_questions tq ON t.id = tq.test_id
+        FROM t_p47619579_knowledge_management.tests t
+        LEFT JOIN t_p47619579_knowledge_management.test_questions tq ON t.id = tq.test_id
         GROUP BY t.id
         ORDER BY t.created_at DESC
       `);
