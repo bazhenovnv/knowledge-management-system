@@ -112,6 +112,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
+        # Логируем какая база используется (скрываем пароль)
+        db_info = database_url.split('@')[1] if '@' in database_url else 'unknown'
+        print(f"Using database: {db_info}")
+        
         conn = psycopg2.connect(database_url)
         conn.set_session(autocommit=False)
         cursor = conn.cursor()
