@@ -118,14 +118,12 @@ export const useNotifications = () => {
         return;
       }
 
-      const newNotification = await notificationsService.createNotification({
+      await notificationsService.createNotification({
         employee_id: employee.id,
         title: notification.title,
         message: notification.message,
-        type: notification.type,
-        category: notification.category,
-        action_url: notification.actionUrl,
-        action_text: notification.actionText,
+        type: notification.type as any,
+        link: notification.actionUrl,
       });
 
       await loadNotifications();

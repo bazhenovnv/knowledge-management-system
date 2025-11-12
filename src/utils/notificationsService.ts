@@ -1,6 +1,6 @@
-import { legacyDbApi } from '@/services/dbAdapter';
+import { externalDb } from '@/services/externalDb';
 
-const API_URL = legacyDbApi.baseUrl;
+const SCHEMA = 't_p47619579_knowledge_management';
 
 export interface CreateNotificationData {
   employee_id: number;
@@ -14,52 +14,54 @@ export interface CreateNotificationData {
 
 export const notificationsService = {
   async createNotification(data: CreateNotificationData) {
-    const response = await legacyDbApi.fetch(`${API_URL}?action=create_notification`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return response.json();
+    return await externalDb.create('notifications', {
+      employee_id: data.employee_id,
+      title: data.title,
+      message: data.message,
+      type: data.type || 'info',
+      priority: data.priority || 'normal',
+      link: data.link,
+      metadata: data.metadata,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    }, SCHEMA);
   },
 
   async getNotifications(employeeId: number) {
-    const response = await legacyDbApi.fetch(
-      `${API_URL}?action=get_notifications&employee_id=${employeeId}`,
-      {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-    return response.json();
+    const result = await externalDb.list('notifications', {
+      filters: { employee_id: employeeId },
+      orderBy: 'created_at',
+      orderDir: 'desc',
+    }, SCHEMA);
+    return result;
   },
 
   async getUnreadCount(employeeId: number) {
-    const response = await legacyDbApi.fetch(
-      `${API_URL}?action=get_unread_count&employee_id=${employeeId}`,
-      {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-    return response.json();
+    const result = await externalDb.list('notifications', {
+      filters: { employee_id: employeeId, is_read: false },
+    }, SCHEMA);
+    return { count: result.count };
   },
 
   async markAsRead(notificationId: number) {
-    const response = await legacyDbApi.fetch(`${API_URL}?action=mark_read`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ notification_id: notificationId })
-    });
-    return response.json();
+    return await externalDb.update('notifications', notificationId, {
+      is_read: true,
+    }, SCHEMA);
   },
 
   async markAllAsRead(employeeId: number) {
-    const response = await legacyDbApi.fetch(`${API_URL}?action=mark_all_read`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ employee_id: employeeId })
-    });
-    return response.json();
+    const notifications = await this.getNotifications(employeeId);
+    const unread = notifications.data.filter((n: any) => !n.is_read);
+    
+    for (const notification of unread) {
+      await this.markAsRead(notification.id);
+    }
+    
+    return { success: true };
+  },
+
+  async deleteNotification(notificationId: number) {
+    return await externalDb.delete('notifications', notificationId, SCHEMA);
   },
 
   async createTestNotifications(employeeId: number) {
