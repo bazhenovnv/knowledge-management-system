@@ -194,23 +194,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role">Роль</Label>
-            <Select 
-              value={formData.role} 
-              onValueChange={(value) => handleInputChange('role', value)}
-              disabled={isLoading}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Выберите роль" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="employee">Сотрудник</SelectItem>
-                <SelectItem value="teacher">Преподаватель</SelectItem>
-                <SelectItem value="admin">Администратор</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+
         </CardContent>
         
         <CardFooter className="flex flex-col space-y-4">
