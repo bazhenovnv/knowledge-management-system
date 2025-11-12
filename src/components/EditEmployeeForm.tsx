@@ -3,7 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { DatabaseEmployee } from '@/utils/databaseService';
@@ -13,7 +19,7 @@ import { useDepartments, usePositions } from '@/hooks/useDepartments';
 interface EditEmployeeFormProps {
   employee: DatabaseEmployee;
   onEmployeeUpdated: (employee: DatabaseEmployee) => void;
-  onCancel: () => void;
+  onClose: () => void;
 }
 
 
@@ -21,7 +27,7 @@ interface EditEmployeeFormProps {
 const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({ 
   employee, 
   onEmployeeUpdated, 
-  onCancel 
+  onClose 
 }) => {
   const departments = useDepartments();
   const positions = usePositions();
@@ -98,6 +104,7 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
       if (updatedEmployee) {
         toast.success(`Данные сотрудника ${formData.full_name} успешно обновлены!`);
         onEmployeeUpdated(updatedEmployee);
+        onClose();
       } else {
         toast.error('Ошибка при обновлении данных сотрудника');
       }
@@ -110,19 +117,19 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon name="UserPen" size={24} />
-          Редактирование сотрудника
-        </CardTitle>
-        <CardDescription>
-          Обновите информацию о сотруднике {employee.full_name}
-        </CardDescription>
-      </CardHeader>
-      
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Icon name="UserPen" size={24} />
+            Редактирование сотрудника
+          </DialogTitle>
+          <DialogDescription>
+            Обновите информацию о сотруднике {employee.full_name}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="full_name">Полное имя *</Label>
@@ -250,39 +257,37 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
               </SelectContent>
             </Select>
           </div>
-        </CardContent>
-        
-        <div className="flex gap-4 p-6 pt-0">
-          <Button 
-            type="submit" 
-            disabled={isLoading}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
-          >
-            {isLoading ? (
-              <>
-                <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
-                Сохранение...
-              </>
-            ) : (
-              <>
-                <Icon name="Save" size={16} className="mr-2" />
-                Сохранить изменения
-              </>
-            )}
-          </Button>
-          
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            <Icon name="X" size={16} className="mr-2" />
-            Отменить
-          </Button>
-        </div>
-      </form>
-    </Card>
+
+          <div className="flex gap-2 justify-end pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isLoading}
+            >
+              <Icon name="X" size={16} className="mr-2" />
+              Отмена
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                  Сохранение...
+                </>
+              ) : (
+                <>
+                  <Icon name="Save" size={16} className="mr-2" />
+                  Сохранить изменения
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 
