@@ -353,11 +353,18 @@ export const externalDb = {
    */
   async deleteEmployee(id: number): Promise<boolean> {
     try {
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?table=employees&id=${id}`, {
-        method: 'DELETE',
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+        method: 'POST',
         headers: { 
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
+        body: JSON.stringify({
+          action: 'delete',
+          table: 'employees',
+          id: id,
+          permanent: false
+        }),
         mode: 'cors',
         credentials: 'omit'
       });
@@ -379,11 +386,18 @@ export const externalDb = {
    */
   async permanentDeleteEmployee(id: number): Promise<boolean> {
     try {
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?table=employees&id=${id}&permanent=true`, {
-        method: 'DELETE',
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+        method: 'POST',
         headers: { 
+          'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
+        body: JSON.stringify({
+          action: 'delete',
+          table: 'employees',
+          id: id,
+          permanent: true
+        }),
         mode: 'cors',
         credentials: 'omit'
       });

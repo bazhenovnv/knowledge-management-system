@@ -50,6 +50,22 @@
       },
       "expectedStatus": 200,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "Деактивировать сотрудника (soft delete)",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "body": {
+        "action": "delete",
+        "table": "employees",
+        "id": 999,
+        "permanent": false
+      },
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
     }
   ]
 }
