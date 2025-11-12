@@ -12,10 +12,14 @@ interface NotificationSettingsProps {
   employeeId: number;
 }
 
+type SoundType = 'notification' | 'bell' | 'chime';
+
 const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId }) => {
   const [pushEnabled, setPushEnabled] = useState(false);
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundType, setSoundType] = useState<SoundType>('notification');
   const [settings, setSettings] = useState({
     tests: true,
     courses: true,
@@ -27,6 +31,7 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId 
   useEffect(() => {
     loadSettings();
     checkPushPermission();
+    loadSoundSettings();
   }, [employeeId]);
 
   const loadSettings = () => {
@@ -35,6 +40,15 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId 
       const parsed = JSON.parse(savedSettings);
       setSettings(parsed.categories || settings);
       setEmailEnabled(parsed.emailEnabled ?? true);
+    }
+  };
+
+  const loadSoundSettings = () => {
+    const appSettings = localStorage.getItem('app_settings');
+    if (appSettings) {
+      const parsed = JSON.parse(appSettings);
+      setSoundEnabled(parsed.enableSoundNotifications !== false);
+      setSoundType(parsed.soundNotificationType || 'notification');
     }
   };
 
@@ -82,6 +96,28 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId 
     const newSettings = { ...settings, [category]: enabled };
     setSettings(newSettings);
     saveSettings({ categories: newSettings, emailEnabled });
+  };
+
+  const handleSoundToggle = (checked: boolean) => {
+    setSoundEnabled(checked);
+    
+    const appSettings = localStorage.getItem('app_settings');
+    const settings = appSettings ? JSON.parse(appSettings) : {};
+    settings.enableSoundNotifications = checked;
+    localStorage.setItem('app_settings', JSON.stringify(settings));
+    
+    toast.success(checked ? 'Звуковые уведомления включены' : 'Звуковые уведомления выключены');
+  };
+
+  const handleSoundTypeChange = (type: SoundType) => {
+    setSoundType(type);
+    
+    const appSettings = localStorage.getItem('app_settings');
+    const settings = appSettings ? JSON.parse(appSettings) : {};
+    settings.soundNotificationType = type;
+    localStorage.setItem('app_settings', JSON.stringify(settings));
+    
+    toast.success('Звук изменён');
   };
 
   const testPushNotification = async () => {
@@ -172,6 +208,56 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId 
             checked={emailEnabled}
             onCheckedChange={handleEmailToggle}
           />
+        </div>
+
+        <Separator />
+
+        {/* Звуковые уведомления */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <Label className="text-base font-medium">Звуковые уведомления</Label>
+              <p className="text-sm text-muted-foreground">
+                Воспроизводить звук при новых уведомлениях
+              </p>
+            </div>
+            <Switch
+              checked={soundEnabled}
+              onCheckedChange={handleSoundToggle}
+            />
+          </div>
+
+          {soundEnabled && (
+            <div className="space-y-2">
+              <Label className="text-sm">Тип звука</Label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  type="button"
+                  variant={soundType === 'notification' ? 'default' : 'outline'}
+                  onClick={() => handleSoundTypeChange('notification')}
+                  className="w-full"
+                >
+                  Уведомление
+                </Button>
+                <Button
+                  type="button"
+                  variant={soundType === 'bell' ? 'default' : 'outline'}
+                  onClick={() => handleSoundTypeChange('bell')}
+                  className="w-full"
+                >
+                  Звонок
+                </Button>
+                <Button
+                  type="button"
+                  variant={soundType === 'chime' ? 'default' : 'outline'}
+                  onClick={() => handleSoundTypeChange('chime')}
+                  className="w-full"
+                >
+                  Колокольчик
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         <Separator />

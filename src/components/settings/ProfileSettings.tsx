@@ -3,10 +3,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Icon from "@/components/ui/icon";
 import { externalDb } from "@/services/externalDbService";
 import { toast } from "sonner";
-import { SoundType } from "@/utils/soundEffects";
 import ProfileInfoCard from "./ProfileInfoCard";
 import SecurityCard from "./SecurityCard";
-import NotificationSettingsCard from "./NotificationSettingsCard";
 
 interface ProfileSettingsProps {
   userId: number;
@@ -81,18 +79,6 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
     confirmPassword: ''
   });
 
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [soundType, setSoundType] = useState<SoundType>('notification');
-
-  useEffect(() => {
-    const appSettings = localStorage.getItem('app_settings');
-    if (appSettings) {
-      const settings = JSON.parse(appSettings);
-      setSoundEnabled(settings.enableSoundNotifications !== false);
-      setSoundType(settings.soundNotificationType || 'notification');
-    }
-  }, []);
-
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -145,28 +131,6 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
       console.error('Ошибка смены пароля:', error);
       toast.error('Ошибка при смене пароля');
     }
-  };
-
-  const handleSoundToggle = (checked: boolean) => {
-    setSoundEnabled(checked);
-    
-    const appSettings = localStorage.getItem('app_settings');
-    const settings = appSettings ? JSON.parse(appSettings) : {};
-    settings.enableSoundNotifications = checked;
-    localStorage.setItem('app_settings', JSON.stringify(settings));
-    
-    toast.success(checked ? 'Звуковые уведомления включены' : 'Звуковые уведомления выключены');
-  };
-
-  const handleSoundTypeChange = (type: SoundType) => {
-    setSoundType(type);
-    
-    const appSettings = localStorage.getItem('app_settings');
-    const settings = appSettings ? JSON.parse(appSettings) : {};
-    settings.soundNotificationType = type;
-    localStorage.setItem('app_settings', JSON.stringify(settings));
-    
-    toast.success(`Выбран звук`);
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,13 +211,6 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
         passwordForm={passwordForm}
         onPasswordFormChange={(updates) => setPasswordForm(prev => ({ ...prev, ...updates }))}
         onSubmit={handlePasswordChange}
-      />
-
-      <NotificationSettingsCard
-        soundEnabled={soundEnabled}
-        soundType={soundType}
-        onSoundToggle={handleSoundToggle}
-        onSoundTypeChange={handleSoundTypeChange}
       />
     </div>
   );
