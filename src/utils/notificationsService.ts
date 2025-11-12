@@ -1,4 +1,4 @@
-import { externalDb } from '@/services/externalDb';
+import { externalDb } from '@/services/externalDbService';
 
 const SCHEMA = 't_p47619579_knowledge_management';
 
