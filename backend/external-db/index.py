@@ -198,6 +198,9 @@ def handle_create(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def handle_update(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
+    import hashlib
+    import secrets
+    
     table = body_data.get('table', '')
     schema = body_data.get('schema', 't_p47619579_knowledge_management')
     record_id = body_data.get('id')
@@ -205,6 +208,13 @@ def handle_update(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     
     if not table or record_id is None or not data:
         return error_response(400, 'Table name, id and data required')
+    
+    if table == 'employees' and 'password' in data and data['password']:
+        password = data['password']
+        salt = secrets.token_hex(8)
+        password_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+        data['password_hash'] = f"{salt}:{password_hash.hex()}"
+        del data['password']
     
     set_parts = []
     for k, v in data.items():

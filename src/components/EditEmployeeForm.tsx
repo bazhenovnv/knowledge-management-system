@@ -34,7 +34,8 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
     position: employee.position,
     role: employee.role as 'admin' | 'teacher' | 'employee',
     hire_date: employee.hire_date || new Date().toISOString().split('T')[0],
-    zoom_link: employee.zoom_link || ''
+    zoom_link: employee.zoom_link || '',
+    password: ''
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -87,7 +88,12 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
         }
       }
 
-      const updatedEmployee = await externalDb.updateEmployee(employee.id, formData);
+      const updateData = { ...formData };
+      if (!formData.password || formData.password.trim() === '') {
+        delete updateData.password;
+      }
+      
+      const updatedEmployee = await externalDb.updateEmployee(employee.id, updateData);
       
       if (updatedEmployee) {
         toast.success(`Данные сотрудника ${formData.full_name} успешно обновлены!`);
@@ -157,13 +163,14 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="hire_date">Дата найма</Label>
+              <Label htmlFor="password">Новый пароль (необязательно)</Label>
               <Input
-                id="hire_date"
-                type="date"
-                value={formData.hire_date}
-                onChange={(e) => handleInputChange('hire_date', e.target.value)}
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
                 disabled={isLoading}
+                placeholder="Оставьте пустым, чтобы не менять"
               />
             </div>
           </div>

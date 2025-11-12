@@ -77,10 +77,10 @@ export function EmployeeCard({ employee, onEdit, onDelete, onRestore }: Employee
               <span>{employee.phone}</span>
             </div>
           )}
-          {employee.hire_date && (
+          {employee.created_at && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <Icon name="Calendar" size={16} />
-              <span>Принят: {new Date(employee.hire_date).toLocaleDateString('ru-RU')}</span>
+              <span>Дата регистрации: {new Date(employee.created_at).toLocaleDateString('ru-RU')}</span>
             </div>
           )}
         </div>
@@ -106,47 +106,36 @@ export function EmployeeCard({ employee, onEdit, onDelete, onRestore }: Employee
             </Button>
           </div>
         )}
-        <div className="flex gap-2 mt-4">
-          {!employee.is_active && onRestore ? (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
-                onClick={() => onRestore(employee)}
-              >
-                <Icon name="RotateCcw" size={16} className="mr-1" />
-                Восстановить
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={() => onDelete(employee)}
-              >
-                <Icon name="Trash2" size={16} />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex-1"
-                onClick={() => onEdit(employee)}
-              >
-                <Icon name="Pencil" size={16} className="mr-1" />
-                Редактировать
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                onClick={() => onDelete(employee)}
-              >
-                <Icon name="Trash2" size={16} />
-              </Button>
-            </>
+        <div className="flex flex-col gap-2 mt-4">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => onEdit(employee)}
+            >
+              <Icon name="Pencil" size={16} className="mr-1" />
+              Редактировать
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              onClick={() => onDelete(employee)}
+            >
+              <Icon name="Trash2" size={16} />
+            </Button>
+          </div>
+          {!employee.is_active && onRestore && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300"
+              onClick={() => onRestore(employee)}
+            >
+              <Icon name="RotateCcw" size={16} className="mr-1" />
+              Восстановить сотрудника
+            </Button>
           )}
         </div>
       </CardContent>
