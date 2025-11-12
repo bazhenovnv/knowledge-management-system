@@ -109,7 +109,7 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
       const userAnswerIds = answers.get(question.id) || [];
       
       if (question.question_type === 'multiple_choice') {
-        const correctAnswerIds = question.answers
+        const correctAnswerIds = (question.answers || [])
           .filter(a => a.is_correct)
           .map(a => a.id);
         
@@ -121,7 +121,7 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
         score += pointsEarned;
 
         userAnswerIds.forEach(answerId => {
-          const answer = question.answers.find(a => a.id === answerId);
+          const answer = (question.answers || []).find(a => a.id === answerId);
           userAnswers.push({
             question_id: question.id,
             answer_id: answerId,
@@ -131,7 +131,7 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
         });
       } else {
         const answerId = userAnswerIds[0];
-        const answer = question.answers.find(a => a.id === answerId);
+        const answer = (question.answers || []).find(a => a.id === answerId);
         const isCorrect = answer?.is_correct || false;
         const pointsEarned = isCorrect ? question.points : 0;
         
@@ -311,7 +311,7 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
         <CardContent>
           {currentQuestion.question_type === 'multiple_choice' ? (
             <div className="space-y-3">
-              {currentQuestion.answers.map((answer) => (
+              {(currentQuestion.answers || []).map((answer) => (
                 <div key={answer.id} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
                   <Checkbox
                     id={`answer-${answer.id}`}
@@ -330,7 +330,7 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
               onValueChange={(value) => handleAnswer(currentQuestion.id, parseInt(value))}
             >
               <div className="space-y-3">
-                {currentQuestion.answers.map((answer) => (
+                {(currentQuestion.answers || []).map((answer) => (
                   <div key={answer.id} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
                     <RadioGroupItem value={answer.id.toString()} id={`answer-${answer.id}`} />
                     <Label htmlFor={`answer-${answer.id}`} className="flex-1 cursor-pointer">

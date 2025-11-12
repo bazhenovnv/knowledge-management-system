@@ -70,7 +70,7 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
           question_text: q.question_text,
           question_type: q.question_type,
           points: q.points,
-          answers: q.answers.map(a => ({
+          answers: (q.answers || []).map(a => ({
             id: a.id,
             answer_text: a.answer_text,
             is_correct: a.is_correct
@@ -179,11 +179,11 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
         toast.error('Заполните текст всех вопросов');
         return;
       }
-      if (q.question_type !== 'text' && q.answers.length < 2) {
+      if (q.question_type !== 'text' && (q.answers || []).length < 2) {
         toast.error('У каждого вопроса должно быть минимум 2 варианта ответа');
         return;
       }
-      if (q.question_type !== 'text' && !q.answers.some(a => a.is_correct)) {
+      if (q.question_type !== 'text' && !(q.answers || []).some(a => a.is_correct)) {
         toast.error('Укажите правильные ответы для всех вопросов');
         return;
       }
@@ -206,7 +206,7 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
             question_text: q.question_text.trim(),
             question_type: q.question_type,
             points: q.points,
-            answers: q.answers
+            answers: (q.answers || [])
               .filter(a => a.answer_text.trim())
               .map(a => ({
                 id: a.id,
