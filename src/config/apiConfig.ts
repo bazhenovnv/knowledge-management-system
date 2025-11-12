@@ -8,4 +8,5 @@ export const API_CONFIG = {
   EMAIL_API: import.meta.env.VITE_EMAIL_API_URL || 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17',
   LEGACY_DATABASE: import.meta.env.VITE_LEGACY_DATABASE_URL || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558',
   SQL_SERVER_TEST: import.meta.env.VITE_SQL_SERVER_TEST_URL || 'https://functions.poehali.dev/76973564-4ea6-4a98-9582-8f19bc9a6bb6',
+  PASSWORD_RESET: import.meta.env.VITE_PASSWORD_RESET_URL || 'https://functions.poehali.dev/592a9eab-8102-4536-b07f-780566a0612b',
 } as const;

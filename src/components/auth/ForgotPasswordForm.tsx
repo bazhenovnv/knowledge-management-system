@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import { API_CONFIG } from '@/config/apiConfig';
 
 interface ForgotPasswordFormProps {
   onBackToLogin: () => void;
@@ -18,31 +19,43 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
-
-  const demoUsers = [
-    { email: 'admin@company.com', department: 'IT' },
-    { email: 'teacher@company.com', department: 'Обучение' },
-    { email: 'manager@company.com', department: 'Менеджмент' }
-  ];
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      // Проверяем, есть ли email в демо-пользователях
-      const demoUser = demoUsers.find(user => user.email === email);
-      
-      if (demoUser) {
-        toast.success(`Код отправлен на ${email}! Используйте код: 123456`, {
-          description: `Пользователь: ${demoUser.department}`,
-        });
+      const response = await fetch(API_CONFIG.PASSWORD_RESET, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_code',
+          email: email.trim().toLowerCase()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        if (data.demo_mode) {
+          setIsDemoMode(true);
+          toast.success(`Код отправлен на ${email}`, {
+            description: `Демо-режим: используйте код ${data.demo_code}`,
+            duration: 10000
+          });
+        } else {
+          toast.success(`Код отправлен на ${email}`, {
+            description: 'Проверьте почту и введите код из письма'
+          });
+        }
         setStep('code');
       } else {
-        toast.error('Пользователь не найден');
+        toast.error(data.error || 'Не удалось отправить код');
       }
     } catch (error) {
-      toast.error('Ошибка отправки кода');
+      console.error('Send code error:', error);
+      toast.error('Ошибка отправки кода. Проверьте соединение.');
     }
 
     setIsLoading(false);
@@ -53,7 +66,19 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
     setIsLoading(true);
 
     try {
-      if (code === '123456' || code === '000000') {
+      const response = await fetch(API_CONFIG.PASSWORD_RESET, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify_code',
+          email: email.trim().toLowerCase(),
+          code: code.trim()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
         toast.success('Код подтвержден!');
         setStep('newPassword');
       } else {
@@ -62,11 +87,13 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
           toast.error('Превышено количество попыток');
           setStep('email');
           setAttempts(0);
+          setCode('');
         } else {
-          toast.error(`Неверный код. Осталось попыток: ${3 - attempts - 1}`);
+          toast.error(data.error || 'Неверный код');
         }
       }
     } catch (error) {
+      console.error('Verify code error:', error);
       toast.error('Ошибка проверки кода');
     }
 
@@ -89,11 +116,28 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
     setIsLoading(true);
 
     try {
-      toast.success('Пароль успешно изменен!');
-      setTimeout(() => {
-        onBackToLogin();
-      }, 1500);
+      const response = await fetch(API_CONFIG.PASSWORD_RESET, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reset_password',
+          email: email.trim().toLowerCase(),
+          new_password: newPassword
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast.success('Пароль успешно изменен!');
+        setTimeout(() => {
+          onBackToLogin();
+        }, 1500);
+      } else {
+        toast.error(data.error || 'Ошибка смены пароля');
+      }
     } catch (error) {
+      console.error('Reset password error:', error);
       toast.error('Ошибка смены пароля');
     }
 
@@ -155,20 +199,12 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
             </Button>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2 flex items-center">
-                <Icon name="Info" size={16} className="mr-2" />
-                Тестовые аккаунты:
-              </h4>
-              <div className="space-y-1 text-sm text-blue-800">
-                {demoUsers.map(user => (
-                  <div key={user.email} className="flex justify-between">
-                    <span className="font-mono">{user.email}</span>
-                    <span className="text-blue-600">{user.department}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-2 text-xs text-blue-700">
-                Код для всех: <strong>123456</strong>
+              <div className="flex gap-2">
+                <Icon name="Info" size={16} className="flex-shrink-0 mt-0.5 text-blue-600" />
+                <div className="text-sm text-blue-800">
+                  <p>Код восстановления будет отправлен на указанный email.</p>
+                  <p className="mt-1">Убедитесь, что email совпадает с адресом в вашем профиле.</p>
+                </div>
               </div>
             </div>
           </form>
