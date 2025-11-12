@@ -109,7 +109,13 @@ def handle_query(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     print(f"Final query: {query}")
     
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-        cursor.execute(query)
+        try:
+            cursor.execute(f"SET search_path TO t_p47619579_knowledge_management, public")
+            cursor.execute(query)
+        except psycopg2.Error as e:
+            print(f"Query execution error: {str(e)}")
+            print(f"Query was: {query}")
+            raise
         
         if query.strip().upper().startswith('SELECT'):
             rows = cursor.fetchall()
