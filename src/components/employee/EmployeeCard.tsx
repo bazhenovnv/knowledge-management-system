@@ -9,9 +9,10 @@ interface EmployeeCardProps {
   employee: DatabaseEmployee;
   onEdit: (employee: DatabaseEmployee) => void;
   onDelete: (employee: DatabaseEmployee) => void;
+  onRestore?: (employee: DatabaseEmployee) => void;
 }
 
-export function EmployeeCard({ employee, onEdit, onDelete }: EmployeeCardProps) {
+export function EmployeeCard({ employee, onEdit, onDelete, onRestore }: EmployeeCardProps) {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin': return 'bg-red-100 text-red-800';
@@ -106,23 +107,47 @@ export function EmployeeCard({ employee, onEdit, onDelete }: EmployeeCardProps) 
           </div>
         )}
         <div className="flex gap-2 mt-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => onEdit(employee)}
-          >
-            <Icon name="Pencil" size={16} className="mr-1" />
-            Редактировать
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => onDelete(employee)}
-          >
-            <Icon name="Trash2" size={16} />
-          </Button>
+          {!employee.is_active && onRestore ? (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                onClick={() => onRestore(employee)}
+              >
+                <Icon name="RotateCcw" size={16} className="mr-1" />
+                Восстановить
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => onDelete(employee)}
+              >
+                <Icon name="Trash2" size={16} />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => onEdit(employee)}
+              >
+                <Icon name="Pencil" size={16} className="mr-1" />
+                Редактировать
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={() => onDelete(employee)}
+              >
+                <Icon name="Trash2" size={16} />
+              </Button>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

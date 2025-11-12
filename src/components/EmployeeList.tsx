@@ -170,6 +170,22 @@ const EmployeeList: React.FC = () => {
     toast.success('Новый сотрудник добавлен');
   };
 
+  const handleRestoreEmployee = async (employee: DatabaseEmployee) => {
+    try {
+      const success = await externalDb.updateEmployee(employee.id, { is_active: true });
+      
+      if (success) {
+        await loadEmployees();
+        toast.success(`Сотрудник ${employee.full_name} восстановлен`);
+      } else {
+        toast.error('Не удалось восстановить сотрудника');
+      }
+    } catch (error) {
+      console.error('Error restoring employee:', error);
+      toast.error('Ошибка при восстановлении сотрудника');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -229,6 +245,7 @@ const EmployeeList: React.FC = () => {
               employee={employee}
               onEdit={setEditingEmployee}
               onDelete={setEmployeeToDelete}
+              onRestore={handleRestoreEmployee}
             />
           ))}
         </div>
