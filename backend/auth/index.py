@@ -205,14 +205,17 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             
             email_escaped = escape_sql_string(login_data.email)
             print(f"Login attempt - email: {login_data.email}")
-            cursor.execute(f"""
+            sql_query = f"""
                 SELECT id, email, password_hash, full_name, phone, department, position, role, is_active, avatar_url, theme
                 FROM t_p47619579_knowledge_management.employees 
                 WHERE email = {email_escaped} AND is_active = true
-            """)
+            """
+            print(f"SQL Query: {sql_query}")
+            cursor.execute(sql_query)
             
             employee_data = cursor.fetchone()
             print(f"Employee found: {employee_data is not None}")
+            print(f"Query returned rows: {cursor.rowcount}")
             if employee_data:
                 print(f"Password hash from DB: {employee_data[2][:50]}...")
                 password_valid = verify_password(login_data.password, employee_data[2])
