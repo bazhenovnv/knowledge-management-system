@@ -323,28 +323,36 @@ export const externalDb = {
   /**
    * Update employee
    */
-  async updateEmployee(id: number, updates: any): Promise<boolean> {
+  async updateEmployee(id: number, updates: any): Promise<any> {
     try {
-      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}?action=update&table=employees&id=${id}`, {
-        method: 'PUT',
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+        method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({
+          action: 'update',
+          table: 'employees',
+          schema: 't_p47619579_knowledge_management',
+          id: id,
+          data: updates
+        }),
         mode: 'cors',
         credentials: 'omit'
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Update employee failed:', response.status, errorText);
         throw new Error(`Update employee failed: ${response.status}`);
       }
 
-      const data = await response.json();
-      return !data.error;
+      const result = await response.json();
+      return result.data || result;
     } catch (error) {
       console.error('Update employee error:', error);
-      return false;
+      throw error;
     }
   },
 

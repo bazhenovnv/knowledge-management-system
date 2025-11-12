@@ -34,9 +34,13 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             query_params = event.get('queryStringParameters', {})
             action = query_params.get('action')
             body_data = query_params
-        elif method == 'POST':
+        elif method in ['POST', 'PUT', 'DELETE']:
             body_data = json.loads(event.get('body', '{}'))
             action = body_data.get('action')
+            if method == 'PUT' and not action:
+                action = 'update'
+            elif method == 'DELETE' and not action:
+                action = 'delete'
         else:
             return error_response(405, 'Method not allowed')
         
