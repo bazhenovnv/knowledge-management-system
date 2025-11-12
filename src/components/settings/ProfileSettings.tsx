@@ -7,7 +7,6 @@ import { SoundType } from "@/utils/soundEffects";
 import ProfileInfoCard from "./ProfileInfoCard";
 import SecurityCard from "./SecurityCard";
 import NotificationSettingsCard from "./NotificationSettingsCard";
-import UserStatsCard from "./UserStatsCard";
 
 interface ProfileSettingsProps {
   userId: number;
@@ -233,20 +232,10 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
     );
   }
 
-  const employeeWithStats = {
-    ...employee,
-    name: employee.full_name,
-    tests: 0,
-    avgScore: 0,
-    score: 0,
-    status: 0,
-    testResults: []
-  };
-
   return (
     <div className="space-y-6">
       <ProfileInfoCard
-        employee={employeeWithStats}
+        employee={employee}
         profileForm={profileForm}
         isUploadingPhoto={isUploadingPhoto}
         onProfileFormChange={(updates) => setProfileForm(prev => ({ ...prev, ...updates }))}
@@ -266,8 +255,6 @@ export default function ProfileSettings({ userId }: ProfileSettingsProps) {
         onSoundToggle={handleSoundToggle}
         onSoundTypeChange={handleSoundTypeChange}
       />
-
-      <UserStatsCard employee={employeeWithStats} />
     </div>
   );
 }
