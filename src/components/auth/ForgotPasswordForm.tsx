@@ -20,6 +20,7 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
   const [isLoading, setIsLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [remainingRequests, setRemainingRequests] = useState<number | null>(null);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +39,8 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
       const data = await response.json();
 
       if (response.ok && data.success) {
+        setRemainingRequests(data.remaining_attempts ?? null);
+        
         if (data.demo_mode) {
           setIsDemoMode(true);
           toast.success(`Код отправлен на ${email}`, {
@@ -51,7 +54,13 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
         }
         setStep('code');
       } else {
-        toast.error(data.error || 'Не удалось отправить код');
+        if (response.status === 429) {
+          toast.error('Превышен лимит запросов', {
+            description: 'Вы можете запросить код не более 3 раз в час. Попробуйте позже.'
+          });
+        } else {
+          toast.error(data.error || 'Не удалось отправить код');
+        }
       }
     } catch (error) {
       console.error('Send code error:', error);
@@ -204,6 +213,11 @@ export default function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordForm
                 <div className="text-sm text-blue-800">
                   <p>Код восстановления будет отправлен на указанный email.</p>
                   <p className="mt-1">Убедитесь, что email совпадает с адресом в вашем профиле.</p>
+                  {remainingRequests !== null && (
+                    <p className="mt-2 font-medium">
+                      Осталось попыток: {remainingRequests} из 3 в час
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

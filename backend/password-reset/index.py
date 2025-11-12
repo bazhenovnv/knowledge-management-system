@@ -9,12 +9,39 @@ from typing import Dict, Any
 from datetime import datetime, timedelta
 import hashlib
 
-# Временное хранилище кодов (в реальном приложении использовать Redis или DB)
+# Временное хранилище кодов и лимитов запросов
 reset_codes = {}
+rate_limits = {}
 
 def generate_reset_code() -> str:
     """Генерирует 6-значный код восстановления"""
     return ''.join(random.choices(string.digits, k=6))
+
+def check_rate_limit(email: str):
+    """
+    Проверяет лимит запросов: максимум 3 запроса в час
+    Returns: (allowed: bool, remaining_attempts: int)
+    """
+    now = datetime.now()
+    
+    if email not in rate_limits:
+        rate_limits[email] = []
+    
+    # Удаляем запросы старше 1 часа
+    rate_limits[email] = [
+        timestamp for timestamp in rate_limits[email]
+        if now - datetime.fromisoformat(timestamp) < timedelta(hours=1)
+    ]
+    
+    # Проверяем лимит
+    if len(rate_limits[email]) >= 3:
+        return False, 0
+    
+    # Добавляем новый запрос
+    rate_limits[email].append(now.isoformat())
+    remaining = 3 - len(rate_limits[email])
+    
+    return True, remaining
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
     """Отправляет email через SMTP"""
@@ -145,6 +172,18 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({'error': 'Неверный формат email'})
                 }
             
+            # Проверяем лимит запросов
+            allowed, remaining = check_rate_limit(email)
+            if not allowed:
+                return {
+                    'statusCode': 429,
+                    'headers': {'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({
+                        'error': 'Превышен лимит запросов. Попробуйте через час.',
+                        'retry_after': 3600
+                    })
+                }
+            
             # Генерируем код
             code = generate_reset_code()
             
@@ -167,7 +206,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'body': json.dumps({
                         'success': True,
                         'message': 'Код отправлен на ваш email',
-                        'email': email
+                        'email': email,
+                        'remaining_attempts': remaining
                     })
                 }
             else:
@@ -179,8 +219,9 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'success': True,
                         'message': 'Код отправлен на ваш email',
                         'email': email,
-                        'demo_code': code,  # Только для демонстрации
-                        'demo_mode': True
+                        'demo_code': code,
+                        'demo_mode': True,
+                        'remaining_attempts': remaining
                     })
                 }
         
