@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { pushNotificationService } from '@/utils/pushNotifications';
+import { playSound } from '@/utils/soundEffects';
 
 interface NotificationSettingsProps {
   employeeId: number;
@@ -117,7 +118,17 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId 
     settings.soundNotificationType = type;
     localStorage.setItem('app_settings', JSON.stringify(settings));
     
+    playSound(type);
     toast.success('Звук изменён');
+  };
+
+  const testSound = () => {
+    if (!soundEnabled) {
+      toast.error('Сначала включите звуковые уведомления');
+      return;
+    }
+    playSound(soundType);
+    toast.success('Тестовый звук воспроизведён');
   };
 
   const testPushNotification = async () => {
@@ -256,6 +267,15 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ employeeId 
                   Колокольчик
                 </Button>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={testSound}
+                className="w-full mt-2"
+              >
+                <Icon name="Volume2" size={14} className="mr-2" />
+                Протестировать звук
+              </Button>
             </div>
           )}
         </div>
