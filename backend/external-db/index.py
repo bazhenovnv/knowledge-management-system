@@ -186,7 +186,8 @@ def handle_create(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
         if v is None:
             values.append('NULL')
         elif isinstance(v, str):
-            values.append(f"'{v.replace(chr(39), chr(39)*2)}'")
+            escaped_value = v.replace("'", "''")
+            values.append(f"'{escaped_value}'")
         elif isinstance(v, bool):
             values.append('TRUE' if v else 'FALSE')
         else:
@@ -225,7 +226,8 @@ def handle_update(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
         if v is None:
             set_parts.append(f'"{k}" = NULL')
         elif isinstance(v, str):
-            set_parts.append(f'"{k}" = \'{v.replace(chr(39), chr(39)*2)}\'')
+            escaped_value = v.replace("'", "''")
+            set_parts.append(f'"{k}" = \'{escaped_value}\'')
         elif isinstance(v, bool):
             set_parts.append(f'"{k}" = {"TRUE" if v else "FALSE"}')
         else:
