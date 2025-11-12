@@ -97,6 +97,9 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
       if (!formData.password || formData.password.trim() === '') {
         delete updateData.password;
       }
+      if (!formData.zoom_link || formData.zoom_link.trim() === '') {
+        delete updateData.zoom_link;
+      }
       
       const updatedEmployee = await externalDb.updateEmployee(employee.id, updateData);
       
