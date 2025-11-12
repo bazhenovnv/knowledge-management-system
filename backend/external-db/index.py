@@ -62,7 +62,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             user=db_user,
             password=db_password,
             sslmode='verify-full',
-            sslrootcert=cert_file.name
+            sslrootcert=cert_file.name,
+            options='-c search_path=t_p47619579_knowledge_management,public'
         )
         conn.autocommit = True
         
@@ -110,7 +111,6 @@ def handle_query(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         try:
-            cursor.execute(f"SET search_path TO t_p47619579_knowledge_management, public")
             cursor.execute(query)
         except psycopg2.Error as e:
             print(f"Query execution error: {str(e)}")
