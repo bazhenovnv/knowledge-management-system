@@ -39,7 +39,6 @@ const EditEmployeeForm: React.FC<EditEmployeeFormProps> = ({
     department: employee.department,
     position: employee.position,
     role: employee.role as 'admin' | 'teacher' | 'employee',
-    hire_date: employee.hire_date || new Date().toISOString().split('T')[0],
     zoom_link: employee.zoom_link || '',
     password: ''
   });
