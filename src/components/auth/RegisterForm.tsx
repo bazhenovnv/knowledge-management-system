@@ -55,7 +55,16 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
     
     try {
       await authService.register(formData);
-      toast.success('Регистрация прошла успешно! Теперь вы можете войти в систему.');
+      toast.success('Регистрация прошла успешно! Выполняется вход...');
+      
+      // Автоматический вход после регистрации
+      await authService.login({
+        email: formData.email,
+        password: formData.password,
+        remember_me: true
+      });
+      
+      toast.success('Добро пожаловать в систему!');
       onSuccess();
     } catch (error) {
       console.error('Registration error:', error);
@@ -156,7 +165,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                 <SelectValue placeholder="Выберите отдел" />
               </SelectTrigger>
               <SelectContent>
-                {DEPARTMENTS.map((dept) => (
+                {departments.map((dept) => (
                   <SelectItem key={dept} value={dept}>
                     {dept}
                   </SelectItem>
@@ -176,7 +185,7 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
                 <SelectValue placeholder="Выберите должность" />
               </SelectTrigger>
               <SelectContent>
-                {POSITIONS.map((position) => (
+                {positions.map((position) => (
                   <SelectItem key={position} value={position}>
                     {position}
                   </SelectItem>

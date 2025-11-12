@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppearance } from "@/hooks/useAppearance";
-import { AuthForm } from "@/components/auth/AuthForm";
+import AuthPage from "@/components/auth/AuthPage";
+import authService from "@/utils/authService";
 import { Navigation } from "@/components/layout/Navigation";
 import { ContentWrapper } from "@/components/layout/ContentWrapper";
 import { EmployeeDashboard } from "@/components/dashboard/EmployeeDashboard";
@@ -102,6 +103,10 @@ const Index = () => {
     setLoginForm,
     setRegisterForm,
     setShowRegister,
+    setIsLoggedIn,
+    setUserRole,
+    setUserName,
+    setUserId,
     handleLogin,
     handleLogout,
     handleRegister,
@@ -137,20 +142,22 @@ const Index = () => {
     }
   };
 
+  const handleAuthSuccess = async () => {
+    // После успешной авторизации обновляем данные из authService
+    const employee = authService.getCurrentEmployee();
+    if (employee) {
+      setUserRole(employee.role as "employee" | "teacher" | "admin");
+      setUserName(employee.full_name);
+      setUserId(employee.id);
+      setIsLoggedIn(true);
+      
+      // Обновляем список сотрудников из базы
+      await refreshData();
+    }
+  };
+
   if (!isLoggedIn) {
-    return (
-      <AuthForm
-        showRegister={showRegister}
-        loginForm={loginForm}
-        registerForm={registerForm}
-        onLoginFormChange={setLoginForm}
-        onRegisterFormChange={setRegisterForm}
-        onLogin={handleLogin}
-        onRegister={handleRegister}
-        onToggleRegister={() => setShowRegister(!showRegister)}
-        onPasswordReset={() => navigate('/reset-password')}
-      />
-    );
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
   return (

@@ -15,8 +15,8 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
   };
 
   const handleRegisterSuccess = () => {
-    // После успешной регистрации переключаемся на форму входа
-    setAuthMode('login');
+    // После успешной регистрации и автоматического входа переходим в систему
+    onAuthSuccess();
   };
 
   return (
