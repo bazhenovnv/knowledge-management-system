@@ -25,8 +25,23 @@ export const useNotifications = () => {
   const loadNotifications = async () => {
     try {
       setIsLoading(true);
-      const data = await notificationsService.getNotifications();
-      setNotifications(data.map((n: any) => ({
+      
+      // Получаем employeeId из localStorage
+      const employeeData = localStorage.getItem('employee_data');
+      const employee = employeeData ? JSON.parse(employeeData) : null;
+      
+      if (!employee?.id) {
+        console.warn('No employee ID found, using empty notifications');
+        setNotifications([]);
+        return;
+      }
+      
+      const data = await notificationsService.getNotifications(employee.id);
+      
+      // Проверяем что data это массив или объект с data
+      const notificationsArray = Array.isArray(data) ? data : (data?.data || []);
+      
+      setNotifications(notificationsArray.map((n: any) => ({
         id: n.id.toString(),
         title: n.title,
         message: n.message,
@@ -39,6 +54,7 @@ export const useNotifications = () => {
       })));
     } catch (error) {
       console.error('Error loading notifications:', error);
+      setNotifications([]); // Устанавливаем пустой массив при ошибке
     } finally {
       setIsLoading(false);
     }
