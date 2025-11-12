@@ -362,6 +362,7 @@ export const externalDb = {
         body: JSON.stringify({
           action: 'delete',
           table: 'employees',
+          schema: 't_p47619579_knowledge_management',
           id: id,
           permanent: false
         }),
@@ -370,11 +371,13 @@ export const externalDb = {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Delete employee failed:', response.status, errorText);
         throw new Error(`Delete employee failed: ${response.status}`);
       }
 
       const data = await response.json();
-      return !data.error;
+      return data.deleted === true || !data.error;
     } catch (error) {
       console.error('Delete employee error:', error);
       return false;
@@ -395,6 +398,7 @@ export const externalDb = {
         body: JSON.stringify({
           action: 'delete',
           table: 'employees',
+          schema: 't_p47619579_knowledge_management',
           id: id,
           permanent: true
         }),
@@ -403,11 +407,13 @@ export const externalDb = {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Permanent delete employee failed:', response.status, errorText);
         throw new Error(`Permanent delete employee failed: ${response.status}`);
       }
 
       const data = await response.json();
-      return !data.error;
+      return data.deleted === true || !data.error;
     } catch (error) {
       console.error('Permanent delete employee error:', error);
       return false;

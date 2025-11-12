@@ -21,7 +21,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type, Accept',
                 'Access-Control-Max-Age': '86400'
             },
@@ -68,6 +68,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             result = handle_list(conn, body_data)
         elif action == 'stats':
             result = handle_stats(conn, body_data)
+        elif action == 'create':
+            result = handle_create(conn, body_data)
+        elif action == 'update':
+            result = handle_update(conn, body_data)
+        elif action == 'delete':
+            result = handle_delete(conn, body_data)
         else:
             conn.close()
             return error_response(400, f'Unknown action: {action}')
@@ -160,6 +166,85 @@ def handle_stats(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
             'totalTables': len(table_list),
             'totalRecords': total_records
         })
+
+
+def handle_create(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
+    table = body_data.get('table', '')
+    schema = body_data.get('schema', 't_p47619579_knowledge_management')
+    data = body_data.get('data', {})
+    
+    if not table or not data:
+        return error_response(400, 'Table name and data required')
+    
+    columns = ', '.join([f'"{k}"' for k in data.keys()])
+    values = []
+    for v in data.values():
+        if v is None:
+            values.append('NULL')
+        elif isinstance(v, str):
+            values.append(f"'{v.replace(chr(39), chr(39)*2)}'")
+        elif isinstance(v, bool):
+            values.append('TRUE' if v else 'FALSE')
+        else:
+            values.append(str(v))
+    values_str = ', '.join(values)
+    
+    query = f'INSERT INTO "{schema}"."{table}" ({columns}) VALUES ({values_str}) RETURNING *'
+    
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute(query)
+        result = cursor.fetchone()
+        return success_response({'data': dict(result) if result else {}})
+
+
+def handle_update(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
+    table = body_data.get('table', '')
+    schema = body_data.get('schema', 't_p47619579_knowledge_management')
+    record_id = body_data.get('id')
+    data = body_data.get('data', {})
+    
+    if not table or record_id is None or not data:
+        return error_response(400, 'Table name, id and data required')
+    
+    set_parts = []
+    for k, v in data.items():
+        if v is None:
+            set_parts.append(f'"{k}" = NULL')
+        elif isinstance(v, str):
+            set_parts.append(f'"{k}" = \'{v.replace(chr(39), chr(39)*2)}\'')
+        elif isinstance(v, bool):
+            set_parts.append(f'"{k}" = {"TRUE" if v else "FALSE"}')
+        else:
+            set_parts.append(f'"{k}" = {v}')
+    
+    set_clause = ', '.join(set_parts)
+    query = f'UPDATE "{schema}"."{table}" SET {set_clause} WHERE id = {record_id} RETURNING *'
+    
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute(query)
+        result = cursor.fetchone()
+        return success_response({'data': dict(result) if result else {}})
+
+
+def handle_delete(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
+    table = body_data.get('table', '')
+    schema = body_data.get('schema', 't_p47619579_knowledge_management')
+    record_id = body_data.get('id')
+    permanent = body_data.get('permanent', False)
+    
+    if not table or record_id is None:
+        return error_response(400, 'Table name and id required')
+    
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        if permanent or table not in ['employees']:
+            query = f'DELETE FROM "{schema}"."{table}" WHERE id = {record_id}'
+            cursor.execute(query)
+            return success_response({'deleted': cursor.rowcount > 0, 'permanent': True})
+        else:
+            query = f'UPDATE "{schema}"."{table}" SET is_active = FALSE WHERE id = {record_id} RETURNING *'
+            cursor.execute(query)
+            result = cursor.fetchone()
+            return success_response({'data': dict(result) if result else {}, 'deleted': True, 'permanent': False})
 
 
 def success_response(data: Any) -> Dict[str, Any]:
