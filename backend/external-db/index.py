@@ -95,6 +95,8 @@ def handle_query(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     query = body_data.get('query', '')
     params = body_data.get('params', [])
     
+    print(f"Received query: {query}")
+    
     if params:
         for i, param in enumerate(params, 1):
             placeholder = f'${i}'
@@ -103,6 +105,8 @@ def handle_query(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
                 query = query.replace(placeholder, f"'{safe_param}'")
             else:
                 query = query.replace(placeholder, str(param))
+    
+    print(f"Final query: {query}")
     
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
         cursor.execute(query)
