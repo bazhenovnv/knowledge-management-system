@@ -16,6 +16,7 @@ import Icon from "@/components/ui/icon";
 import { useViewedTests } from "@/hooks/useViewedTests";
 import { database } from "@/utils/database";
 import { externalDb } from "@/services/externalDbService";
+import { testsService } from "@/utils/testsService";
 import TestTaking from "./TestTaking";
 import { TestFilters } from "./TestFilters";
 import { TestGrid } from "./TestGrid";
@@ -90,28 +91,40 @@ const TestManagement: React.FC<TestManagementProps> = ({
   };
 
   // Функция сохранения изменений теста
-  const handleSaveEditTest = () => {
+  const handleSaveEditTest = async () => {
     if (!editingTest) return;
     
-    const updatedTest: Test = {
-      ...editingTest,
-      title: newTest.title,
-      description: newTest.description,
-      category: newTest.category,
-      difficulty: newTest.difficulty as "easy" | "medium" | "hard",
-      timeLimit: newTest.timeLimit,
-      department: newTest.department,
-      questions: newTest.questions
-    };
+    try {
+      const updates = {
+        title: newTest.title,
+        description: newTest.description,
+        time_limit: newTest.timeLimit,
+      };
 
-    const savedTest = database.updateTest(editingTest.id, updatedTest);
-    if (savedTest) {
-      setTests(tests.map(t => t.id === editingTest.id ? savedTest : t));
-      setEditingTest(null);
-      setIsEditDialogOpen(false);
-      resetForm();
-      toast.success("Тест обновлен в базе данных!");
-    } else {
+      const savedTest = await testsService.updateTest(Number(editingTest.id), updates);
+      
+      if (savedTest) {
+        const updatedTest: Test = {
+          ...editingTest,
+          title: newTest.title,
+          description: newTest.description,
+          category: newTest.category,
+          difficulty: newTest.difficulty as "easy" | "medium" | "hard",
+          timeLimit: newTest.timeLimit,
+          department: newTest.department,
+          questions: newTest.questions
+        };
+        
+        setTests(tests.map(t => t.id === editingTest.id ? updatedTest : t));
+        setEditingTest(null);
+        setIsEditDialogOpen(false);
+        resetForm();
+        toast.success("Тест обновлен в базе данных!");
+      } else {
+        toast.error("Ошибка при обновлении теста в базе данных");
+      }
+    } catch (error) {
+      console.error('Update test error:', error);
       toast.error("Ошибка при обновлении теста в базе данных");
     }
   };
