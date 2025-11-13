@@ -41,25 +41,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'isBase64Encoded': False
         }
     
-    # Get database connection string
-    dsn = os.environ.get('EXTERNAL_DATABASE_URL')
-    if not dsn:
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({'error': 'Database not configured'}),
-            'isBase64Encoded': False
-        }
+    # Use direct connection parameters instead of DSN (password contains special chars)
+    db_host = 'c6b7ae5ab8e72b5408272e27.twc1.net'
+    db_port = '5432'
+    db_name = 'default_db'
+    db_user = 'gen_user'
+    db_password = 'TC>o0yl2J_PR(e'
     
     try:
         # Parse request
         body_data = json.loads(event.get('body', '{}'))
         action = body_data.get('action', 'query')
         
-        conn = psycopg2.connect(dsn, cursor_factory=RealDictCursor)
+        # Connect using individual parameters
+        conn = psycopg2.connect(
+            host=db_host,
+            port=db_port,
+            database=db_name,
+            user=db_user,
+            password=db_password,
+            sslmode='verify-full',
+            cursor_factory=RealDictCursor
+        )
         cur = conn.cursor()
         
         result = {}
