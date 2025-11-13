@@ -562,16 +562,26 @@ def update_item(cursor, conn, table: str, item_id: str, data: Dict[str, Any]) ->
 
 
 def delete_item(cursor, conn, table: str, item_id: str) -> Dict[str, Any]:
-    """Удалить запись (мягкое удаление для сотрудников)"""
+    """Удалить запись (мягкое удаление для сотрудников и тестов)"""
     try:
+        schema = 't_p47619579_knowledge_management'
+        
         if table == 'employees':
-            cursor.execute("""
-                UPDATE t_p47619579_knowledge_management.employees 
+            cursor.execute(f"""
+                UPDATE {schema}.employees 
+                SET is_active = false, updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (item_id,))
+        elif table == 'tests':
+            # Для тестов делаем мягкое удаление
+            cursor.execute(f"""
+                UPDATE {schema}.tests 
                 SET is_active = false, updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
             """, (item_id,))
         else:
-            cursor.execute(f"DELETE FROM {table} WHERE id = %s", (item_id,))
+            # Для других таблиц - физическое удаление
+            cursor.execute(f"DELETE FROM {schema}.{table} WHERE id = %s", (item_id,))
         
         if cursor.rowcount > 0:
             conn.commit()
