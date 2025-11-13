@@ -946,8 +946,8 @@ def submit_test_results(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
         schema = 't_p47619579_knowledge_management'
         
         # Подсчитываем баллы
-        score = data.get('score', 0)
-        max_score = data.get('max_score', 0)
+        score = data.get('score', 0) or 0
+        max_score = data.get('max_score', 0) or 0
         percentage = int((score / max_score * 100) if max_score > 0 else 0)
         
         # Получаем минимальный проходной балл
@@ -956,7 +956,7 @@ def submit_test_results(cursor, conn, data: Dict[str, Any]) -> Dict[str, Any]:
         """, (data.get('test_id'),))
         
         test_row = cursor.fetchone()
-        passing_score = test_row['passing_score'] if test_row else 70
+        passing_score = (test_row['passing_score'] if test_row and test_row.get('passing_score') is not None else 70)
         passed = percentage >= passing_score
         
         # Сохраняем результат
