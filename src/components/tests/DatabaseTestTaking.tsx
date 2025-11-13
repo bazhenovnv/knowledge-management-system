@@ -64,16 +64,36 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
   const loadTest = async () => {
     setIsLoading(true);
     try {
+      console.log('🔄 Loading test with ID:', testId);
       const testData = await testsService.getTestWithQuestions(testId);
+      console.log('📋 Test data loaded:', testData);
+      
       if (testData) {
+        // Проверка на наличие вопросов
+        if (!testData.questions || testData.questions.length === 0) {
+          console.warn('⚠️ Test has no questions:', testData);
+          toast.error('В тесте нет вопросов');
+          onCancel();
+          return;
+        }
+        
+        // Проверка что у вопросов есть ответы
+        const questionsWithoutAnswers = testData.questions.filter(q => !q.answers || q.answers.length === 0);
+        if (questionsWithoutAnswers.length > 0) {
+          console.warn('⚠️ Some questions have no answers:', questionsWithoutAnswers);
+          toast.error('У некоторых вопросов отсутствуют варианты ответов');
+        }
+        
+        console.log('✅ Test loaded successfully:', testData.title, 'Questions:', testData.questions.length);
         setTest(testData);
       } else {
+        console.error('❌ Test not found, ID:', testId);
         toast.error('Тест не найден');
         onCancel();
       }
     } catch (error) {
+      console.error('❌ Error loading test:', error);
       toast.error('Ошибка загрузки теста');
-      console.error('Error loading test:', error);
       onCancel();
     } finally {
       setIsLoading(false);
@@ -219,6 +239,17 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
     );
   }
 
+  if (!test.questions || test.questions.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <Icon name="AlertCircle" size={48} className="mx-auto mb-4 text-yellow-500" />
+        <p className="text-lg font-medium">В тесте нет вопросов</p>
+        <p className="text-sm text-gray-600 mt-2">Администратор должен добавить вопросы к этому тесту</p>
+        <Button onClick={onCancel} className="mt-4">Назад</Button>
+      </div>
+    );
+  }
+
   if (showResults && testResults) {
     return (
       <Card>
@@ -267,6 +298,19 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
   }
 
   const currentQuestion = test.questions[currentQuestionIndex];
+  
+  // Проверка валидности текущего вопроса
+  if (!currentQuestion) {
+    console.error('Current question not found at index:', currentQuestionIndex);
+    return (
+      <div className="text-center py-12">
+        <Icon name="AlertCircle" size={48} className="mx-auto mb-4 text-red-500" />
+        <p className="text-lg font-medium">Ошибка загрузки вопроса</p>
+        <Button onClick={onCancel} className="mt-4">Назад</Button>
+      </div>
+    );
+  }
+  
   const progress = ((currentQuestionIndex + 1) / test.questions.length) * 100;
 
   return (
