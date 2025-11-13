@@ -127,6 +127,88 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'totalRecords': total_records
             }
         
+        elif action == 'create':
+            # Create new record
+            table = body_data.get('table')
+            schema = body_data.get('schema', 'public')
+            data = body_data.get('data', {})
+            
+            if not table or not data:
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Table and data are required'}),
+                    'isBase64Encoded': False
+                }
+            
+            columns = list(data.keys())
+            values = list(data.values())
+            placeholders = ', '.join(['%s'] * len(values))
+            columns_str = ', '.join(columns)
+            
+            query = f'INSERT INTO {schema}.{table} ({columns_str}) VALUES ({placeholders}) RETURNING *'
+            cur.execute(query, values)
+            conn.commit()
+            
+            inserted_row = cur.fetchone()
+            result = {'data': dict(inserted_row) if inserted_row else None, 'created': True}
+        
+        elif action == 'update':
+            # Update existing record
+            table = body_data.get('table')
+            schema = body_data.get('schema', 'public')
+            record_id = body_data.get('id')
+            data = body_data.get('data', {})
+            
+            if not table or not record_id or not data:
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Table, ID and data are required'}),
+                    'isBase64Encoded': False
+                }
+            
+            set_parts = [f'{key} = %s' for key in data.keys()]
+            set_clause = ', '.join(set_parts)
+            values = list(data.values())
+            values.append(record_id)
+            
+            query = f'UPDATE {schema}.{table} SET {set_clause} WHERE id = %s RETURNING *'
+            cur.execute(query, values)
+            conn.commit()
+            
+            updated_row = cur.fetchone()
+            result = {'data': dict(updated_row) if updated_row else None, 'updated': True}
+        
+        elif action == 'delete':
+            # Delete record
+            table = body_data.get('table')
+            schema = body_data.get('schema', 'public')
+            record_id = body_data.get('id')
+            
+            if not table or not record_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Table and ID are required'}),
+                    'isBase64Encoded': False
+                }
+            
+            query = f'DELETE FROM {schema}.{table} WHERE id = %s'
+            cur.execute(query, (record_id,))
+            conn.commit()
+            
+            result = {'deleted': True, 'affected': cur.rowcount}
+        
         cur.close()
         conn.close()
         
