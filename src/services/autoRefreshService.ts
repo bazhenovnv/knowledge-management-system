@@ -126,6 +126,11 @@ class AutoRefreshService {
     }
   }
 
+  async triggerManualRefresh() {
+    console.log('🔄 Запущено ручное обновление всех служб');
+    await this.notifyListeners();
+  }
+
   getStatus() {
     return {
       isRunning: this.isRunning,

@@ -17,6 +17,7 @@ import TopFunctionsWidget from "@/components/analytics/TopFunctionsWidget";
 import { useData } from "@/contexts/DataContext";
 import MigrationButton from "@/components/admin/MigrationButton";
 import AutoRefreshIndicator from "@/components/AutoRefreshIndicator";
+import { autoRefreshService } from "@/services/autoRefreshService";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -294,10 +295,20 @@ export const AdminDashboard = ({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-gray-800">Аналитика платформы</h2>
         <Button
-          onClick={() => {
+          onClick={async () => {
             setIsRefreshing(true);
-            setAnalyticsRefresh(prev => prev + 1);
-            setTimeout(() => setIsRefreshing(false), 1000);
+            try {
+              await refreshData();
+              setAnalyticsRefresh(prev => prev + 1);
+              await autoRefreshService.triggerManualRefresh();
+              
+              toast.success('Все данные обновлены');
+            } catch (error) {
+              console.error('Error refreshing:', error);
+              toast.error('Ошибка обновления данных');
+            } finally {
+              setTimeout(() => setIsRefreshing(false), 500);
+            }
           }}
           size="sm"
           className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-[0.25px] border-black"
