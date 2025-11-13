@@ -326,7 +326,7 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
             </div>
           ) : (
             <RadioGroup
-              value={answers.get(currentQuestion.id)?.[0]?.toString()}
+              value={answers.get(currentQuestion.id)?.[0]?.toString() || ''}
               onValueChange={(value) => handleAnswer(currentQuestion.id, parseInt(value))}
             >
               <div className="space-y-3">

@@ -219,6 +219,64 @@ export const externalDb = {
   },
 
   /**
+   * Create a new record in table
+   */
+  async create(table: string, data: any, schema = 't_p47619579_knowledge_management'): Promise<any> {
+    try {
+      const columns = Object.keys(data).join(', ');
+      const values = Object.values(data).map(v => 
+        v === null ? 'NULL' : 
+        typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : 
+        typeof v === 'object' ? `'${JSON.stringify(v).replace(/'/g, "''")}'` :
+        v
+      ).join(', ');
+      
+      const query = `INSERT INTO ${schema}.${table} (${columns}) VALUES (${values}) RETURNING *`;
+      const result = await this.query(query);
+      return result[0] || null;
+    } catch (error) {
+      console.error('Create error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Update a record in table
+   */
+  async update(table: string, id: number, data: any, schema = 't_p47619579_knowledge_management'): Promise<any> {
+    try {
+      const sets = Object.entries(data).map(([key, value]) => {
+        const val = value === null ? 'NULL' : 
+          typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : 
+          typeof value === 'object' ? `'${JSON.stringify(value).replace(/'/g, "''")}'` :
+          value;
+        return `${key} = ${val}`;
+      }).join(', ');
+      
+      const query = `UPDATE ${schema}.${table} SET ${sets} WHERE id = ${id} RETURNING *`;
+      const result = await this.query(query);
+      return result[0] || null;
+    } catch (error) {
+      console.error('Update error:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Delete a record from table
+   */
+  async delete(table: string, id: number, schema = 't_p47619579_knowledge_management'): Promise<boolean> {
+    try {
+      const query = `DELETE FROM ${schema}.${table} WHERE id = ${id}`;
+      await this.query(query);
+      return true;
+    } catch (error) {
+      console.error('Delete error:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Get subsection content
    */
   async getSubsectionContent(): Promise<Record<string, string>> {
