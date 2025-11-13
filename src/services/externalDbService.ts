@@ -579,20 +579,29 @@ export const externalDb = {
         SELECT 
           t.id, t.title, t.description, t.time_limit, 
           t.passing_score, t.is_active, t.created_at,
+          t.course_id, t.creator_id, t.max_attempts, t.updated_at,
           json_agg(
             json_build_object(
               'id', tq.id,
-              'question', tq.question_text,
+              'test_id', tq.test_id,
+              'question_text', tq.question_text,
+              'question_type', tq.question_type,
+              'points', tq.points,
+              'order_num', tq.order_num,
+              'created_at', tq.created_at,
               'answers', (
                 SELECT json_agg(
                   json_build_object(
-                    'id', test_answers.id,
-                    'text', test_answers.answer_text,
-                    'is_correct', test_answers.is_correct
-                  ) ORDER BY test_answers.order_num
+                    'id', ta.id,
+                    'question_id', ta.question_id,
+                    'answer_text', ta.answer_text,
+                    'is_correct', ta.is_correct,
+                    'order_num', ta.order_num,
+                    'created_at', ta.created_at
+                  ) ORDER BY ta.order_num
                 )
-                FROM t_p47619579_knowledge_management.test_answers
-                WHERE test_answers.question_id = tq.id
+                FROM t_p47619579_knowledge_management.test_answers ta
+                WHERE ta.question_id = tq.id
               )
             ) ORDER BY tq.order_num
           ) FILTER (WHERE tq.id IS NOT NULL) as questions
