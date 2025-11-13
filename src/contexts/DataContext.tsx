@@ -36,7 +36,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       }
       
       const averageScore = testResults.length > 0
-        ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.score, 0) / testResults.length)
+        ? Math.round(testResults.reduce((sum: number, result: any) => sum + result.percentage, 0) / testResults.length)
         : 0;
       
       const yesterday = new Date();

@@ -69,27 +69,33 @@ class AutoRefreshService {
     try {
       const changedTables: string[] = [];
       
+      const tableQueries: Record<string, string> = {
+        'employees': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.employees',
+        'tests': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.tests',
+        'test_results': 'SELECT MAX(created_at) as last_update FROM t_p47619579_knowledge_management.test_results',
+        'courses': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.courses',
+        'notifications': 'SELECT MAX(created_at) as last_update FROM t_p47619579_knowledge_management.notifications',
+        'knowledge_materials': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.knowledge_materials'
+      };
+      
       for (const table of this.tables) {
         try {
-          const rows = await externalDb.query(`
-            SELECT MAX(updated_at) as last_update, MAX(created_at) as last_create
-            FROM t_p47619579_knowledge_management.${table}
-          `);
+          const query = tableQueries[table];
+          if (!query) continue;
           
-          if (rows && rows.length > 0) {
-            const lastUpdate = rows[0].last_update || rows[0].last_create;
+          const rows = await externalDb.query(query);
+          
+          if (rows && rows.length > 0 && rows[0].last_update) {
+            const lastUpdate = rows[0].last_update;
+            const lastUpdateStr = new Date(lastUpdate).toISOString();
             
-            if (lastUpdate) {
-              const lastUpdateStr = new Date(lastUpdate).toISOString();
-              
-              if (!this.lastKnownUpdates[table] || this.lastKnownUpdates[table] !== lastUpdateStr) {
-                changedTables.push(table);
-                this.lastKnownUpdates[table] = lastUpdateStr;
-              }
+            if (!this.lastKnownUpdates[table] || this.lastKnownUpdates[table] !== lastUpdateStr) {
+              changedTables.push(table);
+              this.lastKnownUpdates[table] = lastUpdateStr;
             }
           }
         } catch (tableError) {
-          console.log(`Таблица ${table} недоступна или не имеет updated_at/created_at`);
+          // Игнорируем ошибки для недоступных таблиц
         }
       }
 

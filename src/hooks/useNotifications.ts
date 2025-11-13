@@ -22,10 +22,12 @@ export const useNotifications = () => {
   useEffect(() => {
     loadNotifications();
     
-    autoRefreshService.subscribe('notifications', () => {
+    const handleRefresh = () => {
       console.log('🔔 Обновление уведомлений по сигналу autoRefreshService');
       loadNotifications();
-    });
+    };
+    
+    autoRefreshService.subscribe('notifications', handleRefresh);
     
     return () => {
       autoRefreshService.unsubscribe('notifications');

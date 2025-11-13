@@ -6,6 +6,7 @@ import { databaseService, DatabaseEmployee } from "@/utils/databaseService";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { externalDb } from "@/services/externalDbService";
+import { autoRefreshService } from "@/services/autoRefreshService";
 
 interface EmployeeWithStats extends DatabaseEmployee {
   avgScore: number;
@@ -21,8 +22,7 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
   const [bottomEmployees, setBottomEmployees] = useState<EmployeeWithStats[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadEmployeesData = async () => {
+  const loadEmployeesData = async () => {
       try {
         setLoading(true);
         
@@ -39,7 +39,7 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
         const employeesWithStats: EmployeeWithStats[] = activeEmployees.map(emp => {
           const empResults = allTestResults.filter((r: any) => r.employee_id === emp.id);
           const avgScore = empResults.length > 0
-            ? Math.round(empResults.reduce((sum: number, r: any) => sum + r.score, 0) / empResults.length)
+            ? Math.round(empResults.reduce((sum: number, r: any) => sum + r.percentage, 0) / empResults.length)
             : 0;
           
           return {
@@ -78,7 +78,17 @@ export const TopEmployees = ({ onEmployeeClick }: TopEmployeesProps = {}) => {
       }
     };
 
+  useEffect(() => {
     loadEmployeesData();
+    
+    autoRefreshService.subscribe('top-employees', () => {
+      console.log('👥 Обновление топ сотрудников по сигналу autoRefreshService');
+      loadEmployeesData();
+    });
+    
+    return () => {
+      autoRefreshService.unsubscribe('top-employees');
+    };
   }, []);
 
   const getAttentionReason = (employee: EmployeeWithStats) => {
