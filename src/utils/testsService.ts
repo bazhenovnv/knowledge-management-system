@@ -295,19 +295,26 @@ class TestsService {
       
       const passed = result.passed;
       const percentage = result.percentage;
+      const score = result.score;
+      const maxScore = result.max_score;
 
       await notificationsService.createNotification({
         employee_id: employeeId,
-        title: passed ? 'Тест сдан успешно!' : 'Тест не пройден',
+        title: passed 
+          ? `✅ Тест "${testTitle}" сдан успешно!` 
+          : `❌ Тест "${testTitle}" не пройден`,
         message: passed 
-          ? `Вы успешно прошли тест "${testTitle}" с результатом ${percentage}%. Поздравляем!`
-          : `Тест "${testTitle}" не пройден. Набрано ${percentage}%. Попробуйте ещё раз.`,
+          ? `Вы успешно прошли тест с результатом ${score}/${maxScore} баллов (${percentage}%). Поздравляем!`
+          : `Тест не пройден. Набрано ${score}/${maxScore} баллов (${percentage}%). Попробуйте ещё раз.`,
         type: passed ? 'success' : 'warning',
         priority: passed ? 'normal' : 'high',
-        link: '/tests',
+        link: `/test-results?test_id=${result.test_id}&result_id=${result.id}`,
         metadata: {
           test_id: result.test_id,
           result_id: result.id,
+          test_title: testTitle,
+          score,
+          max_score: maxScore,
           percentage,
           passed,
         },

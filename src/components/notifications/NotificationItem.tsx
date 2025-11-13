@@ -53,15 +53,25 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
     if (!notification.is_read) {
       onMarkRead(notification.id);
     }
+  };
+
+  const handleNavigate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!notification.is_read) {
+      onMarkRead(notification.id);
+    }
     if (notification.link) {
       window.location.href = notification.link;
     }
   };
 
+  const metadata = notification.metadata as any;
+  const isTestResult = metadata?.test_id && metadata?.result_id;
+
   return (
     <div
       className={cn(
-        'p-4 hover:bg-accent/50 transition-colors cursor-pointer',
+        'p-4 hover:bg-accent/50 transition-colors',
         !notification.is_read && 'bg-accent/30',
         getPriorityColor(notification.priority)
       )}
@@ -83,12 +93,38 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onMar
               <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-1" />
             )}
           </div>
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-1">
+          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
             {notification.message}
           </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Icon name="Clock" size={12} />
-            <span>{timeAgo}</span>
+          
+          {isTestResult && (
+            <div className="flex items-center gap-2 mb-2 p-2 bg-accent/50 rounded-md">
+              <Icon name="Award" size={16} className="text-blue-500" />
+              <div className="flex-1 text-xs">
+                <span className="font-medium">Баллы: </span>
+                <span className="font-bold">{metadata.score}/{metadata.max_score}</span>
+                <span className="text-muted-foreground ml-2">({metadata.percentage}%)</span>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Icon name="Clock" size={12} />
+              <span>{timeAgo}</span>
+            </div>
+            
+            {notification.link && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleNavigate}
+                className="h-7 text-xs"
+              >
+                <Icon name="ExternalLink" size={12} className="mr-1" />
+                {isTestResult ? 'Посмотреть результат' : 'Перейти'}
+              </Button>
+            )}
           </div>
         </div>
       </div>
