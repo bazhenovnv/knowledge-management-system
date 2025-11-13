@@ -52,9 +52,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         }
     
     try:
-        # Parse request
-        body_data = json.loads(event.get('body', '{}'))
-        action = body_data.get('action', 'query')
+        # Parse request - support both GET query params and POST body
+        query_params = event.get('queryStringParameters', {}) or {}
+        body_data = {}
+        if method == 'POST':
+            body_data = json.loads(event.get('body', '{}'))
+        
+        # Merge query params and body data (body takes precedence)
+        request_data = {**query_params, **body_data}
+        action = request_data.get('action', 'query')
         
         # Connect to database
         conn = psycopg2.connect(dsn)
@@ -62,22 +68,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         if action == 'query':
             # Execute custom SQL query
-            query = body_data.get('query', '')
+            query = request_data.get('query', '')
             cur.execute(query)
             
             if query.strip().upper().startswith('SELECT'):
                 rows = cur.fetchall()
-                result = {'rows': convert_dates([dict(row) for row in rows]), 'count': len(rows)}
+                result = {'data': convert_dates([dict(row) for row in rows]), 'count': len(rows)}
             else:
                 conn.commit()
                 result = {'affected': cur.rowcount}
         
         elif action == 'list':
             # List table data
-            table = body_data.get('table', 'employees')
-            schema = body_data.get('schema', 't_p47619579_knowledge_management')
-            limit = body_data.get('limit', 100)
-            offset = body_data.get('offset', 0)
+            table = request_data.get('table', 'employees')
+            schema = request_data.get('schema', 't_p47619579_knowledge_management')
+            limit = int(request_data.get('limit', 100))
+            offset = int(request_data.get('offset', 0))
             
             cur.execute(f"""
                 SELECT * FROM {schema}.{table}
@@ -86,7 +92,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             """)
             
             rows = cur.fetchall()
-            result = {'rows': convert_dates([dict(row) for row in rows]), 'count': len(rows)}
+            result = {'data': convert_dates([dict(row) for row in rows]), 'count': len(rows)}
         
         elif action == 'stats':
             # Get database statistics
@@ -108,6 +114,80 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'totalTables': len(tables),
                 'totalRecords': total_records
             }
+        
+        elif action == 'create':
+            # Create new record
+            table = request_data.get('table', 'employees')
+            schema = request_data.get('schema', 't_p47619579_knowledge_management')
+            data = request_data.get('data', {})
+            
+            if not data:
+                result = {'error': 'No data provided for create'}
+            else:
+                columns = ', '.join(data.keys())
+                placeholders = ', '.join(['%s'] * len(data))
+                values = list(data.values())
+                
+                cur.execute(f"""
+                    INSERT INTO {schema}.{table} ({columns})
+                    VALUES ({placeholders})
+                    RETURNING *
+                """, values)
+                
+                conn.commit()
+                row = cur.fetchone()
+                result = {'data': convert_dates(dict(row)) if row else None}
+        
+        elif action == 'update':
+            # Update existing record
+            table = request_data.get('table', 'employees')
+            schema = request_data.get('schema', 't_p47619579_knowledge_management')
+            record_id = request_data.get('id')
+            data = request_data.get('data', {})
+            
+            if not record_id or not data:
+                result = {'error': 'ID and data required for update'}
+            else:
+                set_clause = ', '.join([f"{k} = %s" for k in data.keys()])
+                values = list(data.values()) + [record_id]
+                
+                cur.execute(f"""
+                    UPDATE {schema}.{table}
+                    SET {set_clause}, updated_at = NOW()
+                    WHERE id = %s
+                    RETURNING *
+                """, values)
+                
+                conn.commit()
+                row = cur.fetchone()
+                result = {'data': convert_dates(dict(row)) if row else None}
+        
+        elif action == 'delete':
+            # Delete record (soft or hard)
+            table = request_data.get('table', 'employees')
+            schema = request_data.get('schema', 't_p47619579_knowledge_management')
+            record_id = request_data.get('id')
+            permanent = request_data.get('permanent', False)
+            
+            if not record_id:
+                result = {'error': 'ID required for delete'}
+            else:
+                if permanent:
+                    # Hard delete
+                    cur.execute(f"""
+                        DELETE FROM {schema}.{table}
+                        WHERE id = %s
+                    """, [record_id])
+                else:
+                    # Soft delete (set is_active = false)
+                    cur.execute(f"""
+                        UPDATE {schema}.{table}
+                        SET is_active = false, updated_at = NOW()
+                        WHERE id = %s
+                    """, [record_id])
+                
+                conn.commit()
+                result = {'deleted': True, 'affected': cur.rowcount}
         
         else:
             result = {'error': f'Unknown action: {action}'}

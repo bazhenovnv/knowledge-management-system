@@ -379,6 +379,61 @@ export const externalDb = {
   },
 
   /**
+   * Create new employee (wrapper for addEmployee with proper return type)
+   */
+  async createEmployee(employeeData: {
+    full_name: string;
+    email: string;
+    phone?: string;
+    department: string;
+    position: string;
+    role?: 'admin' | 'teacher' | 'employee';
+    hire_date?: string;
+    zoom_link?: string;
+  }): Promise<any> {
+    try {
+      const response = await fetchWithRetry(`${EXTERNAL_DB_URL}`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'create',
+          table: 'employees',
+          schema: 't_p47619579_knowledge_management',
+          data: {
+            full_name: employeeData.full_name,
+            email: employeeData.email,
+            phone: employeeData.phone || null,
+            department: employeeData.department,
+            position: employeeData.position,
+            role: employeeData.role || 'employee',
+            hire_date: employeeData.hire_date || null,
+            zoom_link: employeeData.zoom_link || null,
+            is_active: true
+          }
+        }),
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Create employee failed:', response.status, errorText);
+        throw new Error(`Create employee failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Employee created:', result);
+      return result.data || result;
+    } catch (error) {
+      console.error('Create employee error:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Update employee
    */
   async updateEmployee(id: number, updates: any): Promise<any> {

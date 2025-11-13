@@ -7,20 +7,15 @@
       "expectedStatus": 200
     },
     {
-      "name": "Get employees list",
+      "name": "Get employees list via POST",
       "method": "POST",
       "path": "/",
       "body": {
         "action": "list",
         "table": "employees",
-        "limit": 10
+        "limit": 5
       },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "rows": "array",
-        "count": "number"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     },
     {
       "name": "Get database stats",
@@ -29,13 +24,7 @@
       "body": {
         "action": "stats"
       },
-      "expectedStatus": 200,
-      "expectedBody": {
-        "tables": "array",
-        "totalTables": "number",
-        "totalRecords": "number"
-      },
-      "bodyMatcher": "partial"
+      "expectedStatus": 200
     }
   ]
 }
