@@ -319,9 +319,14 @@ class TestsService {
 
   // Обновить тест
   async updateTest(testId: number, updates: Partial<DatabaseTest>): Promise<DatabaseTest | null> {
-    const response = await this.makeRequest<DatabaseTest>(`?action=update&table=tests&id=${testId}`, {
+    const response = await this.makeRequest<DatabaseTest>('', {
       method: 'PUT',
-      body: JSON.stringify(updates)
+      body: JSON.stringify({
+        action: 'update',
+        table: 'tests',
+        id: testId,
+        data: updates
+      })
     }, true); // Используем прямой API
 
     if (response.error || !response.data) {
