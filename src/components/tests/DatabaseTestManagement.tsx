@@ -13,6 +13,7 @@ import TestCreationForm from './TestCreationForm';
 import TestEditForm from './TestEditForm';
 import DeleteTestDialog from './DeleteTestDialog';
 import { useScrollPosition } from '@/hooks/useScrollPosition';
+import { autoRefreshService } from '@/services/autoRefreshService';
 
 interface DatabaseTestManagementProps {
   userId: number;
@@ -37,6 +38,15 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
 
   useEffect(() => {
     loadTests();
+    
+    autoRefreshService.subscribe('test-management', () => {
+      console.log('🔄 Обновление тестов по сигналу autoRefreshService');
+      loadTests();
+    });
+    
+    return () => {
+      autoRefreshService.unsubscribe('test-management');
+    };
   }, []);
 
   useEffect(() => {

@@ -1,12 +1,15 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { externalDb } from '@/services/externalDbService';
+import { autoRefreshService } from '@/services/autoRefreshService';
 
 interface DataContextType {
   isLoading: boolean;
   lastUpdated: Date | null;
   refreshData: () => Promise<void>;
   stats: any;
+  autoRefreshEnabled: boolean;
+  toggleAutoRefresh: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -15,12 +18,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [stats, setStats] = useState<any>(null);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
-  const refreshData = useCallback(async () => {
+  const refreshData = useCallback(async (silent = false) => {
     try {
       setIsLoading(true);
       
-      // Получаем данные из БД TimeWeb Cloud
       const allEmployees = await externalDb.getEmployees();
       const tests = await externalDb.list('tests');
       const courses = await externalDb.list('courses');
@@ -62,10 +65,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       });
       
       setLastUpdated(new Date());
-      toast.success('Данные обновлены');
+      if (!silent) {
+        toast.success('Данные обновлены');
+      }
     } catch (error) {
       console.error('Error refreshing data:', error);
-      toast.error('Ошибка загрузки данных из базы');
+      if (!silent) {
+        toast.error('Ошибка загрузки данных из базы');
+      }
       setStats({
         totalEmployees: 0,
         activeEmployees: 0,
@@ -83,12 +90,43 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const toggleAutoRefresh = useCallback(() => {
+    if (autoRefreshEnabled) {
+      autoRefreshService.stop();
+      setAutoRefreshEnabled(false);
+      toast.info('Автообновление отключено');
+    } else {
+      autoRefreshService.start();
+      setAutoRefreshEnabled(true);
+      toast.info('Автообновление включено');
+    }
+  }, [autoRefreshEnabled]);
+
   useEffect(() => {
-    refreshData();
+    refreshData(true);
+    
+    autoRefreshService.subscribe('data-context', () => {
+      console.log('🔄 Автообновление данных запущено');
+      refreshData(true);
+    });
+    
+    autoRefreshService.start();
+    
+    return () => {
+      autoRefreshService.unsubscribe('data-context');
+      autoRefreshService.stop();
+    };
   }, [refreshData]);
 
   return (
-    <DataContext.Provider value={{ isLoading, lastUpdated, refreshData, stats }}>
+    <DataContext.Provider value={{ 
+      isLoading, 
+      lastUpdated, 
+      refreshData, 
+      stats, 
+      autoRefreshEnabled, 
+      toggleAutoRefresh 
+    }}>
       {children}
     </DataContext.Provider>
   );

@@ -16,6 +16,7 @@ import FunctionAnalytics from "@/components/analytics/FunctionAnalytics";
 import TopFunctionsWidget from "@/components/analytics/TopFunctionsWidget";
 import { useData } from "@/contexts/DataContext";
 import MigrationButton from "@/components/admin/MigrationButton";
+import AutoRefreshIndicator from "@/components/AutoRefreshIndicator";
 
 interface AdminDashboardProps {
   onLogout: () => void;
@@ -307,8 +308,10 @@ export const AdminDashboard = ({
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <AutoRefreshIndicator />
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:col-span-2">
           <DbRequestCounter isAdmin={true} refreshTrigger={analyticsRefresh} />
           <FunctionCallCounter isAdmin={true} refreshTrigger={analyticsRefresh} />
           

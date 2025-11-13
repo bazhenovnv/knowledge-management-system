@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { notificationsService } from "@/utils/notificationsService";
+import { autoRefreshService } from "@/services/autoRefreshService";
 
 export interface Notification {
   id: string;
@@ -20,6 +21,15 @@ export const useNotifications = () => {
 
   useEffect(() => {
     loadNotifications();
+    
+    autoRefreshService.subscribe('notifications', () => {
+      console.log('🔔 Обновление уведомлений по сигналу autoRefreshService');
+      loadNotifications();
+    });
+    
+    return () => {
+      autoRefreshService.unsubscribe('notifications');
+    };
   }, []);
 
   const loadNotifications = async () => {
