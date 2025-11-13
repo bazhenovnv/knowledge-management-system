@@ -65,7 +65,9 @@ const DatabaseEmployeeManagement: React.FC = () => {
     setIsLoading(true);
     try {
       const employeeData = await externalDb.getEmployees();
-      setEmployees(employeeData);
+      // Фильтруем только активных сотрудников
+      const activeEmployees = employeeData.filter((emp: DatabaseEmployee) => emp.is_active !== false);
+      setEmployees(activeEmployees);
     } catch (error) {
       toast.error('Ошибка загрузки сотрудников');
       console.error('Error loading employees:', error);
@@ -127,13 +129,22 @@ const DatabaseEmployeeManagement: React.FC = () => {
     if (!editingEmployee) return;
 
     try {
-      const updatedEmployee = {
-        ...editingEmployee,
-        ...editForm,
+      // Передаем только изменяемые поля
+      const updates = {
+        full_name: editForm.full_name,
+        email: editForm.email,
+        phone: editForm.phone,
+        position: editForm.position,
+        department: editForm.department,
+        role: editForm.role,
+        is_active: editForm.is_active,
         updated_at: new Date().toISOString()
       };
 
-      const result = await externalDb.updateEmployee(editingEmployee.id, updatedEmployee);
+      console.log('Updating employee:', editingEmployee.id, updates);
+      const result = await externalDb.updateEmployee(editingEmployee.id, updates);
+      console.log('Update result:', result);
+      
       if (result) {
         await loadEmployees();
         setIsEditDialogOpen(false);
@@ -187,11 +198,18 @@ const DatabaseEmployeeManagement: React.FC = () => {
     if (!selectedEmployee) return;
     
     try {
-      await externalDb.deleteEmployee(selectedEmployee.id);
-      toast.success(`Сотрудник ${selectedEmployee.full_name} удален`);
-      await loadEmployees();
-      setIsDeleteDialogOpen(false);
-      setSelectedEmployee(null);
+      console.log('Deleting employee:', selectedEmployee.id);
+      const result = await externalDb.deleteEmployee(selectedEmployee.id);
+      console.log('Delete result:', result);
+      
+      if (result) {
+        toast.success(`Сотрудник ${selectedEmployee.full_name} удален`);
+        await loadEmployees();
+        setIsDeleteDialogOpen(false);
+        setSelectedEmployee(null);
+      } else {
+        toast.error('Не удалось удалить сотрудника');
+      }
     } catch (error) {
       toast.error('Ошибка удаления сотрудника');
       console.error('Error deleting employee:', error);
