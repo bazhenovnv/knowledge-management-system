@@ -158,7 +158,7 @@ const DatabaseTestTaking: React.FC<DatabaseTestTakingProps> = ({
     
     try {
       const { score, maxScore, userAnswers } = calculateResults();
-      const percentage = Math.round((score / maxScore) * 100);
+      const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
       
       const timeSpent = test?.time_limit ? (test.time_limit * 60 - (timeLeft || 0)) : 0;
 
