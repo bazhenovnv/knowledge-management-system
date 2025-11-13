@@ -1,5 +1,6 @@
 // Сервис для работы с тестами через backend API
 import { legacyDbApi } from '@/services/dbAdapter';
+import { API_CONFIG } from '@/config/apiConfig';
 
 export interface DatabaseTest {
   id: number;
@@ -77,16 +78,38 @@ interface DatabaseResponse<T> {
 
 class TestsService {
   private baseUrl: string;
+  private directApiUrl: string;
 
   constructor() {
     this.baseUrl = legacyDbApi.baseUrl;
+    this.directApiUrl = API_CONFIG.EXTERNAL_DB;
   }
 
   private async makeRequest<T>(
     endpoint: string, 
-    options: RequestInit = {}
+    options: RequestInit = {},
+    useDirect = false
   ): Promise<DatabaseResponse<T>> {
     try {
+      // Для операций создания/обновления/удаления используем прямой API
+      if (useDirect) {
+        const url = `${this.directApiUrl}${endpoint}`;
+        const response = await fetch(url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...options.headers,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+      }
+
+      // Для чтения используем адаптер (для совместимости)
       const url = `${this.baseUrl}${endpoint}`;
       const response = await legacyDbApi.fetch(url, {
         ...options,
@@ -163,7 +186,7 @@ class TestsService {
     const response = await this.makeRequest<DatabaseTest>('?action=create_test_full', {
       method: 'POST',
       body: JSON.stringify(testData)
-    });
+    }, true); // Используем прямой API
 
     console.log('testsService.createTest response:', response);
 
@@ -242,7 +265,7 @@ class TestsService {
     const response = await this.makeRequest<TestResult>('?action=submit_test', {
       method: 'POST',
       body: JSON.stringify(data)
-    });
+    }, true); // Используем прямой API
 
     if (response.error || !response.data) {
       console.error('Error submitting test results:', response.error);
@@ -299,7 +322,7 @@ class TestsService {
     const response = await this.makeRequest<DatabaseTest>(`?action=update&table=tests&id=${testId}`, {
       method: 'PUT',
       body: JSON.stringify(updates)
-    });
+    }, true); // Используем прямой API
 
     if (response.error || !response.data) {
       console.error('Error updating test:', response.error);
@@ -311,10 +334,9 @@ class TestsService {
 
   // Деактивировать тест (мягкое удаление)
   async deleteTest(testId: number): Promise<boolean> {
-    const response = await this.makeRequest(`?action=update&table=tests&id=${testId}`, {
-      method: 'PUT',
-      body: JSON.stringify({ is_active: false })
-    });
+    const response = await this.makeRequest(`?action=delete&table=tests&id=${testId}`, {
+      method: 'DELETE'
+    }, true); // Используем прямой API
 
     return !response.error;
   }
