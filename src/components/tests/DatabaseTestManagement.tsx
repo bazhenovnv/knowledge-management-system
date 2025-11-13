@@ -31,6 +31,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
   const [isCreatingTest, setIsCreatingTest] = useState(false);
   const [editingTestId, setEditingTestId] = useState<number | null>(null);
   const [deletingTest, setDeletingTest] = useState<{ id: number; title: string } | null>(null);
+  const [showDeletedTests, setShowDeletedTests] = useState(false);
 
   const { scrollRef, showIndicator } = useScrollPosition('testsManagement', tests.length);
 
@@ -55,7 +56,10 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
     }
   };
 
-  const filteredTests = tests.filter(test => {
+  const activeTests = tests.filter(test => test.is_active);
+  const deletedTests = tests.filter(test => !test.is_active);
+
+  const filteredTests = (showDeletedTests ? deletedTests : activeTests).filter(test => {
     if (!searchQuery) return true;
     const query = searchQuery.toLowerCase();
     return (
@@ -102,6 +106,21 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
       console.error('Error deleting test:', error);
     } finally {
       setDeletingTest(null);
+    }
+  };
+
+  const handleRestoreTest = async (testId: number, testTitle: string) => {
+    try {
+      const success = await testsService.restoreTest(testId);
+      if (success) {
+        toast.success(`Тест "${testTitle}" восстановлен`);
+        await loadTests();
+      } else {
+        toast.error('Ошибка восстановления теста');
+      }
+    } catch (error) {
+      toast.error('Ошибка восстановления теста');
+      console.error('Error restoring test:', error);
     }
   };
 
@@ -240,20 +259,35 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
         </CardContent>
       </Card>
 
-      {/* Поиск */}
+      {/* Поиск и фильтры */}
       <Card>
         <CardContent className="pt-6">
-          <div className="relative">
-            <Icon name="Search" size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Поиск тестов..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-24"
-            />
-            {searchQuery && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
-                {filteredTests.length} результатов
+          <div className="space-y-4">
+            <div className="relative">
+              <Icon name="Search" size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Поиск тестов..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-24"
+              />
+              {searchQuery && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500 bg-white px-2">
+                  {filteredTests.length} результатов
+                </div>
+              )}
+            </div>
+            
+            {(userRole === 'admin' || userRole === 'teacher') && deletedTests.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant={showDeletedTests ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowDeletedTests(!showDeletedTests)}
+                >
+                  <Icon name={showDeletedTests ? 'Eye' : 'EyeOff'} size={16} className="mr-2" />
+                  {showDeletedTests ? 'Показать активные' : `Удалённые тесты (${deletedTests.length})`}
+                </Button>
               </div>
             )}
           </div>
@@ -296,7 +330,7 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
                           </Badge>
                         ) : (
                           <Badge variant="secondary">
-                            Неактивен
+                            Удалён
                           </Badge>
                         )}
                       </div>
@@ -342,36 +376,52 @@ const DatabaseTestManagement: React.FC<DatabaseTestManagementProps> = ({ userId,
                     </div>
 
                     <div className="flex items-center space-x-2 ml-4">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleViewTest(test)}
-                      >
-                        <Icon name="Play" size={16} className="mr-1" />
-                        Пройти
-                      </Button>
-                      
-                      {(userRole === 'admin' || (userRole === 'teacher' && test.creator_id === userId)) && (
+                      {test.is_active ? (
                         <>
                           <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
-                            onClick={() => handleEditTest(test)}
-                            title="Редактировать тест"
+                            onClick={() => handleViewTest(test)}
                           >
-                            <Icon name="Edit" size={16} />
+                            <Icon name="Play" size={16} className="mr-1" />
+                            Пройти
                           </Button>
                           
+                          {(userRole === 'admin' || (userRole === 'teacher' && test.creator_id === userId)) && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditTest(test)}
+                                title="Редактировать тест"
+                              >
+                                <Icon name="Edit" size={16} />
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteTest(test.id, test.title)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                                title="Удалить тест"
+                              >
+                                <Icon name="Trash2" size={16} />
+                              </Button>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        (userRole === 'admin' || userRole === 'teacher') && (
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteTest(test.id, test.title)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                            title="Удалить тест"
+                            onClick={() => handleRestoreTest(test.id, test.title)}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-300"
                           >
-                            <Icon name="Trash2" size={16} />
+                            <Icon name="RotateCcw" size={16} className="mr-2" />
+                            Восстановить
                           </Button>
-                        </>
+                        )
                       )}
                     </div>
                   </div>

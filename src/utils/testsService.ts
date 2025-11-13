@@ -346,7 +346,7 @@ class TestsService {
     const response = await this.makeRequest(`?action=update&table=tests&id=${testId}`, {
       method: 'PUT',
       body: JSON.stringify({ is_active: true })
-    });
+    }, true); // Используем прямой API
 
     return !response.error;
   }
