@@ -30,10 +30,10 @@ const TestResultsView: React.FC<TestResultsViewProps> = ({ userId, userRole }) =
   }, []);
 
   useEffect(() => {
-    if (tests.length > 0) {
+    if (tests.length > 0 && employees.length > 0) {
       loadResults();
     }
-  }, [selectedTestId, selectedEmployeeId]);
+  }, [selectedTestId, selectedEmployeeId, tests, employees]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -60,36 +60,33 @@ const TestResultsView: React.FC<TestResultsViewProps> = ({ userId, userRole }) =
 
   const loadResults = async () => {
     try {
-      let allResults: TestResult[] = [];
-
-      if (selectedTestId === 'all' && selectedEmployeeId === 'all') {
-        // Загружаем результаты всех тестов
-        const resultsPromises = tests.map(test => 
-          testsService.getTestResults(test.id)
-        );
-        const resultsArrays = await Promise.all(resultsPromises);
-        allResults = resultsArrays.flat();
-      } else if (selectedTestId !== 'all' && selectedEmployeeId === 'all') {
-        // Результаты конкретного теста для всех сотрудников
-        allResults = await testsService.getTestResults(parseInt(selectedTestId));
-      } else if (selectedTestId === 'all' && selectedEmployeeId !== 'all') {
-        // Все результаты конкретного сотрудника
-        const resultsPromises = tests.map(test => 
-          testsService.getTestResults(test.id, parseInt(selectedEmployeeId))
-        );
-        const resultsArrays = await Promise.all(resultsPromises);
-        allResults = resultsArrays.flat();
-      } else {
-        // Результаты конкретного теста конкретного сотрудника
-        allResults = await testsService.getTestResults(
-          parseInt(selectedTestId),
-          parseInt(selectedEmployeeId)
-        );
+      const allTestResults = await externalDb.getTestResults();
+      
+      let filteredResults = allTestResults;
+      
+      if (selectedTestId !== 'all') {
+        filteredResults = filteredResults.filter(r => r.test_id === parseInt(selectedTestId));
       }
+      
+      if (selectedEmployeeId !== 'all') {
+        filteredResults = filteredResults.filter(r => r.employee_id === parseInt(selectedEmployeeId));
+      }
+      
+      const enrichedResults = filteredResults.map(result => {
+        const test = tests.find(t => t.id === result.test_id);
+        const employee = employees.find(e => e.id === result.employee_id);
+        
+        return {
+          ...result,
+          test_title: test?.title || 'Неизвестный тест',
+          employee_name: employee?.full_name || 'Неизвестный сотрудник'
+        };
+      });
 
-      setResults(allResults);
+      setResults(enrichedResults);
     } catch (error) {
       console.error('Error loading results:', error);
+      toast.error('Ошибка загрузки результатов тестов');
     }
   };
 

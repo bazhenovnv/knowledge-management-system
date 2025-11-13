@@ -52,9 +52,9 @@ export const AnalyticsTab = () => {
       // Основная статистика
       const totalTests = testResults.length;
       const averageScore = testResults.length > 0 
-        ? Math.round(testResults.reduce((sum, result) => sum + result.score, 0) / testResults.length)
+        ? Math.round(testResults.reduce((sum, result) => sum + (result.percentage || 0), 0) / testResults.length)
         : 0;
-      const activeTests = tests.filter(test => test.status === 'published').length;
+      const activeTests = tests.filter(test => test.is_active).length;
       const totalHours = Math.floor(totalTests * 0.5); // Примерно 30 минут на тест
 
       setAnalyticsStats({
