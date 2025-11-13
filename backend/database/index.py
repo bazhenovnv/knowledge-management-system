@@ -614,6 +614,32 @@ def permanent_delete_item(cursor, conn, table: str, item_id: str) -> Dict[str, A
             
             # Теперь можно удалить самого сотрудника
             cursor.execute(f"DELETE FROM {schema}.{table} WHERE id = %s", (item_id,))
+        elif table == 'tests':
+            # Для тестов удаляем все связанные записи
+            # Удаляем ответы пользователей
+            cursor.execute(f"""
+                DELETE FROM {schema}.test_user_answers 
+                WHERE result_id IN (
+                    SELECT id FROM {schema}.test_results WHERE test_id = %s
+                )
+            """, (item_id,))
+            
+            # Удаляем результаты тестов
+            cursor.execute(f"DELETE FROM {schema}.test_results WHERE test_id = %s", (item_id,))
+            
+            # Удаляем ответы на вопросы
+            cursor.execute(f"""
+                DELETE FROM {schema}.test_answers 
+                WHERE question_id IN (
+                    SELECT id FROM {schema}.test_questions WHERE test_id = %s
+                )
+            """, (item_id,))
+            
+            # Удаляем вопросы
+            cursor.execute(f"DELETE FROM {schema}.test_questions WHERE test_id = %s", (item_id,))
+            
+            # Удаляем сам тест
+            cursor.execute(f"DELETE FROM {schema}.tests WHERE id = %s", (item_id,))
         else:
             # Для других таблиц просто удаляем запись
             cursor.execute(f"DELETE FROM {schema}.{table} WHERE id = %s", (item_id,))

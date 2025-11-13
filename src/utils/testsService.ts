@@ -332,9 +332,13 @@ class TestsService {
     return response.data;
   }
 
-  // Деактивировать тест (мягкое удаление)
-  async deleteTest(testId: number): Promise<boolean> {
-    const response = await this.makeRequest(`?action=delete&table=tests&id=${testId}`, {
+  // Деактивировать тест (мягкое удаление) или полное удаление
+  async deleteTest(testId: number, permanent: boolean = false): Promise<boolean> {
+    const endpoint = permanent 
+      ? `?action=delete&table=tests&id=${testId}&permanent=true`
+      : `?action=delete&table=tests&id=${testId}`;
+      
+    const response = await this.makeRequest(endpoint, {
       method: 'DELETE'
     }, true); // Используем прямой API
 
