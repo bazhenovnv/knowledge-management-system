@@ -1,25 +1,7 @@
 {
-  "add-demo-accounts": "https://functions.poehali.dev/ae95ba61-f192-47a9-b967-f771673c5aeb",
-  "check-db": "https://functions.poehali.dev/3d126a9d-d88b-4543-b22e-69a83e697bee",
-  "setup-db": "https://functions.poehali.dev/a3dcd52c-07f8-4b10-b3f5-f1540c822474",
   "external-db": "https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179",
-  "project-db": "https://functions.poehali.dev/665b0dc9-5b2d-41e8-8df6-77aeefd8cf9d",
-  "po-min-2": "https://functions.poehali.dev/fbab20f5-0896-41e7-9d3c-a9014257cbf0",
-  "local-db-proxy": "https://functions.poehali.dev/fcf1f05b-799c-46d4-975a-b43ce02ffed6",
-  "external-db-proxy": "https://functions.poehali.dev/d42c6a30-7114-4f9f-8c8b-f103b0b36503",
-  "migrate-to-external": "https://functions.poehali.dev/6434e087-c0f3-43eb-aacf-c0dfdab737b2",
-  "test-db-connection": "https://functions.poehali.dev/43244b10-bfcf-4a4e-b556-8fdbdb2c6ece",
-  "domain": "https://functions.poehali.dev/714ffd67-e3f7-4fd8-8db0-1ecaba2da43c",
-  "knowledge-materials": "https://functions.poehali.dev/31a686c1-3ac4-442d-8f8d-fdf80516ccc0",
-  "sqlserver-api": "https://functions.poehali.dev/47d7f4cf-0b15-41dd-a1f4-28bec9d7c957",
-  "mssql-query": "https://functions.poehali.dev/6c87fcbb-8edd-4264-9aaf-4d5a0bfbcd8d",
-  "mssql-database": "https://functions.poehali.dev/bce9dfcb-0870-4cf8-9226-c8db57c3223d",
-  "sqlserver-query": "https://functions.poehali.dev/76973564-4ea6-4a98-9582-8f19bc9a6bb6",
-  "sync-to-sqlserver": "https://functions.poehali.dev/aba049b4-5fe8-4d92-aa4c-73280a4f035b",
   "track-function-call": "https://functions.poehali.dev/9af65be8-de12-472e-910f-fd63b3516ed9",
   "email-notifications": "https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17",
   "password-reset": "https://functions.poehali.dev/592a9eab-8102-4536-b07f-780566a0612b",
-  "password-reset-db": "https://functions.poehali.dev/1eb49e46-7815-44b0-aca8-7a86adf131b8",
-  "auth": "https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2",
-  "database": "https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558"
+  "auth": "https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2"
 }

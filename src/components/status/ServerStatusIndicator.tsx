@@ -20,7 +20,7 @@ interface ServerStatusIndicatorProps {
 }
 
 export default function ServerStatusIndicator({ 
-  apiUrl = funcUrls['database'],
+  apiUrl = funcUrls['external-db'],
   compact = false,
   autoCheckOnMount = false
 }: ServerStatusIndicatorProps) {
