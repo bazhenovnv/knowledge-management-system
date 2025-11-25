@@ -1,8 +1,0 @@
-{
-  "tests": [{
-    "name": "Add demo accounts",
-    "method": "GET",
-    "path": "/",
-    "expectedStatus": 200
-  }]
-}

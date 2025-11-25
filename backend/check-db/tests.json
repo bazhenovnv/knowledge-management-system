@@ -1,8 +1,0 @@
-{
-  "tests": [{
-    "name": "Check database contents",
-    "method": "GET",
-    "path": "/",
-    "expectedStatus": 200
-  }]
-}
