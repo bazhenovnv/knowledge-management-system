@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+
+# Переменные окружения
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Логи
+*.log
+
+# Временные файлы
+*.tmp
+.DS_Store
