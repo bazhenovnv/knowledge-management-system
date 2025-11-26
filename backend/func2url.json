@@ -1,7 +1,1 @@
-{
-  "external-db": "https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179",
-  "track-function-call": "https://functions.poehali.dev/9af65be8-de12-472e-910f-fd63b3516ed9",
-  "email-notifications": "https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17",
-  "password-reset": "https://functions.poehali.dev/592a9eab-8102-4536-b07f-780566a0612b",
-  "auth": "https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2"
-}
+{}
