@@ -35,7 +35,8 @@ export default function KnowledgeManagement() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
-  const [healthStatus, setHealthStatus] = useState<string>('');
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [healthStatus, setHealthStatus] = useState<string>('checking');
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -48,18 +49,43 @@ export default function KnowledgeManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    checkHealth();
-    loadStats();
-    loadDocuments();
+    initializeData();
   }, []);
+
+  const initializeData = async () => {
+    setInitialLoading(true);
+    const healthResult = await checkHealth();
+    await Promise.all([
+      loadStats(),
+      loadDocuments()
+    ]);
+    setInitialLoading(false);
+    
+    if (healthResult === 'ok') {
+      toast({
+        title: 'Подключено',
+        description: 'API успешно доступен на ab-education.ru',
+      });
+    } else if (healthResult === 'error') {
+      toast({
+        title: 'Ошибка подключения',
+        description: 'Не удалось подключиться к API. Проверьте статус сервера.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const checkHealth = async () => {
     try {
+      setHealthStatus('checking');
       const result = await knowledgeApi.healthCheck();
-      setHealthStatus(result.status || 'unknown');
+      const status = result.status || 'unknown';
+      setHealthStatus(status);
+      return status;
     } catch (error) {
       setHealthStatus('error');
       console.error('Health check failed:', error);
+      return 'error';
     }
   };
 
@@ -161,6 +187,27 @@ export default function KnowledgeManagement() {
     setEditMode(null);
   };
 
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <Card className="w-96 p-8">
+          <div className="flex flex-col items-center space-y-4">
+            <Icon name="Loader2" size={48} className="animate-spin text-blue-500" />
+            <div className="text-center space-y-2">
+              <h2 className="text-xl font-semibold text-gray-900">Подключение к API</h2>
+              <p className="text-sm text-gray-600">Проверяем соединение с ab-education.ru...</p>
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -170,9 +217,22 @@ export default function KnowledgeManagement() {
             <p className="text-gray-600 mt-2">Управление документами и знаниями компании</p>
           </div>
           <div className="flex items-center gap-4">
-            <Badge variant={healthStatus === 'ok' ? 'default' : 'destructive'}>
-              <Icon name="Activity" size={14} className="mr-1" />
-              API: {healthStatus}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                loadDocuments();
+                loadStats();
+                checkHealth();
+              }}
+              disabled={loading}
+            >
+              <Icon name="RefreshCw" size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Обновить
+            </Button>
+            <Badge variant={healthStatus === 'ok' ? 'default' : healthStatus === 'checking' ? 'secondary' : 'destructive'}>
+              <Icon name={healthStatus === 'checking' ? 'Loader2' : 'Activity'} size={14} className={`mr-1 ${healthStatus === 'checking' ? 'animate-spin' : ''}`} />
+              API: {healthStatus === 'checking' ? 'проверка...' : healthStatus}
             </Badge>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
@@ -233,10 +293,12 @@ export default function KnowledgeManagement() {
                       type="button"
                       variant="outline"
                       onClick={() => setIsDialogOpen(false)}
+                      disabled={loading}
                     >
                       Отмена
                     </Button>
                     <Button type="submit" disabled={loading}>
+                      {loading && <Icon name="Loader2" size={16} className="mr-2 animate-spin" />}
                       {loading ? 'Сохранение...' : editMode ? 'Обновить' : 'Создать'}
                     </Button>
                   </div>
@@ -304,6 +366,7 @@ export default function KnowledgeManagement() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleEdit(doc)}
+                              disabled={loading}
                             >
                               <Icon name="Edit" size={14} />
                             </Button>
@@ -311,6 +374,7 @@ export default function KnowledgeManagement() {
                               size="sm"
                               variant="destructive"
                               onClick={() => handleDelete(doc.id)}
+                              disabled={loading}
                             >
                               <Icon name="Trash2" size={14} />
                             </Button>
