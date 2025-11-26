@@ -7,11 +7,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY standalone-backend/requirements.txt .
+COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-COPY standalone-backend/app.py .
+COPY app.py .
 
 EXPOSE 8000
 
