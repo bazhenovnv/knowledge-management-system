@@ -32,6 +32,7 @@ import ExternalDbStatus from "./pages/ExternalDbStatus";
 import LimitExceeded from "./pages/LimitExceeded";
 import DatabaseStatsPage from "./pages/DatabaseStatsPage";
 import PasswordResetPage from "./pages/PasswordResetPage";
+import KnowledgeManagement from "./pages/KnowledgeManagement";
 import { GlobalConsoleLogger } from "./components/admin/GlobalConsoleLogger";
 import { DataProvider } from "./contexts/DataContext";
 
@@ -81,6 +82,7 @@ const App = () => (
             <Route path="/limit-exceeded" element={<LimitExceeded />} />
             <Route path="/db-stats" element={<DatabaseStatsPage />} />
             <Route path="/reset-password" element={<PasswordResetPage />} />
+            <Route path="/knowledge" element={<KnowledgeManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
