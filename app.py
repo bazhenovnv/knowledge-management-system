@@ -62,7 +62,11 @@ def health_check():
 @app.route('/', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def api_handler():
     if request.method == 'OPTIONS':
-        return '', 200
+        response = jsonify({'status': 'ok'})
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response, 200
     
     try:
         if request.method == 'GET':
