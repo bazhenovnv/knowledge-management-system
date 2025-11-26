@@ -57,6 +57,12 @@ def get_db_connection():
     return conn
 
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint для проверки работоспособности"""
+    return jsonify({'status': 'ok', 'service': 'knowledge-management-api'}), 200
+
+
 @app.route('/', methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 def api_handler():
     """Главный обработчик всех запросов к API"""
