@@ -1,7 +1,16 @@
 node_modules
 dist
 .git
+.gitignore
 .env
+.env.local
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
 backend
 db_migrations
+*.md
+.vscode
+.idea
