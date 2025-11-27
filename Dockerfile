@@ -1,18 +1,18 @@
-FROM python:3.12-slim
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+COPY package.json bun.lockb ./
+RUN npm install -g bun && bun install
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+COPY . .
+RUN bun run build
 
-COPY app.py .
+FROM nginx:alpine
 
-EXPOSE 8000
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
