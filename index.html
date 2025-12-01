@@ -8,6 +8,17 @@
     if (window.location.hostname === 'ab-education.ru') {
       window.location.href = 'https://www.ab-education.ru' + window.location.pathname + window.location.search + window.location.hash;
     }
+    
+    // RefreshRuntime workaround - must load before any modules
+    window.RefreshRuntime = {
+      injectIntoGlobalHook: function(hook) {},
+      getRefreshReg: function(filename) {
+        return function(type, id) {};
+      },
+      getRefreshSig: function(filename) {
+        return function(type) { return type; };
+      }
+    };
   </script>
     <meta name="pp-name" value="knowledge-management-system">
       <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
