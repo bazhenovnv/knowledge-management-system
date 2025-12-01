@@ -14,3 +14,6 @@ db_migrations
 *.md
 .vscode
 .idea
+package-lock.json
+bun.lock
+.package-lock.json
