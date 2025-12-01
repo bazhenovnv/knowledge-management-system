@@ -1,20 +1,7 @@
 import { API_CONFIG } from '@/config/apiConfig';
+import { Employee } from '@/types/database';
 
 const API_BASE_URL = API_CONFIG.AUTH_API;
-
-export interface Employee {
-  id: number;
-  email: string;
-  full_name: string;
-  phone?: string;
-  department?: string;
-  position?: string;
-  role: 'admin' | 'manager' | 'employee';
-  is_active: boolean;
-  avatar_url?: string;
-  theme?: string;
-  created_at?: string;
-}
 
 export interface AuthResponse {
   success: boolean;

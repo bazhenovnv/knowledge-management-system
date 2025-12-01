@@ -14,6 +14,7 @@ export interface BaseEntity {
 export interface Employee extends BaseEntity {
   id: number;
   name: string;
+  full_name?: string;
   email: string;
   department: string;
   position: string;
@@ -26,8 +27,12 @@ export interface Employee extends BaseEntity {
   password?: string;
   lastLoginAt?: Date;
   isActive: boolean;
+  is_active?: boolean;
   phone?: string;
   notes?: string;
+  avatar_url?: string;
+  theme?: string;
+  created_at?: string;
 }
 
 export interface TestQuestion {
