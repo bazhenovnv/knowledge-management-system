@@ -4,10 +4,11 @@ import App from './App'
 import './index.css'
 
 // Workaround for rolldown-vite RefreshRuntime issue
-if (typeof window !== 'undefined' && !(window as any).RefreshRuntime) {
+if (typeof window !== 'undefined') {
   (window as any).RefreshRuntime = {
-    getRefreshReg: () => () => {},
-    getRefreshSig: () => () => (type: any) => type,
+    injectIntoGlobalHook: (hook: any) => {},
+    getRefreshReg: (filename: string) => (type: any, id: string) => {},
+    getRefreshSig: (filename: string) => (type: any) => type,
   };
 }
 
