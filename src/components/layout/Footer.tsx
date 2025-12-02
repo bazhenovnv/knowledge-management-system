@@ -1,6 +1,9 @@
 import Icon from "@/components/ui/icon";
 
 export const Footer = () => {
+  const deployVersion = "v1.0.1";
+  const deployDate = "02.12.2024 - Автодеплой активен";
+  
   return (
     <footer className="w-full bg-gradient-to-r from-emerald-100 to-blue-50 border-t border-gray-200 shadow-inner" style={{ height: '1.5cm' }}>
       <div className="h-full flex items-center justify-center px-4">
@@ -8,6 +11,8 @@ export const Footer = () => {
           <span className="font-semibold">Автоматизация бизнеса</span>
           <span className="hidden sm:inline">•</span>
           <span>Краснодар 2016г.-2025г.</span>
+          <span className="hidden sm:inline">•</span>
+          <span className="text-emerald-600 font-medium">{deployVersion} ({deployDate})</span>
           <span className="hidden sm:inline">•</span>
           <div className="flex items-center gap-2">
             <Icon name="Phone" size={12} className="text-emerald-600" />
