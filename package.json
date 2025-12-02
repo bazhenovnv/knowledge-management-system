@@ -35,6 +35,7 @@
     "@types/react-dom": "^18.3.1",
     "@types/xlsx": "^0.0.36",
     "@vitejs/plugin-react": "^5.1.1",
+    "@vitejs/plugin-react-swc": "^4.2.2",
     "autoprefixer": "^10.4.22",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
