@@ -34,13 +34,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             query_params = event.get('queryStringParameters', {})
             action = query_params.get('action')
             body_data = query_params
-        elif method in ['POST', 'PUT', 'DELETE']:
+        elif method == 'DELETE':
+            query_params = event.get('queryStringParameters', {})
+            action = query_params.get('action', 'delete')
+            body_data = query_params
+        elif method in ['POST', 'PUT']:
             body_data = json.loads(event.get('body', '{}'))
             action = body_data.get('action')
             if method == 'PUT' and not action:
                 action = 'update'
-            elif method == 'DELETE' and not action:
-                action = 'delete'
         else:
             return error_response(405, 'Method not allowed')
         
@@ -260,14 +262,31 @@ def handle_delete(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     table = body_data.get('table', '')
     schema = body_data.get('schema', 't_p47619579_knowledge_management')
     record_id = body_data.get('id')
-    permanent = body_data.get('permanent', False)
-    cascade = body_data.get('cascade', False)
+    permanent_param = body_data.get('permanent', False)
+    permanent = permanent_param in [True, 'true', 'True', '1']
+    cascade_param = body_data.get('cascade', False)
+    cascade = cascade_param in [True, 'true', 'True', '1']
     
     if not table or record_id is None:
         return error_response(400, 'Table name and id required')
     
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-        if table == 'employees' and permanent and cascade:
+        if table == 'tests' and permanent:
+            cursor.execute(f'''
+                DELETE FROM "{schema}"."test_answers" 
+                WHERE question_id IN (
+                    SELECT id FROM "{schema}"."test_questions" WHERE test_id = {record_id}
+                )
+            ''')
+            cursor.execute(f'DELETE FROM "{schema}"."test_questions" WHERE test_id = {record_id}')
+            cursor.execute(f'DELETE FROM "{schema}"."test_user_answers" WHERE result_id IN (SELECT id FROM "{schema}"."test_results" WHERE test_id = {record_id})')
+            cursor.execute(f'DELETE FROM "{schema}"."test_results" WHERE test_id = {record_id}')
+            
+            query = f'DELETE FROM "{schema}"."{table}" WHERE id = {record_id}'
+            cursor.execute(query)
+            return success_response({'deleted': cursor.rowcount > 0, 'permanent': True, 'cascade': True})
+        
+        elif table == 'employees' and permanent and cascade:
             cursor.execute(f'''
                 DELETE FROM "{schema}"."test_user_answers" 
                 WHERE result_id IN (

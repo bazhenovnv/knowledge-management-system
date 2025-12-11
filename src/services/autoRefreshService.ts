@@ -70,12 +70,12 @@ class AutoRefreshService {
       const changedTables: string[] = [];
       
       const tableQueries: Record<string, string> = {
-        'employees': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.employees',
-        'tests': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.tests',
-        'test_results': 'SELECT MAX(created_at) as last_update FROM t_p47619579_knowledge_management.test_results',
-        'courses': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.courses',
-        'notifications': 'SELECT MAX(created_at) as last_update FROM t_p47619579_knowledge_management.notifications',
-        'knowledge_materials': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.knowledge_materials'
+        'employees': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.employees WHERE updated_at IS NOT NULL',
+        'tests': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.tests WHERE updated_at IS NOT NULL',
+        'test_results': 'SELECT MAX(created_at) as last_update FROM t_p47619579_knowledge_management.test_results WHERE created_at IS NOT NULL',
+        'courses': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.courses WHERE updated_at IS NOT NULL',
+        'notifications': 'SELECT MAX(created_at) as last_update FROM t_p47619579_knowledge_management.notifications WHERE created_at IS NOT NULL',
+        'knowledge_materials': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.knowledge_materials WHERE updated_at IS NOT NULL'
       };
       
       for (const table of this.tables) {
