@@ -82,11 +82,7 @@ class TestsService {
 
   constructor() {
     this.baseUrl = legacyDbApi.baseUrl;
-    // Всегда используем полный URL, даже если API_CONFIG содержит относительный путь
-    const configUrl = API_CONFIG.EXTERNAL_DB;
-    this.directApiUrl = configUrl.startsWith('http') 
-      ? configUrl 
-      : 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
+    this.directApiUrl = API_CONFIG.EXTERNAL_DB;
   }
 
   private async makeRequest<T>(

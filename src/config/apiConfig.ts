@@ -4,7 +4,7 @@ export const API_CONFIG = {
   DATABASE_QUERY: import.meta.env.VITE_DATABASE_QUERY_URL || 'https://functions.poehali.dev/d2daf71d-ad1e-4d8c-8fa3-7e5412c6727d',
   DATABASE_MIGRATE: import.meta.env.VITE_DATABASE_MIGRATE_URL || 'https://functions.poehali.dev/952351fb-9c3a-41c4-829d-53e0e293f957',
   EXTERNAL_DB: import.meta.env.VITE_EXTERNAL_DB_URL || 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179',
-  LEGACY_DATABASE: import.meta.env.VITE_LEGACY_DB_URL || 'https://ab-education.ru/api/external-db',
+  LEGACY_DATABASE: import.meta.env.VITE_LEGACY_DB_URL || 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179',
   FUNCTION_TRACKER: import.meta.env.VITE_FUNCTION_TRACKER_URL || 'https://functions.poehali.dev/9af65be8-de12-472e-910f-fd63b3516ed9',
   EMAIL_API: import.meta.env.VITE_EMAIL_API_URL || 'https://functions.poehali.dev/75306ed7-e91c-4135-84fe-8b519f7dcf17',
   PASSWORD_RESET: import.meta.env.VITE_PASSWORD_RESET_URL || 'https://functions.poehali.dev/592a9eab-8102-4536-b07f-780566a0612b',
