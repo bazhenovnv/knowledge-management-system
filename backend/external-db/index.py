@@ -74,8 +74,12 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             result = handle_stats(conn, body_data)
         elif action == 'create':
             result = handle_create(conn, body_data)
+        elif action == 'create_test_full':
+            result = handle_create_test_full(conn, body_data)
         elif action == 'update':
             result = handle_update(conn, body_data)
+        elif action == 'update_test_full':
+            result = handle_update_test_full(conn, body_data)
         elif action == 'delete':
             result = handle_delete(conn, body_data)
         else:
@@ -146,6 +150,7 @@ def handle_list(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
         total_count = count_row['count'] if count_row else 0
         
         return success_response({
+            'data': result,
             'rows': result,
             'count': total_count
         })
@@ -290,6 +295,184 @@ def handle_delete(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
             cursor.execute(query)
             result = cursor.fetchone()
             return success_response({'data': dict(result) if result else {}, 'deleted': True, 'permanent': False})
+
+
+def handle_create_test_full(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Создание теста с вопросами и ответами за один запрос"""
+    schema = 't_p47619579_knowledge_management'
+    
+    title = body_data.get('title')
+    description = body_data.get('description')
+    creator_id = body_data.get('creator_id')
+    questions = body_data.get('questions', [])
+    
+    if not title or not creator_id:
+        return error_response(400, 'Title and creator_id required')
+    
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        # Создаём тест
+        test_data = {
+            'title': title,
+            'description': description,
+            'creator_id': creator_id,
+            'course_id': body_data.get('course_id'),
+            'time_limit': body_data.get('time_limit'),
+            'passing_score': body_data.get('passing_score', 70),
+            'max_attempts': body_data.get('max_attempts', 3),
+            'is_active': True
+        }
+        
+        columns = ', '.join([f'"{k}"' for k, v in test_data.items() if v is not None])
+        values = []
+        for k, v in test_data.items():
+            if v is None:
+                continue
+            elif isinstance(v, str):
+                values.append(f"'{v.replace(chr(39), chr(39)+chr(39))}'")
+            elif isinstance(v, bool):
+                values.append('TRUE' if v else 'FALSE')
+            else:
+                values.append(str(v))
+        values_str = ', '.join(values)
+        
+        cursor.execute(f'INSERT INTO "{schema}"."tests" ({columns}) VALUES ({values_str}) RETURNING *')
+        test = dict(cursor.fetchone())
+        test_id = test['id']
+        
+        # Создаём вопросы
+        for idx, q in enumerate(questions):
+            q_data = {
+                'test_id': test_id,
+                'question_text': q['question_text'],
+                'question_type': q.get('question_type', 'single_choice'),
+                'points': q.get('points', 1),
+                'order_num': idx + 1
+            }
+            
+            q_columns = ', '.join([f'"{k}"' for k in q_data.keys()])
+            q_values = []
+            for v in q_data.values():
+                if isinstance(v, str):
+                    q_values.append(f"'{v.replace(chr(39), chr(39)+chr(39))}'")
+                else:
+                    q_values.append(str(v))
+            q_values_str = ', '.join(q_values)
+            
+            cursor.execute(f'INSERT INTO "{schema}"."test_questions" ({q_columns}) VALUES ({q_values_str}) RETURNING id')
+            question_id = cursor.fetchone()['id']
+            
+            # Создаём ответы
+            for a_idx, a in enumerate(q.get('answers', [])):
+                a_data = {
+                    'question_id': question_id,
+                    'answer_text': a['answer_text'],
+                    'is_correct': a.get('is_correct', False),
+                    'order_num': a_idx + 1
+                }
+                
+                a_columns = ', '.join([f'"{k}"' for k in a_data.keys()])
+                a_values = []
+                for v in a_data.values():
+                    if isinstance(v, str):
+                        a_values.append(f"'{v.replace(chr(39), chr(39)+chr(39))}'")
+                    elif isinstance(v, bool):
+                        a_values.append('TRUE' if v else 'FALSE')
+                    else:
+                        a_values.append(str(v))
+                a_values_str = ', '.join(a_values)
+                
+                cursor.execute(f'INSERT INTO "{schema}"."test_answers" ({a_columns}) VALUES ({a_values_str})')
+        
+        return success_response({'data': test, 'message': 'Test created successfully'})
+
+
+def handle_update_test_full(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Обновление теста с вопросами и ответами"""
+    schema = 't_p47619579_knowledge_management'
+    test_id = body_data.get('id')
+    questions = body_data.get('questions', [])
+    
+    if not test_id:
+        return error_response(400, 'Test ID required')
+    
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        # Обновляем тест
+        test_updates = {}
+        for field in ['title', 'description', 'course_id', 'time_limit', 'passing_score', 'max_attempts']:
+            if field in body_data:
+                test_updates[field] = body_data[field]
+        
+        if test_updates:
+            set_parts = []
+            for k, v in test_updates.items():
+                if v is None:
+                    set_parts.append(f'"{k}" = NULL')
+                elif isinstance(v, str):
+                    set_parts.append(f'"{k}" = \'{v.replace(chr(39), chr(39)+chr(39))}\'')
+                elif isinstance(v, bool):
+                    set_parts.append(f'"{k}" = {"TRUE" if v else "FALSE"}')
+                else:
+                    set_parts.append(f'"{k}" = {v}')
+            
+            set_clause = ', '.join(set_parts)
+            cursor.execute(f'UPDATE "{schema}"."tests" SET {set_clause} WHERE id = {test_id}')
+        
+        # Удаляем старые вопросы и ответы
+        cursor.execute(f'''
+            DELETE FROM "{schema}"."test_answers" 
+            WHERE question_id IN (
+                SELECT id FROM "{schema}"."test_questions" WHERE test_id = {test_id}
+            )
+        ''')
+        cursor.execute(f'DELETE FROM "{schema}"."test_questions" WHERE test_id = {test_id}')
+        
+        # Создаём новые вопросы и ответы
+        for idx, q in enumerate(questions):
+            q_data = {
+                'test_id': test_id,
+                'question_text': q['question_text'],
+                'question_type': q.get('question_type', 'single_choice'),
+                'points': q.get('points', 1),
+                'order_num': idx + 1
+            }
+            
+            q_columns = ', '.join([f'"{k}"' for k in q_data.keys()])
+            q_values = []
+            for v in q_data.values():
+                if isinstance(v, str):
+                    q_values.append(f"'{v.replace(chr(39), chr(39)+chr(39))}'")
+                else:
+                    q_values.append(str(v))
+            q_values_str = ', '.join(q_values)
+            
+            cursor.execute(f'INSERT INTO "{schema}"."test_questions" ({q_columns}) VALUES ({q_values_str}) RETURNING id')
+            question_id = cursor.fetchone()['id']
+            
+            for a_idx, a in enumerate(q.get('answers', [])):
+                a_data = {
+                    'question_id': question_id,
+                    'answer_text': a['answer_text'],
+                    'is_correct': a.get('is_correct', False),
+                    'order_num': a_idx + 1
+                }
+                
+                a_columns = ', '.join([f'"{k}"' for k in a_data.keys()])
+                a_values = []
+                for v in a_data.values():
+                    if isinstance(v, str):
+                        a_values.append(f"'{v.replace(chr(39), chr(39)+chr(39))}'")
+                    elif isinstance(v, bool):
+                        a_values.append('TRUE' if v else 'FALSE')
+                    else:
+                        a_values.append(str(v))
+                a_values_str = ', '.join(a_values)
+                
+                cursor.execute(f'INSERT INTO "{schema}"."test_answers" ({a_columns}) VALUES ({a_values_str})')
+        
+        cursor.execute(f'SELECT * FROM "{schema}"."tests" WHERE id = {test_id}')
+        test = dict(cursor.fetchone())
+        
+        return success_response({'data': test, 'message': 'Test updated successfully'})
 
 
 def success_response(data: Any) -> Dict[str, Any]:

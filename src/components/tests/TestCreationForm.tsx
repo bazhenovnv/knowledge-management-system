@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { testsService } from '@/utils/testsService';
-import funcUrls from '../../../backend/func2url.json';
 import { API_CONFIG } from '@/config/apiConfig';
 
 interface Question {
@@ -44,15 +43,12 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Отключена автозагрузка курсов
-    if (funcUrls['database']) {
-      loadCourses();
-    }
+    loadCourses();
   }, []);
 
   const loadCourses = async () => {
     try {
-      const response = await fetch(`${funcUrls['database'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=courses`, {
+      const response = await fetch(`${API_CONFIG.EXTERNAL_DB}?action=list&table=courses&schema=t_p47619579_knowledge_management`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });

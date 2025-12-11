@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
 import { testsService, DatabaseTest, TestWithQuestions } from '@/utils/testsService';
-import funcUrls from '../../../backend/func2url.json';
 import { API_CONFIG } from '@/config/apiConfig';
 
 interface Question {
@@ -48,8 +47,7 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Отключена автозагрузка - только при наличии backend
-    if (funcUrls['database'] && testId) {
+    if (testId) {
       loadTest();
       loadCourses();
     }
@@ -89,13 +87,13 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
 
   const loadCourses = async () => {
     try {
-      const response = await fetch(`${funcUrls['database'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=courses`, {
+      const response = await fetch(`${API_CONFIG.EXTERNAL_DB}?action=list&table=courses`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
       const data = await response.json();
-      if (data.data) {
-        setCourses(data.data);
+      if (data.data && data.data.rows) {
+        setCourses(data.data.rows);
       }
     } catch (error) {
       console.error('Error loading courses:', error);
@@ -192,10 +190,11 @@ const TestEditForm: React.FC<TestEditFormProps> = ({ testId, onCancel, onSuccess
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${funcUrls['database'] || 'https://functions.poehali.dev/5ce5a766-35aa-4d9a-9325-babec287d558'}?action=update_test_full&id=${testId}`, {
+      const response = await fetch(`${API_CONFIG.EXTERNAL_DB}?action=update_test_full`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: testId,
           title: title.trim(),
           description: description.trim() || null,
           course_id: courseId ? parseInt(courseId) : null,

@@ -132,7 +132,7 @@ class TestsService {
 
   // Получить список всех тестов
   async getTests(): Promise<DatabaseTest[]> {
-    const response = await this.makeRequest<DatabaseTest[]>('?action=list&table=tests');
+    const response = await this.makeRequest<DatabaseTest[]>('?action=list&table=tests&schema=t_p47619579_knowledge_management');
     
     if (response.error) {
       console.error('Error fetching tests:', response.error);
