@@ -1,6 +1,10 @@
 import { API_CONFIG } from '@/config/apiConfig';
 
-const EXTERNAL_DB_URL = API_CONFIG.EXTERNAL_DB;
+// Всегда используем полный URL, даже если API_CONFIG содержит относительный путь
+const configUrl = API_CONFIG.EXTERNAL_DB;
+const EXTERNAL_DB_URL = configUrl.startsWith('http') 
+  ? configUrl 
+  : 'https://functions.poehali.dev/72034790-df65-4fb9-885e-c40a2ee29179';
 
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';

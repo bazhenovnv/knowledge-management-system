@@ -69,6 +69,7 @@ class AutoRefreshService {
     try {
       const changedTables: string[] = [];
       
+      // Фиксированные запросы с проверкой на NULL (версия 2.0)
       const tableQueries: Record<string, string> = {
         'employees': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.employees WHERE updated_at IS NOT NULL',
         'tests': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.tests WHERE updated_at IS NOT NULL',
