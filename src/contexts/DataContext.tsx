@@ -15,9 +15,20 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<any>({
+    totalEmployees: 0,
+    activeEmployees: 0,
+    inactiveEmployees: 0,
+    totalTests: 0,
+    totalTestResults: 0,
+    averageScore: 0,
+    activeCourses: 0,
+    newRegistrations: 0,
+    employees: [],
+    testResults: []
+  });
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   const refreshData = useCallback(async (silent = false) => {
@@ -103,7 +114,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [autoRefreshEnabled]);
 
   useEffect(() => {
-    refreshData(true);
+    // Загружаем данные в фоне без блокировки UI
+    const loadData = async () => {
+      try {
+        await refreshData(true);
+      } catch (error) {
+        console.error('Initial data load failed:', error);
+      }
+    };
+    
+    loadData();
     
     autoRefreshService.subscribe('data-context', () => {
       console.log('🔄 Автообновление данных запущено');
