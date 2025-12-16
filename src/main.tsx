@@ -1,7 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import AppTest from './App.test'
 import './index.css'
+
+// Режим тестирования - показывает минимальный компонент
+const TEST_MODE = window.location.search.includes('test=true');
 
 console.log('🚀 Starting application...');
 
@@ -24,9 +28,11 @@ if (loader) {
 // Рендерим приложение
 try {
   console.log('🎨 Rendering app...');
+  console.log('Test mode:', TEST_MODE);
+  
   createRoot(rootElement).render(
     <StrictMode>
-      <App />
+      {TEST_MODE ? <AppTest /> : <App />}
     </StrictMode>
   );
   console.log('✅ App rendered successfully');
