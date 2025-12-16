@@ -8,9 +8,6 @@ interface SubsectionGridProps {
 export const SubsectionGrid = ({ onSelectSubsection }: SubsectionGridProps) => {
   const subsections = [
     { name: "О компании", icon: "Building2", color: "blue" },
-    { name: "Отдел продаж", icon: "TrendingUp", color: "green" },
-    { name: "Технический отдел", icon: "Wrench", color: "orange" },
-    { name: "Служба поддержки", icon: "Headset", color: "purple" },
     { name: "Регионы присутствия", icon: "Map", color: "red" },
     { name: "Инструкции", icon: "FileText", color: "indigo" },
   ];

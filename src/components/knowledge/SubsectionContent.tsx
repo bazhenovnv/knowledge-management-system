@@ -56,9 +56,6 @@ export const SubsectionContent = ({
   const getDefaultContent = (subsection: string): string => {
     const defaults: Record<string, string> = {
       "О компании": editableTexts.aboutCompany,
-      "Отдел продаж": editableTexts.salesDept,
-      "Технический отдел": editableTexts.techDept,
-      "Служба поддержки": editableTexts.supportDept,
     };
     return defaults[subsection] || '';
   };

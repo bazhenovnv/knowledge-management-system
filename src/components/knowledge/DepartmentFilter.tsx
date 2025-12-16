@@ -22,11 +22,7 @@ export const DepartmentFilter = ({
   };
 
   const getDepartmentIcon = (department: string) => {
-    const icons: Record<string, string> = {
-      'Отдел продаж': 'TrendingUp',
-      'Технический отдел': 'Wrench',
-      'Служба поддержки': 'Headset',
-    };
+    const icons: Record<string, string> = {};
     return icons[department] || 'Users';
   };
 
