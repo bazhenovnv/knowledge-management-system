@@ -116,15 +116,24 @@ export const useKnowledgeState = () => {
   };
 
   const loadSubsectionContent = async () => {
-    // Не загружаем контент, так как используем статический текст
-    setSubsectionContent({});
+    try {
+      const content = await externalDb.getSubsectionContent();
+      setSubsectionContent(content || {});
+    } catch (error) {
+      console.error('Error loading subsection content:', error);
+    }
   };
 
   const saveSubsectionContent = async (subsection: string, content: string) => {
-    // Сохраняем в локальное состояние
-    setSubsectionContent(prev => ({ ...prev, [subsection]: content }));
-    toast.success('Раздел сохранен');
-    setIsEditingSubsection(false);
+    try {
+      await externalDb.saveSubsectionContent(subsection, content);
+      setSubsectionContent(prev => ({ ...prev, [subsection]: content }));
+      toast.success('Раздел сохранен');
+      setIsEditingSubsection(false);
+    } catch (error) {
+      toast.error('Ошибка сохранения');
+      console.error('Error saving subsection:', error);
+    }
   };
 
   return {

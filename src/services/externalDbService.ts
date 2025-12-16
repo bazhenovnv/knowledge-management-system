@@ -299,11 +299,14 @@ export const externalDb = {
    * Save subsection content
    */
   async saveSubsectionContent(subsection: string, content: string): Promise<void> {
+    const escapedSubsection = subsection.replace(/'/g, "''");
+    const escapedContent = content.replace(/'/g, "''");
+    
     await this.query(
       `INSERT INTO t_p47619579_knowledge_management.subsection_content (subsection_key, content) 
-       VALUES ('${subsection}', '${content}')
+       VALUES ('${escapedSubsection}', '${escapedContent}')
        ON CONFLICT (subsection_key) 
-       DO UPDATE SET content = '${content}', updated_at = NOW()`
+       DO UPDATE SET content = '${escapedContent}', updated_at = NOW()`
     );
   },
 
