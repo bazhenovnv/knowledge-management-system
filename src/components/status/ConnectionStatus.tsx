@@ -12,7 +12,7 @@ interface ConnectionStatusProps {
 }
 
 export default function ConnectionStatus({ 
-  apiUrl = funcUrls['database'],
+  apiUrl = funcUrls['external-db'],
   reconnectAttempts = 5,
   reconnectDelay = 3000
 }: ConnectionStatusProps) {

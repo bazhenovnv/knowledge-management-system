@@ -30,7 +30,7 @@ export const FunctionCallCounter = ({ isAdmin, refreshTrigger }: FunctionCallCou
     try {
       console.log('[FunctionCallCounter] Fetching function call stats...');
       const response = await fetch(
-        `${funcUrls['database'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=function_call_stats`
+        `${funcUrls['external-db'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=function_call_stats`
       );
       const data = await response.json();
       

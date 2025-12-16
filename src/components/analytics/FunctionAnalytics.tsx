@@ -39,7 +39,7 @@ export const FunctionAnalytics = ({ refreshTrigger }: FunctionAnalyticsProps) =>
     try {
       setLoading(true);
       const response = await fetch(
-        `${funcUrls['database'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=function_calls_detailed`
+        `${funcUrls['external-db'] || API_CONFIG.LEGACY_DATABASE}?action=list&table=function_calls_detailed`
       );
       const data = await response.json();
       

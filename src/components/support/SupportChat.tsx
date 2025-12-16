@@ -30,7 +30,7 @@ const SupportChat = ({ employeeId, isAdmin, compact = false }: SupportChatProps)
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const BACKEND_URL = funcUrls['database'] || API_CONFIG.LEGACY_DATABASE;
+  const BACKEND_URL = funcUrls['external-db'] || API_CONFIG.LEGACY_DATABASE;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

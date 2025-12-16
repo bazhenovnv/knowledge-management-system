@@ -32,7 +32,8 @@ export default function ServiceHealthCheck() {
     const updatedServices: ServiceStatus[] = [];
 
     try {
-      const externalDbResponse = await fetch(funcUrls["test-db-connection"], {
+      const testUrl = funcUrls["test-db-connection"] || funcUrls["external-db"];
+      const externalDbResponse = await fetch(testUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ connection_string: 'EXTERNAL_DATABASE_URL' })
@@ -82,7 +83,8 @@ export default function ServiceHealthCheck() {
     }
 
     try {
-      const dbResponse = await fetch(funcUrls["database"], {
+      const dbUrl = funcUrls["external-db"];
+      const dbResponse = await fetch(dbUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -106,7 +108,8 @@ export default function ServiceHealthCheck() {
     }
 
     try {
-      const materialsResponse = await fetch(funcUrls["knowledge-materials"], {
+      const materialsUrl = funcUrls["knowledge-materials"] || funcUrls["external-db"];
+      const materialsResponse = await fetch(materialsUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +133,8 @@ export default function ServiceHealthCheck() {
     }
 
     try {
-      const domainResponse = await fetch(funcUrls["domain"], {
+      const domainUrl = funcUrls["domain"] || funcUrls["external-db"];
+      const domainResponse = await fetch(domainUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

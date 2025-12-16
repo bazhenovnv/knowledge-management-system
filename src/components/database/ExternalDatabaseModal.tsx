@@ -39,10 +39,18 @@ export const ExternalDatabaseModal = ({
       setIsTesting(true);
       setTestResult(null);
 
-      const response = await fetch(funcUrls["test-db-connection"], {
+      const testUrl = funcUrls["test-db-connection"] || funcUrls["external-db"];
+      if (!testUrl) {
+        throw new Error("Test connection endpoint not configured");
+      }
+      
+      const response = await fetch(testUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ connection_string: connectionString })
+        body: JSON.stringify({ 
+          action: 'test_connection',
+          connection_string: connectionString 
+        })
       });
 
       const data = await response.json();

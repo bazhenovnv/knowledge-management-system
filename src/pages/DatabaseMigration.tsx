@@ -28,7 +28,8 @@ export default function DatabaseMigration() {
     setTestResult(null);
 
     try {
-      const response = await fetch(funcUrls["test-db-connection"], {
+      const testUrl = funcUrls["test-db-connection"] || funcUrls["external-db"];
+      const response = await fetch(testUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -61,7 +62,8 @@ export default function DatabaseMigration() {
     setMigrationResult(null);
 
     try {
-      const response = await fetch(funcUrls["migrate-to-external"], {
+      const migrateUrl = funcUrls["migrate-to-external"] || funcUrls["external-db"];
+      const response = await fetch(migrateUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})

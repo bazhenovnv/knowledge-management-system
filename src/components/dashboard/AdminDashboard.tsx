@@ -65,7 +65,7 @@ export const AdminDashboard = ({
   // Экспорт результатов тестов
   const handleExportTestResults = async () => {
     try {
-      const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
+      const BACKEND_URL = funcUrls['external-db'];
       const response = await fetch(
         `${BACKEND_URL}?action=list&table=test_results`
       );
@@ -121,7 +121,7 @@ export const AdminDashboard = ({
   // Экспорт сотрудников
   const handleExportEmployees = async () => {
     try {
-      const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
+      const BACKEND_URL = funcUrls['external-db'];
       const response = await fetch(
         `${BACKEND_URL}?action=list&table=employees`
       );
@@ -171,7 +171,7 @@ export const AdminDashboard = ({
         for (const emp of importedEmployees) {
           try {
             // Проверяем, есть ли уже такой email
-            const BACKEND_URL = funcUrls['local-db-proxy'] || funcUrls['database'];
+            const BACKEND_URL = funcUrls['external-db'];
             const checkResponse = await fetch(
               `${BACKEND_URL}?action=list&table=employees`
             );
