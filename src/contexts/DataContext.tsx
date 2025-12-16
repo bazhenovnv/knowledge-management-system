@@ -15,6 +15,8 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  console.log('📦 DataProvider initializing...');
+  
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [stats, setStats] = useState<any>({
@@ -32,12 +34,21 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   const refreshData = useCallback(async (silent = false) => {
+    console.log('🔄 DataContext: Starting data refresh...');
     try {
       setIsLoading(true);
       
+      console.log('📊 Fetching employees...');
       const allEmployees = await externalDb.getEmployees();
+      console.log('✅ Employees loaded:', allEmployees.length);
+      
+      console.log('📝 Fetching tests...');
       const tests = await externalDb.list('tests');
+      console.log('✅ Tests loaded:', tests.length);
+      
+      console.log('📚 Fetching courses...');
       const courses = await externalDb.list('courses');
+      console.log('✅ Courses loaded:', courses.length);
       
       let testResults = [];
       try {
@@ -80,7 +91,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         toast.success('Данные обновлены');
       }
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      console.error('❌ DataContext: Error refreshing data:', error);
       if (!silent) {
         toast.error('Ошибка загрузки данных из базы');
       }
@@ -114,12 +125,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [autoRefreshEnabled]);
 
   useEffect(() => {
+    console.log('🎬 DataContext: useEffect triggered');
+    
     // Загружаем данные в фоне без блокировки UI
     const loadData = async () => {
       try {
+        console.log('⏳ Starting initial data load...');
         await refreshData(true);
+        console.log('✅ Initial data load complete');
       } catch (error) {
-        console.error('Initial data load failed:', error);
+        console.error('❌ Initial data load failed:', error);
       }
     };
     

@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ErrorBoundary from "./components/ErrorBoundary";
+
+console.log('📱 App.tsx loaded');
 import Index from "./pages/Index";
 import Bitrix24 from "./pages/Bitrix24";
 import DatabaseTestPage from "./pages/DatabaseTestPage";
@@ -37,15 +39,18 @@ import { DataProvider } from "./contexts/DataContext";
 
 
 
-const App = () => (
-  <ErrorBoundary>
-    <TooltipProvider>
-      <DataProvider>
-        <GlobalConsoleLogger />
-        <Toaster />
-        <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Routes>
+const App = () => {
+  console.log('🎨 App component rendering...');
+  
+  return (
+    <ErrorBoundary>
+      <TooltipProvider>
+        <DataProvider>
+          <GlobalConsoleLogger />
+          <Toaster />
+          <Sonner />
+          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/bitrix24" element={<Bitrix24 />} />
             <Route path="/db-test" element={<DatabaseTestPage />} />
@@ -75,11 +80,12 @@ const App = () => (
             <Route path="/knowledge" element={<KnowledgeManagement />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </DataProvider>
-    </TooltipProvider>
-  </ErrorBoundary>
-);
+            </Routes>
+          </BrowserRouter>
+        </DataProvider>
+      </TooltipProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
