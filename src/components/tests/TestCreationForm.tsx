@@ -159,7 +159,7 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
         title: title.trim(),
         description: description.trim() || undefined,
         course_id: courseId ? parseInt(courseId) : undefined,
-        creator_id: 1,
+        creator_id: userId,
         time_limit: timeLimit ? parseInt(timeLimit) : undefined,
         passing_score: parseInt(passingScore),
         max_attempts: 3,
