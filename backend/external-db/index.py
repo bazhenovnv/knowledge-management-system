@@ -212,10 +212,19 @@ def handle_create(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     
     query = f'INSERT INTO "{schema}"."{table}" ({columns}) VALUES ({values_str}) RETURNING *'
     
+    print(f"[CREATE] Table: {schema}.{table}")
+    print(f"[CREATE] Data: {data}")
+    print(f"[CREATE] Query: {query}")
+    
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-        cursor.execute(query)
-        result = cursor.fetchone()
-        return success_response({'data': dict(result) if result else {}})
+        try:
+            cursor.execute(query)
+            result = cursor.fetchone()
+            return success_response({'data': dict(result) if result else {}})
+        except psycopg2.Error as e:
+            print(f"[CREATE ERROR] {str(e)}")
+            print(f"[CREATE ERROR] Query: {query}")
+            raise
 
 
 def handle_update(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -252,10 +261,19 @@ def handle_update(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     set_clause = ', '.join(set_parts)
     query = f'UPDATE "{schema}"."{table}" SET {set_clause} WHERE id = {record_id} RETURNING *'
     
+    print(f"[UPDATE] Table: {schema}.{table}, ID: {record_id}")
+    print(f"[UPDATE] Data: {data}")
+    print(f"[UPDATE] Query: {query}")
+    
     with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-        cursor.execute(query)
-        result = cursor.fetchone()
-        return success_response({'data': dict(result) if result else {}})
+        try:
+            cursor.execute(query)
+            result = cursor.fetchone()
+            return success_response({'data': dict(result) if result else {}})
+        except psycopg2.Error as e:
+            print(f"[UPDATE ERROR] {str(e)}")
+            print(f"[UPDATE ERROR] Query: {query}")
+            raise
 
 
 def handle_delete(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
