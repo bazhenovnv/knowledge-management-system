@@ -2,6 +2,13 @@ import { API_CONFIG } from '@/config/apiConfig';
 
 const EXTERNAL_DB_URL = API_CONFIG.EXTERNAL_DB;
 
+// Critical: Log the URL to verify it's loaded correctly
+console.log('🔗 External DB URL loaded:', EXTERNAL_DB_URL);
+
+if (!EXTERNAL_DB_URL || EXTERNAL_DB_URL === '/api/external-db') {
+  console.error('❌ EXTERNAL_DB_URL is invalid! Check API_CONFIG.');
+}
+
 interface QueryRequest {
   action: 'query' | 'list' | 'stats';
   query?: string;

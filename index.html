@@ -13,6 +13,31 @@
         (window.location.hostname === 'www.ab-education.ru' && window.location.protocol !== 'https:')) {
       window.location.href = 'https://www.ab-education.ru' + window.location.pathname + window.location.search + window.location.hash;
     }
+    
+    // Force cache bust - добавляем версию к URL
+    const APP_VERSION = '2.0.0';
+    const savedVersion = localStorage.getItem('app_version');
+    
+    if (savedVersion !== APP_VERSION) {
+      console.log('🔄 Новая версия приложения, очистка кеша...');
+      localStorage.setItem('app_version', APP_VERSION);
+      
+      // Очищаем service workers если есть
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+      
+      // Очищаем cache storage
+      if ('caches' in window) {
+        caches.keys().then(function(names) {
+          for (let name of names) caches.delete(name);
+        });
+      }
+    }
   </script>
     <meta name="pp-name" value="knowledge-management-system">
       <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
