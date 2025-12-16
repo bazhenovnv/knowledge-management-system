@@ -23,14 +23,21 @@ class LoginRequest(BaseModel):
     remember_me: Optional[bool] = False
 
 def setup_ssl_cert():
-    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL"""
+    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL with timeout"""
     cert_dir = '/tmp/.postgresql'
     cert_path = f'{cert_dir}/root.crt'
     
     if not os.path.exists(cert_path):
-        os.makedirs(cert_dir, exist_ok=True)
-        cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
-        urllib.request.urlretrieve(cert_url, cert_path)
+        try:
+            os.makedirs(cert_dir, exist_ok=True)
+            cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
+            req = urllib.request.Request(cert_url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req, timeout=3) as response:
+                with open(cert_path, 'wb') as f:
+                    f.write(response.read())
+        except Exception as e:
+            print(f"SSL cert download failed (will try without SSL): {e}")
+            return
     
     os.environ['PGSSLROOTCERT'] = cert_path
 
@@ -116,7 +123,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         db_info = database_url.split('@')[1] if '@' in database_url else 'unknown'
         print(f"Using database: {db_info}")
         
-        conn = psycopg2.connect(database_url)
+        conn = psycopg2.connect(database_url, connect_timeout=10)
         conn.set_session(autocommit=False)
         cursor = conn.cursor()
         
