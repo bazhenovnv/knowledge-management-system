@@ -282,7 +282,10 @@ export const externalDb = {
   async getSubsectionContent(): Promise<Record<string, string>> {
     try {
       const rows = await this.query(
-        'SELECT subsection_key, content FROM t_p47619579_knowledge_management.subsection_content'
+        `SELECT subsection_key, content FROM t_p47619579_knowledge_management.subsection_content 
+         WHERE subsection_key NOT LIKE 'archived_%' 
+         AND subsection_key NOT IN ('about-company', 'sales-dept', 'tech-dept', 'support-dept')
+         ORDER BY id DESC`
       );
       const result: Record<string, string> = {};
       rows.forEach((row: any) => {
@@ -302,12 +305,21 @@ export const externalDb = {
     const escapedSubsection = subsection.replace(/'/g, "''");
     const escapedContent = content.replace(/'/g, "''");
     
-    await this.query(
-      `INSERT INTO t_p47619579_knowledge_management.subsection_content (subsection_key, content) 
-       VALUES ('${escapedSubsection}', '${escapedContent}')
-       ON CONFLICT (subsection_key) 
-       DO UPDATE SET content = '${escapedContent}', updated_at = NOW()`
+    // Try to update first
+    const updateResult = await this.query(
+      `UPDATE t_p47619579_knowledge_management.subsection_content 
+       SET content = '${escapedContent}', updated_at = NOW() 
+       WHERE subsection_key = '${escapedSubsection}' 
+       RETURNING *`
     );
+    
+    // If no rows updated, insert new
+    if (!updateResult || updateResult.length === 0) {
+      await this.query(
+        `INSERT INTO t_p47619579_knowledge_management.subsection_content (subsection_key, content) 
+         VALUES ('${escapedSubsection}', '${escapedContent}')`
+      );
+    }
   },
 
   /**
