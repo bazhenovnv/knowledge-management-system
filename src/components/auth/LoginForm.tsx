@@ -43,11 +43,18 @@ export default function LoginForm({ onSuccess, onRegisterClick, onForgotPassword
     try {
       await authService.login(formData);
       toast.success('Вход выполнен успешно!');
+      
+      // Вызываем колбэк для обновления состояния родителя
       onSuccess();
+      
+      // Принудительно перезагружаем страницу через небольшую задержку
+      // чтобы дать время на обновление состояния
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error instanceof Error ? error.message : 'Ошибка при входе в систему');
-    } finally {
       setIsLoading(false);
     }
   };
