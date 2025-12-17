@@ -42,6 +42,25 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const isFormValid = () => {
+    if (!title.trim()) return false;
+    if (!passingScore || parseInt(passingScore) < 0 || parseInt(passingScore) > 100) return false;
+    if (questions.length === 0) return false;
+    
+    return questions.every(q => {
+      if (!q.question_text.trim()) return false;
+      if (q.points <= 0) return false;
+      
+      if (q.question_type !== 'text') {
+        const validOptions = q.options.filter(opt => opt.trim());
+        if (validOptions.length < 2) return false;
+        if (q.correct_answers.length === 0) return false;
+      }
+      
+      return true;
+    });
+  };
+
   useEffect(() => {
     loadCourses();
   }, []);
@@ -425,7 +444,7 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
           <Button type="button" variant="ghost" onClick={onCancel}>
             Отмена
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting || !isFormValid()}>
             {isSubmitting ? (
               <>
                 <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
