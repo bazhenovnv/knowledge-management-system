@@ -143,16 +143,26 @@ const Index = () => {
   };
 
   const handleAuthSuccess = async () => {
+    console.log('[Auth] Успешная авторизация, обновляем данные...');
     // После успешной авторизации обновляем данные из authService
     const employee = authService.getCurrentEmployee();
+    console.log('[Auth] Текущий пользователь:', employee);
     if (employee) {
       setUserRole(employee.role as "employee" | "teacher" | "admin");
       setUserName(employee.full_name);
       setUserId(employee.id);
       setIsLoggedIn(true);
+      console.log('[Auth] Данные пользователя установлены, вход выполнен');
       
       // Обновляем список сотрудников из базы
-      await refreshData();
+      try {
+        await refreshData();
+        console.log('[Auth] Данные обновлены успешно');
+      } catch (error) {
+        console.error('[Auth] Ошибка обновления данных:', error);
+      }
+    } else {
+      console.error('[Auth] Не удалось получить данные пользователя');
     }
   };
 
