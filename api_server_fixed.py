@@ -64,10 +64,10 @@ def auth():
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         query = f"""
-            SELECT s.*, u.username, u.full_name, u.role 
-            FROM t_p47619579_knowledge_management.sessions s
-            JOIN t_p47619579_knowledge_management.users u ON s.user_id = u.id
-            WHERE s.session_id = {escape_sql_string(session_id)}
+            SELECT s.*, e.email, e.full_name, e.role 
+            FROM t_p47619579_knowledge_management.user_sessions s
+            JOIN t_p47619579_knowledge_management.employees e ON s.employee_id = e.id
+            WHERE s.token = {escape_sql_string(session_id)}
             AND s.expires_at > NOW()
         """
         cur.execute(query)
@@ -80,8 +80,8 @@ def auth():
             return jsonify({
                 'authenticated': True,
                 'user': {
-                    'id': session['user_id'],
-                    'username': session['username'],
+                    'id': session['employee_id'],
+                    'username': session['email'],
                     'full_name': session['full_name'],
                     'role': session['role']
                 }
@@ -90,7 +90,7 @@ def auth():
             return jsonify({'authenticated': False}), 401
     
     elif action == 'login':
-        username = data.get('username')
+        username = data.get('username') or data.get('email')
         password = data.get('password')
         
         if not username or not password:
@@ -100,8 +100,8 @@ def auth():
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         query = f"""
-            SELECT * FROM t_p47619579_knowledge_management.users 
-            WHERE username = {escape_sql_string(username)}
+            SELECT * FROM t_p47619579_knowledge_management.employees 
+            WHERE email = {escape_sql_string(username)}
         """
         cur.execute(query)
         user = cur.fetchone()
@@ -111,12 +111,12 @@ def auth():
             conn.close()
             return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
         
-        session_id = secrets.token_urlsafe(32)
+        session_token = secrets.token_urlsafe(32)
         expires_at = datetime.now() + timedelta(days=7)
         
         insert_query = f"""
-            INSERT INTO t_p47619579_knowledge_management.sessions (user_id, session_id, expires_at)
-            VALUES ({user['id']}, {escape_sql_string(session_id)}, {escape_sql_string(expires_at.isoformat())})
+            INSERT INTO t_p47619579_knowledge_management.user_sessions (employee_id, token, expires_at)
+            VALUES ({user['id']}, {escape_sql_string(session_token)}, {escape_sql_string(expires_at.isoformat())})
         """
         cur.execute(insert_query)
         conn.commit()
@@ -126,10 +126,10 @@ def auth():
         
         return jsonify({
             'success': True,
-            'session_id': session_id,
+            'session_id': session_token,
             'user': {
                 'id': user['id'],
-                'username': user['username'],
+                'username': user['email'],
                 'full_name': user['full_name'],
                 'role': user['role']
             }
@@ -142,8 +142,8 @@ def auth():
             cur = conn.cursor()
             
             delete_query = f"""
-                DELETE FROM t_p47619579_knowledge_management.sessions 
-                WHERE session_id = {escape_sql_string(session_id)}
+                DELETE FROM t_p47619579_knowledge_management.user_sessions 
+                WHERE token = {escape_sql_string(session_id)}
             """
             cur.execute(delete_query)
             conn.commit()
