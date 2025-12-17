@@ -148,11 +148,20 @@ const Index = () => {
     const employee = authService.getCurrentEmployee();
     console.log('[Auth] Текущий пользователь:', employee);
     if (employee) {
+      console.log('[Auth] Устанавливаем данные пользователя...');
       setUserRole(employee.role as "employee" | "teacher" | "admin");
       setUserName(employee.full_name);
       setUserId(employee.id);
+      
+      console.log('[Auth] Устанавливаем isLoggedIn = true');
       setIsLoggedIn(true);
+      
       console.log('[Auth] Данные пользователя установлены, вход выполнен');
+      
+      // Принудительно обновляем интерфейс
+      setTimeout(() => {
+        console.log('[Auth] Проверка isLoggedIn после таймаута');
+      }, 100);
       
       // Обновляем список сотрудников из базы
       try {
