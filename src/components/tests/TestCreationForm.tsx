@@ -267,7 +267,9 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Введите название теста"
               required
+              className={!title.trim() ? 'border-red-500' : ''}
             />
+            {!title.trim() && <p className="text-sm text-red-500">Обязательное поле</p>}
           </div>
 
           <div className="space-y-2">
@@ -320,7 +322,9 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
                 value={passingScore}
                 onChange={(e) => setPassingScore(e.target.value)}
                 required
+                className={(!passingScore || parseInt(passingScore) < 0 || parseInt(passingScore) > 100) ? 'border-red-500' : ''}
               />
+              {(!passingScore || parseInt(passingScore) < 0 || parseInt(passingScore) > 100) && <p className="text-sm text-red-500">Укажите значение от 0 до 100</p>}
             </div>
           </div>
         </CardContent>
@@ -350,7 +354,9 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
                 placeholder="Введите текст вопроса"
                 rows={2}
                 required
+                className={!question.question_text.trim() ? 'border-red-500' : ''}
               />
+              {!question.question_text.trim() && <p className="text-sm text-red-500">Обязательное поле</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -378,13 +384,16 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
                   min="1"
                   value={question.points}
                   onChange={(e) => updateQuestion(question.id, 'points', parseInt(e.target.value) || 1)}
+                  className={question.points <= 0 ? 'border-red-500' : ''}
                 />
+                {question.points <= 0 && <p className="text-sm text-red-500">Минимум 1 балл</p>}
               </div>
             </div>
 
             {question.question_type !== 'text' && (
               <div className="space-y-3">
                 <Label>Варианты ответов</Label>
+                {question.correct_answers.length === 0 && <p className="text-sm text-red-500">Выберите хотя бы один правильный ответ</p>}
                 {question.options.map((option, optIndex) => (
                   <div key={optIndex} className="flex items-center space-x-2">
                     {question.question_type === 'single' ? (
@@ -406,6 +415,7 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
                       value={option}
                       onChange={(e) => updateOption(question.id, optIndex, e.target.value)}
                       placeholder={`Вариант ${optIndex + 1}`}
+                      className={!option.trim() && optIndex < 2 ? 'border-red-500' : ''}
                     />
                     {question.options.length > 2 && (
                       <Button
