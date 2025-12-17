@@ -152,11 +152,23 @@ const TestCreationForm: React.FC<TestCreationFormProps> = ({ userId, onCancel, o
       }
     }
 
+    if (!userId) {
+      toast.error('Ошибка: не указан ID пользователя');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const trimmedTitle = title.trim();
+      if (!trimmedTitle) {
+        toast.error('Название теста не может быть пустым');
+        setIsSubmitting(false);
+        return;
+      }
+
       const testData = {
-        title: title.trim(),
+        title: trimmedTitle,
         description: description.trim() || undefined,
         course_id: courseId ? parseInt(courseId) : undefined,
         creator_id: userId,
