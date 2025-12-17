@@ -155,13 +155,15 @@ def auth():
     
     return jsonify({'error': 'Invalid action'}), 400
 
-@app.route('/api/external-db', methods=['GET', 'POST', 'OPTIONS'])
+@app.route('/api/external-db', methods=['GET', 'POST', 'DELETE', 'OPTIONS'])
 def external_db():
     if request.method == 'OPTIONS':
         return '', 200
     
-    # GET или POST — берём параметры откуда пришли
+    # GET, POST или DELETE — берём параметры откуда пришли
     if request.method == 'GET':
+        data = dict(request.args)
+    elif request.method == 'DELETE':
         data = dict(request.args)
     else:
         data = request.get_json(force=True, silent=True) or {}
@@ -208,6 +210,10 @@ def external_db():
                     'success': True,
                     'data': []
                 })
+            
+            # Фикс для запросов теста с вопросами (убираем ta.order_num)
+            if 'ta.order_num' in query:
+                query = query.replace('ta.order_num', 'tq.order_num')
             
             cur.execute(query)
             
@@ -290,6 +296,21 @@ def external_db():
             if not table or not record_id:
                 return jsonify({'error': 'Table and id required'}), 400
             
+            # Сначала удаляем связанные записи
+            if table == 'tests':
+                # Удаляем ответы на вопросы теста
+                cur.execute(f'''
+                    DELETE FROM {schema}.test_answers 
+                    WHERE question_id IN (
+                        SELECT id FROM {schema}.test_questions WHERE test_id = {record_id}
+                    )
+                ''')
+                # Удаляем вопросы теста
+                cur.execute(f'DELETE FROM {schema}.test_questions WHERE test_id = {record_id}')
+                # Удаляем результаты теста
+                cur.execute(f'DELETE FROM {schema}.test_results WHERE test_id = {record_id}')
+            
+            # Удаляем сам тест
             query = f'DELETE FROM {schema}.{table} WHERE id = {record_id}'
             cur.execute(query)
             conn.commit()
