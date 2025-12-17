@@ -79,7 +79,8 @@ class AuthService {
       },
       body: JSON.stringify({
         action: 'login',
-        ...data
+        username: data.email,
+        password: data.password
       })
     });
 
@@ -88,38 +89,60 @@ class AuthService {
       throw new Error(errorData.error || `HTTP ${response.status}: Login failed`);
     }
 
-    const result: AuthResponse = await response.json();
+    const result = await response.json();
 
-    // Store authentication data
-    if (result.success && result.session) {
-      this.token = result.session.token;
-      this.employee = result.employee;
-      localStorage.setItem('auth_token', result.session.token);
-      localStorage.setItem('employee_data', JSON.stringify(result.employee));
+    // Store authentication data (сервер возвращает session_id вместо token)
+    if (result.success && result.session_id) {
+      this.token = result.session_id;
+      // Преобразуем user в employee для совместимости
+      const employee = {
+        id: result.user.id,
+        full_name: result.user.full_name,
+        email: result.user.username,
+        role: result.user.role
+      };
+      this.employee = employee as Employee;
+      localStorage.setItem('auth_token', result.session_id);
+      localStorage.setItem('employee_data', JSON.stringify(employee));
+      localStorage.setItem('session_id', result.session_id);
     }
 
-    return result;
+    return {
+      success: result.success,
+      message: result.success ? 'Login successful' : 'Login failed',
+      employee: this.employee!,
+      session: result.session_id ? {
+        token: result.session_id,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        session_id: result.user.id
+      } : undefined
+    };
   }
 
   // Check if current token is valid
   async checkAuth(): Promise<boolean> {
-    if (!this.token) {
+    const sessionId = localStorage.getItem('session_id') || this.token;
+    if (!sessionId) {
       return false;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}?action=check`, {
-        method: 'GET',
-        headers: {
-          'X-Auth-Token': this.token,
-        }
+      const response = await fetch(`${API_BASE_URL}?action=check&session_id=${sessionId}`, {
+        method: 'GET'
       });
 
       if (response.ok) {
         const result = await response.json();
-        if (result.success && result.authenticated) {
-          this.employee = result.employee;
-          localStorage.setItem('employee_data', JSON.stringify(result.employee));
+        if (result.authenticated && result.user) {
+          const employee = {
+            id: result.user.id,
+            full_name: result.user.full_name,
+            email: result.user.username,
+            role: result.user.role
+          };
+          this.employee = employee as Employee;
+          this.token = sessionId;
+          localStorage.setItem('employee_data', JSON.stringify(employee));
           return true;
         }
       }
@@ -134,7 +157,8 @@ class AuthService {
 
   // Logout current session
   async logout(allSessions: boolean = false): Promise<void> {
-    if (!this.token) {
+    const sessionId = localStorage.getItem('session_id') || this.token;
+    if (!sessionId) {
       return;
     }
 
@@ -143,11 +167,10 @@ class AuthService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Auth-Token': this.token,
         },
         body: JSON.stringify({
           action: 'logout',
-          all_sessions: allSessions
+          session_id: sessionId
         })
       });
     } catch (error) {
@@ -164,6 +187,7 @@ class AuthService {
     this.employee = null;
     localStorage.removeItem('auth_token');
     localStorage.removeItem('employee_data');
+    localStorage.removeItem('session_id');
   }
 
   // Get current user data
