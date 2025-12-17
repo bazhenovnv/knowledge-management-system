@@ -338,10 +338,14 @@ def handle_create_test_full(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
     """Создание теста с вопросами и ответами за один запрос"""
     schema = 't_p47619579_knowledge_management'
     
+    print(f"[CREATE_TEST_FULL] Received body_data: {body_data}")
+    
     title = body_data.get('title')
     description = body_data.get('description')
     creator_id = body_data.get('creator_id')
     questions = body_data.get('questions', [])
+    
+    print(f"[CREATE_TEST_FULL] title={title}, creator_id={creator_id}, questions_count={len(questions)}")
     
     if not title or not creator_id:
         return error_response(400, 'Title and creator_id required')
