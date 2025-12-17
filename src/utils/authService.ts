@@ -72,6 +72,8 @@ class AuthService {
 
   // Login employee
   async login(data: LoginData): Promise<AuthResponse> {
+    console.log('[AuthService] Начинаем вход...', { email: data.email });
+    
     const response = await fetch(`${API_BASE_URL}?action=login`, {
       method: 'POST',
       headers: {
@@ -84,12 +86,16 @@ class AuthService {
       })
     });
 
+    console.log('[AuthService] Получен ответ от сервера:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error('[AuthService] Ошибка входа:', errorData);
       throw new Error(errorData.error || `HTTP ${response.status}: Login failed`);
     }
 
     const result = await response.json();
+    console.log('[AuthService] Результат входа:', result);
 
     // Store authentication data (сервер возвращает session_id вместо token)
     if (result.success && result.session_id) {
@@ -102,9 +108,14 @@ class AuthService {
         role: result.user.role
       };
       this.employee = employee as Employee;
+      
+      console.log('[AuthService] Сохраняем данные в localStorage:', employee);
       localStorage.setItem('auth_token', result.session_id);
       localStorage.setItem('employee_data', JSON.stringify(employee));
       localStorage.setItem('session_id', result.session_id);
+      console.log('[AuthService] Данные сохранены успешно');
+    } else {
+      console.error('[AuthService] Неожиданный формат ответа от сервера');
     }
 
     return {

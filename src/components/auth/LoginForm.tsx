@@ -39,21 +39,26 @@ export default function LoginForm({ onSuccess, onRegisterClick, onForgotPassword
     }
 
     setIsLoading(true);
+    console.log('[LoginForm] Отправляем запрос на вход...');
     
     try {
-      await authService.login(formData);
+      const result = await authService.login(formData);
+      console.log('[LoginForm] Вход успешен, результат:', result);
       toast.success('Вход выполнен успешно!');
       
       // Вызываем колбэк для обновления состояния родителя
+      console.log('[LoginForm] Вызываем onSuccess callback');
       onSuccess();
       
       // Принудительно перезагружаем страницу через небольшую задержку
       // чтобы дать время на обновление состояния
+      console.log('[LoginForm] Планируем перезагрузку страницы через 500мс');
       setTimeout(() => {
+        console.log('[LoginForm] Перезагружаем страницу...');
         window.location.reload();
       }, 500);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('[LoginForm] Ошибка входа:', error);
       toast.error(error instanceof Error ? error.message : 'Ошибка при входе в систему');
       setIsLoading(false);
     }
