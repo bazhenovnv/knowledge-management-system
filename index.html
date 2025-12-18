@@ -15,14 +15,17 @@
     }
     
     // Force cache bust - добавляем версию к URL
-    const APP_VERSION = '2.0.0';
+    const APP_VERSION = '3.0.0-xhr';
     const savedVersion = localStorage.getItem('app_version');
     
     if (savedVersion !== APP_VERSION) {
-      console.log('🔄 Новая версия приложения, очистка кеша...');
+      console.log('🔄 XHR FIX: Новая версия, очистка всего кеша...');
+      
+      // Очищаем ВСЁ из localStorage
+      localStorage.clear();
       localStorage.setItem('app_version', APP_VERSION);
       
-      // Очищаем service workers если есть
+      // Очищаем service workers
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
           for(let registration of registrations) {
@@ -37,6 +40,11 @@
           for (let name of names) caches.delete(name);
         });
       }
+      
+      console.log('🔄 Жесткая перезагрузка...');
+      setTimeout(function() {
+        window.location.href = window.location.href.split('?')[0] + '?cachebust=' + Date.now();
+      }, 300);
     }
   </script>
   
