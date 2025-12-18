@@ -261,7 +261,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             token_escaped = escape_sql_string(token)
             
             cursor.execute(f"""
-                INSERT INTO t_p47619579_knowledge_management.auth_sessions (employee_id, token, expires_at)
+                INSERT INTO t_p47619579_knowledge_management.user_sessions (employee_id, token, expires_at)
                 VALUES ({employee_id}, {token_escaped}, NOW() + INTERVAL '30 days')
                 RETURNING id, token, created_at, expires_at
             """)
@@ -316,7 +316,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             token_escaped = escape_sql_string(auth_token)
             cursor.execute(f"""
                 SELECT s.employee_id, s.expires_at, e.email, e.full_name, e.phone, e.department, e.position, e.role, e.avatar_url, e.theme
-                FROM t_p47619579_knowledge_management.auth_sessions s
+                FROM t_p47619579_knowledge_management.user_sessions s
                 JOIN t_p47619579_knowledge_management.employees e ON e.id = s.employee_id
                 WHERE s.token = {token_escaped} AND s.expires_at > NOW() AND e.is_active = true
             """)
@@ -368,7 +368,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 }
             
             token_escaped = escape_sql_string(auth_token)
-            cursor.execute(f"DELETE FROM t_p47619579_knowledge_management.auth_sessions WHERE token = {token_escaped}")
+            cursor.execute(f"DELETE FROM t_p47619579_knowledge_management.user_sessions WHERE token = {token_escaped}")
             conn.commit()
             cursor.close()
             conn.close()
