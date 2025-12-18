@@ -3,6 +3,10 @@ import { Employee } from '@/types/database';
 
 const API_BASE_URL = API_CONFIG.AUTH_API;
 
+// Проверяем, что URL установлен правильно при загрузке модуля
+console.log('[AuthService Module] API_BASE_URL при загрузке:', API_BASE_URL);
+console.log('[AuthService Module] Это абсолютный URL?', API_BASE_URL.startsWith('http'));
+
 export interface AuthResponse {
   success: boolean;
   message: string;
@@ -72,20 +76,31 @@ class AuthService {
 
   // Login employee
   async login(data: LoginData): Promise<AuthResponse> {
+    console.log('[AuthService] ========================================');
     console.log('[AuthService] Начинаем вход...', { email: data.email });
-    console.log('[AuthService] API_BASE_URL:', API_BASE_URL);
-    console.log('[AuthService] Полный URL запроса:', `${API_BASE_URL}?action=login`);
+    console.log('[AuthService] API_BASE_URL из константы:', API_BASE_URL);
+    console.log('[AuthService] API_CONFIG.AUTH_API:', API_CONFIG.AUTH_API);
     
-    const response = await fetch(`${API_BASE_URL}?action=login`, {
+    const fullUrl = `${API_BASE_URL}?action=login`;
+    console.log('[AuthService] Полный URL запроса:', fullUrl);
+    console.log('[AuthService] Тип URL:', typeof fullUrl);
+    console.log('[AuthService] Длина URL:', fullUrl.length);
+    console.log('[AuthService] Проверка на относительный путь:', fullUrl.startsWith('/') ? 'ОТНОСИТЕЛЬНЫЙ!' : 'АБСОЛЮТНЫЙ');
+    
+    const requestBody = {
+      email: data.email,
+      password: data.password,
+      remember_me: data.remember_me || false
+    };
+    console.log('[AuthService] Тело запроса:', requestBody);
+    console.log('[AuthService] ========================================');
+    
+    const response = await fetch(fullUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        action: 'login',
-        username: data.email,
-        password: data.password
-      })
+      body: JSON.stringify(requestBody)
     });
 
     console.log('[AuthService] Получен ответ от сервера:', response.status);
@@ -93,69 +108,62 @@ class AuthService {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('[AuthService] Ошибка входа:', errorData);
-      throw new Error(errorData.error || `HTTP ${response.status}: Login failed`);
+      throw new Error(errorData.error || 'Invalid credentials');
     }
 
     const result = await response.json();
     console.log('[AuthService] Результат входа:', result);
 
-    // Store authentication data (сервер возвращает session_id вместо token)
-    if (result.success && result.session_id) {
-      this.token = result.session_id;
-      // Преобразуем user в employee для совместимости
-      const employee = {
-        id: result.user.id,
-        full_name: result.user.full_name,
-        email: result.user.username,
-        role: result.user.role
-      };
-      this.employee = employee as Employee;
+    // Store authentication data (backend возвращает token в поле token)
+    if (result.success && result.token) {
+      this.token = result.token;
+      this.employee = result.employee as Employee;
       
-      console.log('[AuthService] Сохраняем данные в localStorage:', employee);
-      localStorage.setItem('auth_token', result.session_id);
-      localStorage.setItem('employee_data', JSON.stringify(employee));
-      localStorage.setItem('session_id', result.session_id);
+      console.log('[AuthService] Сохраняем данные в localStorage:', result.employee);
+      localStorage.setItem('auth_token', result.token);
+      localStorage.setItem('employee_data', JSON.stringify(result.employee));
+      if (result.session?.id) {
+        localStorage.setItem('session_id', result.session.id.toString());
+      }
       console.log('[AuthService] Данные сохранены успешно');
     } else {
-      console.error('[AuthService] Неожиданный формат ответа от сервера');
+      console.error('[AuthService] Неожиданный формат ответа от сервера:', result);
+      throw new Error('Login failed: invalid response format');
     }
 
     return {
-      success: result.success,
-      message: result.success ? 'Login successful' : 'Login failed',
+      success: true,
+      message: 'Login successful',
       employee: this.employee!,
-      session: result.session_id ? {
-        token: result.session_id,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        session_id: result.user.id
+      session: result.session ? {
+        token: result.token,
+        expires_at: result.session.expires_at,
+        session_id: result.session.id
       } : undefined
     };
   }
 
   // Check if current token is valid
   async checkAuth(): Promise<boolean> {
-    const sessionId = localStorage.getItem('session_id') || this.token;
-    if (!sessionId) {
+    const authToken = localStorage.getItem('auth_token') || this.token;
+    if (!authToken) {
       return false;
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}?action=check&session_id=${sessionId}`, {
-        method: 'GET'
+      const response = await fetch(`${API_BASE_URL}?action=check`, {
+        method: 'GET',
+        headers: {
+          'X-Auth-Token': authToken
+        }
       });
 
       if (response.ok) {
         const result = await response.json();
-        if (result.authenticated && result.user) {
-          const employee = {
-            id: result.user.id,
-            full_name: result.user.full_name,
-            email: result.user.username,
-            role: result.user.role
-          };
-          this.employee = employee as Employee;
-          this.token = sessionId;
-          localStorage.setItem('employee_data', JSON.stringify(employee));
+        if (result.authenticated && result.employee) {
+          this.employee = result.employee as Employee;
+          this.token = authToken;
+          localStorage.setItem('employee_data', JSON.stringify(result.employee));
           return true;
         }
       }
@@ -170,21 +178,17 @@ class AuthService {
 
   // Logout current session
   async logout(allSessions: boolean = false): Promise<void> {
-    const sessionId = localStorage.getItem('session_id') || this.token;
-    if (!sessionId) {
+    const authToken = localStorage.getItem('auth_token') || this.token;
+    if (!authToken) {
       return;
     }
 
     try {
       await fetch(`${API_BASE_URL}?action=logout`, {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'logout',
-          session_id: sessionId
-        })
+          'X-Auth-Token': authToken
+        }
       });
     } catch (error) {
       console.warn('Logout request failed:', error);
