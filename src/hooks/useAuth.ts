@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { database } from "@/utils/database";
 import { initializeAutoBackup } from "@/utils/autoBackup";
 import { API_CONFIG } from '@/config/apiConfig';
+import authService from "@/utils/authService";
 
 export interface LoginForm {
   email: string;
@@ -20,25 +21,48 @@ export interface RegisterForm {
 
 export const useAuth = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    // Проверяем localStorage при инициализации
+    console.log('[useAuth] Инициализация - проверяем авторизацию...');
+    // Сначала проверяем authService (приоритет)
+    const currentEmployee = authService.getCurrentEmployee();
+    if (currentEmployee) {
+      console.log('[useAuth] Найден пользователь в authService:', currentEmployee);
+      return true;
+    }
+    // Затем проверяем localStorage
     const saved = localStorage.getItem("isLoggedIn");
+    console.log('[useAuth] Проверка localStorage.isLoggedIn:', saved);
     return saved === "true";
   });
   
   const [userRole, setUserRole] = useState<"employee" | "teacher" | "admin">(() => {
-    // Проверяем localStorage при инициализации
+    // Сначала проверяем authService
+    const currentEmployee = authService.getCurrentEmployee();
+    if (currentEmployee) {
+      return currentEmployee.role as "employee" | "teacher" | "admin";
+    }
+    // Затем проверяем localStorage
     const saved = localStorage.getItem("userRole");
     return (saved as "employee" | "teacher" | "admin") || "employee";
   });
   
   const [userName, setUserName] = useState(() => {
-    // Проверяем localStorage при инициализации
+    // Сначала проверяем authService
+    const currentEmployee = authService.getCurrentEmployee();
+    if (currentEmployee) {
+      return currentEmployee.full_name;
+    }
+    // Затем проверяем localStorage
     const saved = localStorage.getItem("userName");
     return saved || "";
   });
   
   const [userId, setUserId] = useState<number>(() => {
-    // Проверяем localStorage при инициализации
+    // Сначала проверяем authService
+    const currentEmployee = authService.getCurrentEmployee();
+    if (currentEmployee) {
+      return currentEmployee.id;
+    }
+    // Затем проверяем localStorage
     const saved = localStorage.getItem("userId");
     return saved ? parseInt(saved) : 0;
   });
