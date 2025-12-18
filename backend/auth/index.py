@@ -23,23 +23,10 @@ class LoginRequest(BaseModel):
     remember_me: Optional[bool] = False
 
 def setup_ssl_cert():
-    """Download and setup SSL certificate for TimeWeb Cloud PostgreSQL with timeout"""
-    cert_dir = '/tmp/.postgresql'
-    cert_path = f'{cert_dir}/root.crt'
-    
-    if not os.path.exists(cert_path):
-        try:
-            os.makedirs(cert_dir, exist_ok=True)
-            cert_url = 'https://st.timeweb.com/cloud-static/ca.crt'
-            req = urllib.request.Request(cert_url, headers={'User-Agent': 'Mozilla/5.0'})
-            with urllib.request.urlopen(req, timeout=3) as response:
-                with open(cert_path, 'wb') as f:
-                    f.write(response.read())
-        except Exception as e:
-            print(f"SSL cert download failed (will try without SSL): {e}")
-            return
-    
-    os.environ['PGSSLROOTCERT'] = cert_path
+    """SSL disabled - connecting without SSL verification"""
+    # SSL отключен, так как сертификат заблокирован
+    os.environ['PGSSLMODE'] = 'disable'
+    print("SSL disabled for database connection")
 
 def escape_sql_string(value: str) -> str:
     """Escape string for SQL query by doubling single quotes"""
@@ -118,6 +105,15 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': 'Database connection not configured'}),
                 'isBase64Encoded': False
             }
+        
+        # Отключаем SSL, добавляя параметр в строку подключения
+        if 'sslmode=' not in database_url:
+            separator = '&' if '?' in database_url else '?'
+            database_url = f"{database_url}{separator}sslmode=disable"
+        else:
+            # Заменяем существующий sslmode на disable
+            import re
+            database_url = re.sub(r'sslmode=[^&]+', 'sslmode=disable', database_url)
         
         # Логируем какая база используется (скрываем пароль)
         db_info = database_url.split('@')[1] if '@' in database_url else 'unknown'
@@ -260,11 +256,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             employee_id = employee_data[0]
             token_escaped = escape_sql_string(token)
             
-            cursor.execute(f"""
-                INSERT INTO t_p47619579_knowledge_management.user_sessions (employee_id, token, expires_at)
-                VALUES ({employee_id}, {token_escaped}, NOW() + INTERVAL '30 days')
-                RETURNING id, token, created_at, expires_at
-            """)
+            print(f"Creating session for employee_id: {employee_id}")
+            print(f"Token: {token[:20]}...")
+            
+            try:
+                insert_query = f"""
+                    INSERT INTO t_p47619579_knowledge_management.user_sessions (employee_id, token, expires_at)
+                    VALUES ({employee_id}, {token_escaped}, NOW() + INTERVAL '30 days')
+                    RETURNING id, token, created_at, expires_at
+                """
+                print(f"Insert query: {insert_query}")
+                cursor.execute(insert_query)
+            except Exception as insert_error:
+                print(f"Error inserting session: {str(insert_error)}")
+                conn.rollback()
+                cursor.close()
+                conn.close()
+                return {
+                    'statusCode': 500,
+                    'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+                    'body': json.dumps({'error': f'Error saving to DB: {str(insert_error)}'}),
+                    'isBase64Encoded': False
+                }
             
             session_data = cursor.fetchone()
             conn.commit()
