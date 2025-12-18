@@ -3,9 +3,12 @@ import { Employee } from '@/types/database';
 
 const API_BASE_URL = API_CONFIG.AUTH_API;
 
-// Проверяем, что URL установлен правильно при загрузке модуля
+// CRITICAL: Сохраняем нативный fetch ДО того, как его перехватят скрипты poehali.dev
+// Это необходимо, чтобы запросы шли напрямую к Cloud Functions, а не через прокси
+const nativeFetch = window.fetch.bind(window);
+
 console.log('[AuthService Module] API_BASE_URL при загрузке:', API_BASE_URL);
-console.log('[AuthService Module] Это абсолютный URL?', API_BASE_URL.startsWith('http'));
+console.log('[AuthService Module] Нативный fetch сохранён:', typeof nativeFetch);
 
 export interface AuthResponse {
   success: boolean;
@@ -54,7 +57,7 @@ class AuthService {
 
   // Register new employee
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await fetch(`${API_BASE_URL}?action=register`, {
+    const response = await nativeFetch(`${API_BASE_URL}?action=register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -76,26 +79,24 @@ class AuthService {
 
   // Login employee
   async login(data: LoginData): Promise<AuthResponse> {
+    // CRITICAL: Используем абсолютный URL напрямую, чтобы избежать подмены прокси
+    const ABSOLUTE_AUTH_URL = 'https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2';
+    const fullUrl = `${ABSOLUTE_AUTH_URL}?action=login`;
+    
     console.log('[AuthService] ========================================');
     console.log('[AuthService] Начинаем вход...', { email: data.email });
-    console.log('[AuthService] API_BASE_URL из константы:', API_BASE_URL);
-    console.log('[AuthService] API_CONFIG.AUTH_API:', API_CONFIG.AUTH_API);
-    
-    const fullUrl = `${API_BASE_URL}?action=login`;
+    console.log('[AuthService] HARDCODED URL:', ABSOLUTE_AUTH_URL);
     console.log('[AuthService] Полный URL запроса:', fullUrl);
-    console.log('[AuthService] Тип URL:', typeof fullUrl);
-    console.log('[AuthService] Длина URL:', fullUrl.length);
-    console.log('[AuthService] Проверка на относительный путь:', fullUrl.startsWith('/') ? 'ОТНОСИТЕЛЬНЫЙ!' : 'АБСОЛЮТНЫЙ');
+    console.log('[AuthService] window.location.origin:', window.location.origin);
+    console.log('[AuthService] ========================================');
     
     const requestBody = {
       email: data.email,
       password: data.password,
       remember_me: data.remember_me || false
     };
-    console.log('[AuthService] Тело запроса:', requestBody);
-    console.log('[AuthService] ========================================');
     
-    const response = await fetch(fullUrl, {
+    const response = await nativeFetch(fullUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -151,7 +152,7 @@ class AuthService {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}?action=check`, {
+      const response = await nativeFetch(`${API_BASE_URL}?action=check`, {
         method: 'GET',
         headers: {
           'X-Auth-Token': authToken
@@ -184,7 +185,7 @@ class AuthService {
     }
 
     try {
-      await fetch(`${API_BASE_URL}?action=logout`, {
+      await nativeFetch(`${API_BASE_URL}?action=logout`, {
         method: 'DELETE',
         headers: {
           'X-Auth-Token': authToken
