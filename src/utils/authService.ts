@@ -73,6 +73,8 @@ class AuthService {
   // Login employee
   async login(data: LoginData): Promise<AuthResponse> {
     console.log('[AuthService] Начинаем вход...', { email: data.email });
+    console.log('[AuthService] API_BASE_URL:', API_BASE_URL);
+    console.log('[AuthService] Полный URL запроса:', `${API_BASE_URL}?action=login`);
     
     const response = await fetch(`${API_BASE_URL}?action=login`, {
       method: 'POST',
