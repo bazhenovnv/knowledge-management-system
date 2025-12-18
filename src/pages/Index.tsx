@@ -30,6 +30,7 @@ import { useData } from "@/contexts/DataContext";
 import { Loader2 } from "lucide-react";
 
 const Index = () => {
+  console.log('[Index] Компонент Index загружается...');
   const navigate = useNavigate();
   const { isLoading: dataLoading, lastUpdated, refreshData } = useData();
   const [activeTab, setActiveTab] = useState(() => {
@@ -113,6 +114,13 @@ const Index = () => {
     handlePasswordReset,
   } = useAuth();
 
+  console.log('[Index] Состояние авторизации:', {
+    isLoggedIn,
+    userRole,
+    userName,
+    userId
+  });
+
   const { getBackgroundStyle, getContentBackgroundColor } = useAppearance();
 
   const renderDashboard = () => {
@@ -176,8 +184,11 @@ const Index = () => {
   };
 
   if (!isLoggedIn) {
+    console.log('[Index] Пользователь не авторизован, показываем AuthPage');
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
+
+  console.log('[Index] Пользователь авторизован, показываем основное приложение');
 
   return (
     <ContentWrapper>

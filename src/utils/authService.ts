@@ -203,6 +203,11 @@ class AuthService {
 
   // Get current user data
   getCurrentEmployee(): Employee | null {
+    console.log('[AuthService.getCurrentEmployee] Запрос текущего пользователя');
+    console.log('[AuthService.getCurrentEmployee] employee:', this.employee);
+    console.log('[AuthService.getCurrentEmployee] token:', this.token);
+    console.log('[AuthService.getCurrentEmployee] localStorage.auth_token:', localStorage.getItem('auth_token'));
+    console.log('[AuthService.getCurrentEmployee] localStorage.employee_data:', localStorage.getItem('employee_data'));
     return this.employee;
   }
 
