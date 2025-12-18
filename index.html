@@ -40,13 +40,6 @@
     }
   </script>
   
-  <!-- CRITICAL: Сохраняем нативный fetch ДО загрузки скриптов poehali.dev -->
-  <script>
-    console.log('[BOOTSTRAP] Сохраняем нативный fetch перед загрузкой poehali.dev скриптов');
-    window.__NATIVE_FETCH__ = window.fetch.bind(window);
-    console.log('[BOOTSTRAP] Нативный fetch сохранён в window.__NATIVE_FETCH__');
-  </script>
-  
     <meta name="pp-name" value="knowledge-management-system">
       <script src="https://cdn.poehali.dev/intertnal/js/pp-min-2.js"></script>
       <script src="https://cdn.poehali.dev/intertnal/js/route-min.js"></script>

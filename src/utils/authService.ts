@@ -3,13 +3,8 @@ import { Employee } from '@/types/database';
 
 const API_BASE_URL = API_CONFIG.AUTH_API;
 
-// CRITICAL: Используем нативный fetch, сохранённый в index.html ДО загрузки скриптов poehali.dev
-// Это необходимо, чтобы запросы шли напрямую к Cloud Functions, а не через прокси
-const nativeFetch = (window as any).__NATIVE_FETCH__ || window.fetch.bind(window);
-
 console.log('[AuthService Module] API_BASE_URL при загрузке:', API_BASE_URL);
-console.log('[AuthService Module] __NATIVE_FETCH__ доступен?', typeof (window as any).__NATIVE_FETCH__);
-console.log('[AuthService Module] Используем nativeFetch:', typeof nativeFetch);
+console.log('[AuthService Module] Используем XMLHttpRequest для обхода перехвата fetch');
 
 export interface AuthResponse {
   success: boolean;
@@ -58,40 +53,52 @@ class AuthService {
 
   // Register new employee
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await nativeFetch(`${API_BASE_URL}?action=register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const fullUrl = `${API_BASE_URL}?action=register`;
+    
+    const result = await new Promise<AuthResponse>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', fullUrl, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch (e) {
+            reject(new Error('Failed to parse response'));
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.error || `HTTP ${xhr.status}: Registration failed`));
+          } catch (e) {
+            reject(new Error(`HTTP ${xhr.status}: Registration failed`));
+          }
+        }
+      };
+      
+      xhr.onerror = () => reject(new Error('Network error'));
+      
+      xhr.send(JSON.stringify({
         action: 'register',
         ...data
-      })
+      }));
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}: Registration failed`);
-    }
-
-    const result: AuthResponse = await response.json();
     return result;
   }
 
   // Login employee
   async login(data: LoginData): Promise<AuthResponse> {
-    // CRITICAL: Используем абсолютный URL напрямую, чтобы избежать подмены прокси
+    // CRITICAL: Используем XMLHttpRequest вместо fetch, так как poehali.dev скрипты НЕ перехватывают XHR
     const ABSOLUTE_AUTH_URL = 'https://functions.poehali.dev/af05cfe5-2869-458e-8c1b-998684e530d2';
     const fullUrl = `${ABSOLUTE_AUTH_URL}?action=login`;
     
-    console.log('[AuthService] ========================================');
-    console.log('[AuthService] Начинаем вход...', { email: data.email });
-    console.log('[AuthService] HARDCODED URL:', ABSOLUTE_AUTH_URL);
-    console.log('[AuthService] Полный URL запроса:', fullUrl);
-    console.log('[AuthService] window.location.origin:', window.location.origin);
-    console.log('[AuthService] nativeFetch === window.fetch?', nativeFetch === window.fetch);
-    console.log('[AuthService] Используем __NATIVE_FETCH__?', nativeFetch === (window as any).__NATIVE_FETCH__);
-    console.log('[AuthService] ========================================');
+    console.log('[AuthService.login] ========================================');
+    console.log('[AuthService.login] Начинаем вход через XMLHttpRequest...', { email: data.email });
+    console.log('[AuthService.login] URL:', fullUrl);
+    console.log('[AuthService.login] ========================================');
     
     const requestBody = {
       email: data.email,
@@ -99,39 +106,57 @@ class AuthService {
       remember_me: data.remember_me || false
     };
     
-    const response = await nativeFetch(fullUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
+    // Используем XMLHttpRequest для обхода перехвата fetch
+    const result = await new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', fullUrl, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      
+      xhr.onload = function() {
+        console.log('[AuthService.login] XHR Status:', xhr.status);
+        console.log('[AuthService.login] XHR Response:', xhr.responseText.substring(0, 200));
+        
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch (e) {
+            reject(new Error('Failed to parse response'));
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            reject(new Error(errorData.error || 'Invalid credentials'));
+          } catch (e) {
+            reject(new Error(`HTTP ${xhr.status}: Login failed`));
+          }
+        }
+      };
+      
+      xhr.onerror = function() {
+        console.error('[AuthService.login] XHR Network Error');
+        reject(new Error('Network error'));
+      };
+      
+      xhr.send(JSON.stringify(requestBody));
     });
 
-    console.log('[AuthService] Получен ответ от сервера:', response.status);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('[AuthService] Ошибка входа:', errorData);
-      throw new Error(errorData.error || 'Invalid credentials');
-    }
-
-    const result = await response.json();
-    console.log('[AuthService] Результат входа:', result);
+    console.log('[AuthService.login] Результат входа:', result);
 
     // Store authentication data (backend возвращает token в поле token)
     if (result.success && result.token) {
       this.token = result.token;
       this.employee = result.employee as Employee;
       
-      console.log('[AuthService] Сохраняем данные в localStorage:', result.employee);
+      console.log('[AuthService.login] Сохраняем данные в localStorage:', result.employee);
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('employee_data', JSON.stringify(result.employee));
       if (result.session?.id) {
         localStorage.setItem('session_id', result.session.id.toString());
       }
-      console.log('[AuthService] Данные сохранены успешно');
+      console.log('[AuthService.login] Данные сохранены успешно');
     } else {
-      console.error('[AuthService] Неожиданный формат ответа от сервера:', result);
+      console.error('[AuthService.login] Неожиданный формат ответа от сервера:', result);
       throw new Error('Login failed: invalid response format');
     }
 
@@ -155,21 +180,32 @@ class AuthService {
     }
 
     try {
-      const response = await nativeFetch(`${API_BASE_URL}?action=check`, {
-        method: 'GET',
-        headers: {
-          'X-Auth-Token': authToken
-        }
+      const result = await new Promise<any>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', `${API_BASE_URL}?action=check`, true);
+        xhr.setRequestHeader('X-Auth-Token', authToken);
+        
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              resolve(JSON.parse(xhr.responseText));
+            } catch (e) {
+              reject(new Error('Failed to parse response'));
+            }
+          } else {
+            reject(new Error(`HTTP ${xhr.status}`));
+          }
+        };
+        
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send();
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.authenticated && result.employee) {
-          this.employee = result.employee as Employee;
-          this.token = authToken;
-          localStorage.setItem('employee_data', JSON.stringify(result.employee));
-          return true;
-        }
+      if (result.authenticated && result.employee) {
+        this.employee = result.employee as Employee;
+        this.token = authToken;
+        localStorage.setItem('employee_data', JSON.stringify(result.employee));
+        return true;
       }
     } catch (error) {
       console.warn('Auth check failed:', error);
@@ -188,11 +224,14 @@ class AuthService {
     }
 
     try {
-      await nativeFetch(`${API_BASE_URL}?action=logout`, {
-        method: 'DELETE',
-        headers: {
-          'X-Auth-Token': authToken
-        }
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('DELETE', `${API_BASE_URL}?action=logout`, true);
+        xhr.setRequestHeader('X-Auth-Token', authToken);
+        
+        xhr.onload = () => resolve();
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send();
       });
     } catch (error) {
       console.warn('Logout request failed:', error);
