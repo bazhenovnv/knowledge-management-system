@@ -162,6 +162,22 @@ export const Navigation = ({
           <Button
             variant="outline"
             size="sm"
+            onClick={() => {
+              console.log('[ClearCache] Очищаем кэш...');
+              localStorage.clear();
+              console.log('[ClearCache] localStorage очищен');
+              sessionStorage.clear();
+              console.log('[ClearCache] sessionStorage очищен');
+              window.location.reload();
+            }}
+            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
+            title="Очистить кэш и перезагрузить"
+          >
+            <Icon name="Trash2" size={16} />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => setActiveTab("settings")}
             className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 shadow-lg hover:shadow-xl transition-shadow border-[0.25px] border-black"
             title="Настройки"
