@@ -3,12 +3,13 @@ import { Employee } from '@/types/database';
 
 const API_BASE_URL = API_CONFIG.AUTH_API;
 
-// CRITICAL: Сохраняем нативный fetch ДО того, как его перехватят скрипты poehali.dev
+// CRITICAL: Используем нативный fetch, сохранённый в index.html ДО загрузки скриптов poehali.dev
 // Это необходимо, чтобы запросы шли напрямую к Cloud Functions, а не через прокси
-const nativeFetch = window.fetch.bind(window);
+const nativeFetch = (window as any).__NATIVE_FETCH__ || window.fetch.bind(window);
 
 console.log('[AuthService Module] API_BASE_URL при загрузке:', API_BASE_URL);
-console.log('[AuthService Module] Нативный fetch сохранён:', typeof nativeFetch);
+console.log('[AuthService Module] __NATIVE_FETCH__ доступен?', typeof (window as any).__NATIVE_FETCH__);
+console.log('[AuthService Module] Используем nativeFetch:', typeof nativeFetch);
 
 export interface AuthResponse {
   success: boolean;
@@ -88,6 +89,8 @@ class AuthService {
     console.log('[AuthService] HARDCODED URL:', ABSOLUTE_AUTH_URL);
     console.log('[AuthService] Полный URL запроса:', fullUrl);
     console.log('[AuthService] window.location.origin:', window.location.origin);
+    console.log('[AuthService] nativeFetch === window.fetch?', nativeFetch === window.fetch);
+    console.log('[AuthService] Используем __NATIVE_FETCH__?', nativeFetch === (window as any).__NATIVE_FETCH__);
     console.log('[AuthService] ========================================');
     
     const requestBody = {
