@@ -189,12 +189,29 @@ def handle_stats(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def handle_create(conn, body_data: Dict[str, Any]) -> Dict[str, Any]:
+    import hashlib
+    import secrets
+    
     table = body_data.get('table', '')
     schema = body_data.get('schema', 't_p47619579_knowledge_management')
     data = body_data.get('data', {})
     
     if not table or not data:
         return error_response(400, 'Table name and data required')
+    
+    # Для таблицы employees: если есть password - конвертируем в password_hash
+    if table == 'employees' and 'password' in data:
+        password = data['password']
+        salt = secrets.token_hex(8)
+        password_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+        data['password_hash'] = f"{salt}:{password_hash.hex()}"
+        del data['password']
+    
+    # Если password_hash отсутствует в таблице employees - генерируем дефолтный
+    if table == 'employees' and 'password_hash' not in data:
+        salt = secrets.token_hex(8)
+        password_hash = hashlib.pbkdf2_hmac('sha256', 'default123'.encode('utf-8'), salt.encode('utf-8'), 100000)
+        data['password_hash'] = f"{salt}:{password_hash.hex()}"
     
     columns = ', '.join([f'"{k}"' for k in data.keys()])
     values = []
