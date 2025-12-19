@@ -65,12 +65,9 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
       });
       
       toast.success('Добро пожаловать в систему!');
-      onSuccess();
       
-      // Принудительно перезагружаем страницу после регистрации
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Переход в систему через колбэк
+      onSuccess();
     } catch (error) {
       console.error('Registration error:', error);
       toast.error(error instanceof Error ? error.message : 'Ошибка при регистрации');
