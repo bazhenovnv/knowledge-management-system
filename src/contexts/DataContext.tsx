@@ -39,16 +39,34 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       
       console.log('📊 Fetching employees...');
-      const allEmployees = await externalDb.getEmployees();
-      console.log('✅ Employees loaded:', allEmployees.length);
+      let allEmployees = [];
+      try {
+        allEmployees = await externalDb.getEmployees();
+        console.log('✅ Employees loaded:', allEmployees.length);
+      } catch (err) {
+        console.error('❌ Error loading employees:', err);
+        allEmployees = [];
+      }
       
       console.log('📝 Fetching tests...');
-      const tests = await externalDb.list('tests');
-      console.log('✅ Tests loaded:', tests.length);
+      let tests = [];
+      try {
+        tests = await externalDb.list('tests');
+        console.log('✅ Tests loaded:', tests.length);
+      } catch (err) {
+        console.error('❌ Error loading tests:', err);
+        tests = [];
+      }
       
       console.log('📚 Fetching courses...');
-      const courses = await externalDb.list('courses');
-      console.log('✅ Courses loaded:', courses.length);
+      let courses = [];
+      try {
+        courses = await externalDb.list('courses');
+        console.log('✅ Courses loaded:', courses.length);
+      } catch (err) {
+        console.error('❌ Error loading courses:', err);
+        courses = [];
+      }
       
       let testResults = [];
       try {
