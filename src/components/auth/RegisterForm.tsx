@@ -54,22 +54,28 @@ export default function RegisterForm({ onSuccess, onLoginClick }: RegisterFormPr
     setIsLoading(true);
     
     try {
+      console.log('[RegisterForm] Начинаем регистрацию...');
       await authService.register(formData);
+      console.log('[RegisterForm] Регистрация успешна');
       toast.success('Регистрация прошла успешно! Выполняется вход...');
       
       // Автоматический вход после регистрации
-      await authService.login({
+      console.log('[RegisterForm] Выполняем автоматический вход...');
+      const loginResult = await authService.login({
         email: formData.email,
         password: formData.password,
         remember_me: true
       });
+      console.log('[RegisterForm] Вход успешен:', loginResult);
       
       toast.success('Добро пожаловать в систему!');
       
       // Переход в систему через колбэк
+      console.log('[RegisterForm] Вызываем onSuccess()...');
       onSuccess();
+      console.log('[RegisterForm] onSuccess() вызван');
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('[RegisterForm] Ошибка:', error);
       toast.error(error instanceof Error ? error.message : 'Ошибка при регистрации');
       setIsLoading(false);
     }
