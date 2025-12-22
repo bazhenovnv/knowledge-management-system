@@ -69,13 +69,13 @@ class AutoRefreshService {
     try {
       const changedTables: string[] = [];
       
-      // Фиксированные запросы с проверкой на NULL (версия 2.1)
+      // Фиксированные запросы с проверкой на NULL (версия 2.2)
       const tableQueries: Record<string, string> = {
         'employees': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.employees WHERE updated_at IS NOT NULL',
         'tests': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.tests WHERE updated_at IS NOT NULL',
-        'test_results': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.test_results WHERE updated_at IS NOT NULL',
+        'test_results': 'SELECT MAX(completed_at) as last_update FROM t_p47619579_knowledge_management.test_results WHERE completed_at IS NOT NULL',
         'courses': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.courses WHERE updated_at IS NOT NULL',
-        'notifications': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.notifications WHERE updated_at IS NOT NULL',
+        'notifications': 'SELECT MAX(created_at) as last_update FROM t_p47619579_knowledge_management.notifications WHERE created_at IS NOT NULL',
         'knowledge_materials': 'SELECT MAX(updated_at) as last_update FROM t_p47619579_knowledge_management.knowledge_materials WHERE updated_at IS NOT NULL'
       };
       
