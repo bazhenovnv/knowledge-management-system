@@ -42,5 +42,19 @@ systemctl reload nginx
 echo "✅ Сервер настроен!"
 ENDSSH
 
+echo ""
 echo "✅ Настройка сервера завершена!"
+echo ""
+
+# Проверяем работу nginx
+echo "🔍 Проверяю доступность сервера..."
+sleep 2
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://ab-education.ru 2>/dev/null || echo "000")
+if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "404" ]; then
+    echo "✅ Nginx работает (HTTP $HTTP_CODE)"
+else
+    echo "⚠️  Сервер вернул код: HTTP $HTTP_CODE"
+fi
+
+echo ""
 echo "🌐 Теперь можно выполнить деплой: ./deploy-to-server.sh"

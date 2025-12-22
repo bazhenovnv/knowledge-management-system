@@ -51,5 +51,33 @@ ENDSSH
 # 5. Удаляем локальный архив
 rm dist.tar.gz
 
+echo ""
 echo "✅ Деплой успешно завершён!"
-echo "🌐 Сайт доступен по адресу: http://ab-education.ru"
+echo ""
+
+# 6. Проверяем работу сайта и API
+echo "🔍 Проверяю доступность сайта..."
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://ab-education.ru)
+if [ "$HTTP_CODE" = "200" ]; then
+    echo "✅ Сайт работает: http://ab-education.ru (HTTP $HTTP_CODE)"
+else
+    echo "⚠️  Сайт вернул код: HTTP $HTTP_CODE"
+fi
+
+echo ""
+echo "🔍 Проверяю работу API..."
+API_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://ab-education.ru/api/hello)
+if [ "$API_CODE" = "200" ]; then
+    echo "✅ API работает: http://ab-education.ru/api/hello (HTTP $API_CODE)"
+    API_RESPONSE=$(curl -s http://ab-education.ru/api/hello)
+    echo "📋 Ответ API: $API_RESPONSE"
+elif [ "$API_CODE" = "426" ]; then
+    echo "❌ API возвращает ошибку 426 (Upgrade Required)"
+    echo "   Возможно, не обновлен nginx конфиг. Запустите: ./server-setup.sh"
+else
+    echo "⚠️  API вернул код: HTTP $API_CODE"
+fi
+
+echo ""
+echo "🌐 Сайт: http://ab-education.ru"
+echo "🔌 API: http://ab-education.ru/api/"
