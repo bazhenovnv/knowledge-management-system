@@ -49,14 +49,6 @@ export default function LoginForm({ onSuccess, onRegisterClick, onForgotPassword
       // Вызываем колбэк для обновления состояния родителя
       console.log('[LoginForm] Вызываем onSuccess callback');
       onSuccess();
-      
-      // Принудительно перезагружаем страницу через небольшую задержку
-      // чтобы дать время на обновление состояния
-      console.log('[LoginForm] Планируем перезагрузку страницы через 500мс');
-      setTimeout(() => {
-        console.log('[LoginForm] Перезагружаем страницу...');
-        window.location.reload();
-      }, 500);
     } catch (error) {
       console.error('[LoginForm] Ошибка входа:', error);
       toast.error(error instanceof Error ? error.message : 'Ошибка при входе в систему');

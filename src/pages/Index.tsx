@@ -166,11 +166,6 @@ const Index = () => {
       
       console.log('[Auth] Данные пользователя установлены, вход выполнен');
       
-      // Принудительно обновляем интерфейс
-      setTimeout(() => {
-        console.log('[Auth] Проверка isLoggedIn после таймаута');
-      }, 100);
-      
       // Обновляем список сотрудников из базы
       try {
         await refreshData();
@@ -178,6 +173,10 @@ const Index = () => {
       } catch (error) {
         console.error('[Auth] Ошибка обновления данных:', error);
       }
+      
+      // Переходим на главную панель (dashboard)
+      console.log('[Auth] Переход на главную панель');
+      setActiveTab('dashboard');
     } else {
       console.error('[Auth] Не удалось получить данные пользователя');
     }
