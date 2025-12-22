@@ -19,6 +19,8 @@ echo "🗑️  Удаляю старые конфиги..."
 # Удаляем старые конфиги
 rm -f /etc/nginx/sites-enabled/giftbox
 rm -f /etc/nginx/sites-available/giftbox
+rm -f /etc/nginx/sites-enabled/ab-education.ru
+rm -f /etc/nginx/sites-available/ab-education.ru
 
 # Устанавливаем новый конфиг
 echo "📝 Устанавливаю новый конфиг..."
